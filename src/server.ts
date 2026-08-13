@@ -18,6 +18,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// ── JSON Syntax Error Guard ────────────────────────────────────────────────
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    console.error('[BAD JSON PAYLOAD]:', err.message);
+    return res.status(400).json({ error: 'Malformed JSON payload: Invalid escape sequence or formatting' });
+  }
+  next(err);
+});
+
 // ── Admin Auth Middleware ──────────────────────────────────────────────────
 const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'OPTIONS') return next();
