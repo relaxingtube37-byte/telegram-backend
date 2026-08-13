@@ -11,11 +11,17 @@ const app = express();
 const port = process.env.PORT || 8080;
 const adminSecret = process.env.ADMIN_SECRET || 'sofascore-tennis-admin-secret-2026';
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-secret', 'X-Admin-Secret'],
+}));
 app.use(express.json());
 
 // ── Admin Auth Middleware ──────────────────────────────────────────────────
 const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.method === 'OPTIONS') return next();
+
   const currentSecret = (process.env.ADMIN_SECRET || 'sofascore-tennis-admin-secret-2026').trim();
   const rawHeader = ((req.headers['x-admin-secret'] || req.query.secret) as string || '').trim();
   let decodedHeader = rawHeader;
