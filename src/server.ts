@@ -1,0 +1,344 @@
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { db } from './db';
+import { publishPredictionToChannel, updateChannelPostResult } from './bot';
+import { handlePostbackWebhook } from './postback';
+
+dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 8080;
+const adminSecret = process.env.ADMIN_SECRET || 'sofascore-tennis-admin-secret-2026';
+
+app.use(cors());
+app.use(express.json());
+
+// ── Admin Auth Middleware ──────────────────────────────────────────────────
+const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
+  const secretHeader = req.headers['x-admin-secret'] || req.query.secret;
+  if (secretHeader !== adminSecret) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid Admin Secret' });
+  }
+  next();
+};
+
+// ── Health Check ───────────────────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// ── WebApp Public Endpoints ────────────────────────────────────────────────
+
+// Get published predictions for TWA
+app.get('/api/webapp/predictions', (req, res) => {
+  const predictions = db.prepare(`
+    SELECT * FROM predictions ORDER BY id DESC LIMIT 50
+  `).all().map((p: any) => ({
+    ...p,
+    key_factors: p.key_factors ? JSON.parse(p.key_factors) : [],
+  }));
+
+  res.json(predictions);
+});
+
+// Get channel accuracy stats
+app.get('/api/webapp/stats', (req, res) => {
+  const total = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status IN ("WON", "LOST")').get() as any;
+  const won = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "WON"').get() as any;
+  const lost = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "LOST"').get() as any;
+  const upcoming = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "UPCOMING"').get() as any;
+
+  const totalSettled = total.count || 0;
+  const winCount = won.count || 0;
+  const winRate = totalSettled > 0 ? Math.round((winCount / totalSettled) * 100) : 0;
+
+  res.json({
+    totalPredictions: totalSettled + upcoming.count,
+    settled: totalSettled,
+    won: winCount,
+    lost: lost.count || 0,
+    upcoming: upcoming.count || 0,
+    winRatePct: winRate,
+  });
+});
+
+// Get active referral sites
+app.get('/api/webapp/referrals', (req, res) => {
+  const sites = db.prepare('SELECT id, name, base_url FROM referral_sites WHERE is_active = 1').all();
+  res.json(sites);
+});
+
+// Get user verification status
+app.get('/api/webapp/user/:telegramId', (req, res) => {
+  const { telegramId } = req.params;
+  const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(parseInt(telegramId, 10));
+  if (!user) {
+    return res.json({ registered: false, verified: false });
+  }
+  res.json({ registered: true, verified: Boolean((user as any).is_verified) });
+});
+
+// ── Referral Postback Webhook ─────────────────────────────────────────────
+app.get('/api/postback/:siteKey', handlePostbackWebhook);
+app.post('/api/postback/:siteKey', handlePostbackWebhook);
+
+// ── Admin Endpoints (Used by state football Admin Panel) ──────────────────
+
+// Admin: Publish prediction to Channel & TWA
+app.post('/api/admin/predictions/publish', requireAdminAuth, async (req: Request, res: Response) => {
+  const p = req.body;
+
+  if (!p.match_title || !p.predicted_winner) {
+    return res.status(400).json({ error: 'Match title and predicted winner are required' });
+  }
+
+  const now = new Date().toISOString();
+  const keyFactorsJson = Array.isArray(p.key_factors) ? JSON.stringify(p.key_factors) : JSON.stringify([]);
+
+  const result = db.prepare(`
+    INSERT INTO predictions (
+      fixture_id, match_title, tournament_name, surface, round_name,
+      home_name, away_name, home_odds, away_odds,
+      predicted_winner, predicted_score, win_probability, confidence,
+      key_factors, best_bet_market, best_bet_selection, best_bet_rationale, best_bet_ev,
+      alt_bet_market, alt_bet_selection, alt_bet_rationale, alt_bet_risk,
+      ai_summary, status, published_at, created_at
+    ) VALUES (
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, 'UPCOMING', ?, ?
+    )
+  `).run(
+    p.fixture_id || null, p.match_title, p.tournament_name || null, p.surface || null, p.round_name || null,
+    p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
+    p.predicted_winner, p.predicted_score || null, p.win_probability || 65, p.confidence || 'HIGH',
+    keyFactorsJson, p.best_bet_market || null, p.best_bet_selection || null, p.best_bet_rationale || null, p.best_bet_ev || 'POSITIVE',
+    p.alt_bet_market || null, p.alt_bet_selection || null, p.alt_bet_rationale || null, p.alt_bet_risk || 'LOW',
+    p.ai_summary || null, now, now
+  );
+
+  const predictionId = result.lastInsertRowid as number;
+  const prediction = db.prepare('SELECT * FROM predictions WHERE id = ?').get(predictionId);
+
+  // Post to Telegram Channel if requested (default true)
+  let channelMsgId: number | null = null;
+  if (p.postToChannel !== false) {
+    channelMsgId = await publishPredictionToChannel(prediction);
+    if (channelMsgId) {
+      db.prepare(`
+        INSERT INTO channel_posts (prediction_id, message_id, channel_id, posted_at)
+        VALUES (?, ?, ?, ?)
+      `).run(predictionId, channelMsgId, process.env.CHANNEL_ID || '', now);
+    }
+  }
+
+  res.json({
+    success: true,
+    predictionId,
+    postedToChannel: channelMsgId !== null,
+    channelMessageId: channelMsgId,
+  });
+});
+
+// Admin: Get all predictions for management
+app.get('/api/admin/predictions', requireAdminAuth, (req, res) => {
+  const predictions = db.prepare('SELECT * FROM predictions ORDER BY id DESC').all().map((p: any) => ({
+    ...p,
+    key_factors: p.key_factors ? JSON.parse(p.key_factors) : [],
+  }));
+  res.json(predictions);
+});
+
+// Admin: Update prediction result (WON / LOST / VOID)
+app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status, result_score } = req.body;
+
+  if (!['WON', 'LOST', 'VOID', 'UPCOMING', 'LIVE'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status value' });
+  }
+
+  db.prepare(`
+    UPDATE predictions SET status = ?, result_score = ? WHERE id = ?
+  `).run(status, result_score || null, id);
+
+  // If there's a channel post, reply update
+  const post = db.prepare('SELECT * FROM channel_posts WHERE prediction_id = ?').get(id) as any;
+  if (post && post.message_id && ['WON', 'LOST', 'VOID'].includes(status)) {
+    await updateChannelPostResult(post.message_id, status, result_score);
+  }
+
+  res.json({ success: true, id, status });
+});
+
+// Admin: Delete prediction
+app.delete('/api/admin/predictions/:id', requireAdminAuth, (req, res) => {
+  const { id } = req.params;
+  db.prepare('DELETE FROM predictions WHERE id = ?').run(id);
+  db.prepare('DELETE FROM channel_posts WHERE prediction_id = ?').run(id);
+  res.json({ success: true });
+});
+
+// Admin: Manage Referral Sites
+app.get('/api/admin/referrals', requireAdminAuth, (req, res) => {
+  const sites = db.prepare('SELECT * FROM referral_sites ORDER BY id DESC').all();
+  res.json(sites);
+});
+
+app.post('/api/admin/referrals', requireAdminAuth, (req, res) => {
+  const { name, base_url, postback_key } = req.body;
+  if (!name || !base_url || !postback_key) {
+    return res.status(400).json({ error: 'Name, base_url, and postback_key are required' });
+  }
+
+  const result = db.prepare(`
+    INSERT INTO referral_sites (name, base_url, postback_key, is_active, created_at)
+    VALUES (?, ?, ?, 1, ?)
+  `).run(name, base_url, postback_key, new Date().toISOString());
+
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+app.delete('/api/admin/referrals/:id', requireAdminAuth, (req, res) => {
+  const { id } = req.params;
+  db.prepare('DELETE FROM referral_sites WHERE id = ?').run(id);
+  res.json({ success: true });
+});
+
+// Admin: Users List & Manual Verification
+app.get('/api/admin/users', requireAdminAuth, (req, res) => {
+  const users = db.prepare(`
+    SELECT u.*, s.name as site_name
+    FROM users u
+    LEFT JOIN referral_sites s ON u.registered_site_id = s.id
+    ORDER BY u.telegram_id DESC
+  `).all();
+  res.json(users);
+});
+
+app.post('/api/admin/users/verify', requireAdminAuth, (req, res) => {
+  const { telegram_id, verified } = req.body;
+  const tid = parseInt(telegram_id, 10);
+  if (isNaN(tid)) {
+    return res.status(400).json({ error: 'Invalid telegram_id' });
+  }
+
+  const isVerified = verified !== false ? 1 : 0;
+  const now = new Date().toISOString();
+
+  const existing = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(tid);
+  if (existing) {
+    db.prepare('UPDATE users SET is_verified = ?, verified_at = ? WHERE telegram_id = ?').run(isVerified, isVerified ? now : null, tid);
+  } else {
+    db.prepare('INSERT INTO users (telegram_id, is_verified, created_at, verified_at) VALUES (?, ?, ?, ?)').run(tid, isVerified, now, isVerified ? now : null);
+  }
+
+  res.json({ success: true, telegram_id: tid, is_verified: isVerified });
+});
+
+// Admin: Database Backup Export
+app.get('/api/admin/backup/export', requireAdminAuth, (req, res) => {
+  const predictions = db.prepare('SELECT * FROM predictions').all();
+  const referral_sites = db.prepare('SELECT * FROM referral_sites').all();
+  const users = db.prepare('SELECT * FROM users').all();
+  const settings = db.prepare('SELECT * FROM settings').all();
+
+  const backupData = {
+    format: 'sofascore-tennis-ai-backup',
+    version: 1,
+    exported_at: new Date().toISOString(),
+    predictions,
+    referral_sites,
+    users,
+    settings,
+  };
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename=tennis-ai-backup-${new Date().toISOString().slice(0, 10)}.json`);
+  res.send(JSON.stringify(backupData, null, 2));
+});
+
+// Admin: Database Backup Import
+app.post('/api/admin/backup/import', requireAdminAuth, (req, res) => {
+  const { backupData, mode = 'merge' } = req.body;
+
+  if (!backupData || backupData.format !== 'sofascore-tennis-ai-backup') {
+    return res.status(400).json({ error: 'Invalid backup file format' });
+  }
+
+  try {
+    if (mode === 'replace') {
+      db.prepare('DELETE FROM predictions').run();
+      db.prepare('DELETE FROM referral_sites').run();
+      db.prepare('DELETE FROM users').run();
+      db.prepare('DELETE FROM settings').run();
+    }
+
+    // Import referral_sites
+    if (Array.isArray(backupData.referral_sites)) {
+      const stmt = db.prepare(`
+        INSERT OR REPLACE INTO referral_sites (id, name, base_url, postback_key, is_active, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      backupData.referral_sites.forEach((s: any) => {
+        stmt.run(s.id, s.name, s.base_url, s.postback_key, s.is_active ?? 1, s.created_at || new Date().toISOString());
+      });
+    }
+
+    // Import users
+    if (Array.isArray(backupData.users)) {
+      const stmt = db.prepare(`
+        INSERT OR REPLACE INTO users (telegram_id, username, first_name, subid, is_verified, registered_site_id, created_at, verified_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      backupData.users.forEach((u: any) => {
+        stmt.run(u.telegram_id, u.username || null, u.first_name || null, u.subid || null, u.is_verified || 0, u.registered_site_id || null, u.created_at || new Date().toISOString(), u.verified_at || null);
+      });
+    }
+
+    // Import predictions
+    if (Array.isArray(backupData.predictions)) {
+      const stmt = db.prepare(`
+        INSERT OR REPLACE INTO predictions (
+          id, fixture_id, match_title, tournament_name, surface, round_name,
+          home_name, away_name, home_odds, away_odds,
+          predicted_winner, predicted_score, win_probability, confidence,
+          key_factors, best_bet_market, best_bet_selection, best_bet_rationale, best_bet_ev,
+          alt_bet_market, alt_bet_selection, alt_bet_rationale, alt_bet_risk,
+          ai_summary, status, result_score, published_at, created_at
+        ) VALUES (
+          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?, ?
+        )
+      `);
+      backupData.predictions.forEach((p: any) => {
+        stmt.run(
+          p.id, p.fixture_id || null, p.match_title, p.tournament_name || null, p.surface || null, p.round_name || null,
+          p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
+          p.predicted_winner, p.predicted_score || null, p.win_probability || 65, p.confidence || 'HIGH',
+          typeof p.key_factors === 'string' ? p.key_factors : JSON.stringify(p.key_factors || []),
+          p.best_bet_market || null, p.best_bet_selection || null, p.best_bet_rationale || null, p.best_bet_ev || 'POSITIVE',
+          p.alt_bet_market || null, p.alt_bet_selection || null, p.alt_bet_rationale || null, p.alt_bet_risk || 'LOW',
+          p.ai_summary || null, p.status || 'UPCOMING', p.result_score || null, p.published_at || new Date().toISOString(), p.created_at || new Date().toISOString()
+        );
+      });
+    }
+
+    res.json({ success: true, mode, importedAt: new Date().toISOString() });
+  } catch (e: any) {
+    res.status(500).json({ error: `Import failed: ${e.message}` });
+  }
+});
+
+// Start Express server
+app.listen(port, () => {
+  console.log(`🚀 Telegram WebApp & Admin Backend running on http://localhost:${port}`);
+});
