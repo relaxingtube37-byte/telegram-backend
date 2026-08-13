@@ -68,9 +68,8 @@ if (bot) {
 /**
  * Format and publish a prediction card to the Telegram Channel
  */
-export const publishPredictionToChannel = async (prediction: any): Promise<number | null> => {
+export const publishPredictionToChannel = async (prediction: any, isTeaser: boolean = true): Promise<number | null> => {
   const currentChannelId = (process.env.CHANNEL_ID || '').trim();
-  const currentWebAppUrl = (process.env.WEBAPP_URL || '').trim();
 
   if (!bot) {
     console.warn('⚠ Bot instance not initialized. Check BOT_TOKEN in environment variables.');
@@ -92,31 +91,46 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
   // When configured in @BotFather via /newapp, Telegram opens this natively as a WebApp overlay inside Telegram!
   const targetUrl = `https://t.me/${rawBotUsername}/${webAppShortName}?startapp=pred_${prediction.id}`;
 
-  console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Direct MiniApp URL: ${targetUrl}`);
+  console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Direct MiniApp URL: ${targetUrl}, TeaserMode: ${isTeaser}`);
   const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
 
-  const htmlMsg = 
-    `🎾 <b>AI TENNIS MATCH PREDICTION</b>\n` +
-    `🏆 <b>${prediction.tournament_name || 'Tennis Tournament'}</b> (${surfaceEmoji})\n` +
-    `----------------------------------------\n` +
-    `⚔ <b>${prediction.home_name} vs ${prediction.away_name}</b>\n\n` +
-    `🎯 <b>Predicted Winner:</b> <code>${prediction.predicted_winner}</code> (${prediction.win_probability || 65}%)\n` +
-    `📊 <b>Predicted Score:</b> ${prediction.predicted_score || '2:1'}\n` +
-    `🔒 <b>Confidence:</b> ${prediction.confidence || 'HIGH'}\n\n` +
-    `🔥 <b>RECOMMENDED VALUE BET:</b>\n` +
-    `👉 <b>${prediction.best_bet_selection || prediction.predicted_winner}</b>\n` +
-    `📌 <i>Market: ${prediction.best_bet_market || 'Full Time Winner'}</i>\n` +
-    (prediction.best_bet_rationale ? `💬 "${prediction.best_bet_rationale}"\n` : '') +
-    (prediction.alt_bet_selection ? `\n🛡 <b>Option Bet:</b> ${prediction.alt_bet_selection} (${prediction.alt_bet_market})\n` : '') +
-    `----------------------------------------\n` +
-    `💡 <i>Check full physical & environmental deltas in our WebApp!</i>`;
+  let htmlMsg = '';
+
+  if (isTeaser) {
+    // Teaser Mode
+    htmlMsg = 
+      `🔥 <b>NEW AI MATCH PREDICTION AVAILABLE!</b>\n` +
+      `🏆 <b>${escapeHtml(prediction.tournament_name || 'Tennis Tournament')}</b> (${surfaceEmoji})\n` +
+      `----------------------------------------\n` +
+      `⚔ <b>${escapeHtml(prediction.home_name)} vs ${escapeHtml(prediction.away_name)}</b>\n\n` +
+      `📊 <b>AI Analysis & Value Bet:</b> READY ✅\n` +
+      `🔒 <b>Confidence Level:</b> <code>${escapeHtml(prediction.confidence || 'HIGH')}</code>\n\n` +
+      `💡 <i>To view the predicted winner, best odds, and full AI rationale, tap the button below!</i>`;
+  } else {
+    // Full Details Mode
+    htmlMsg = 
+      `🎾 <b>AI TENNIS MATCH PREDICTION</b>\n` +
+      `🏆 <b>${escapeHtml(prediction.tournament_name || 'Tennis Tournament')}</b> (${surfaceEmoji})\n` +
+      `----------------------------------------\n` +
+      `⚔ <b>${escapeHtml(prediction.home_name)} vs ${escapeHtml(prediction.away_name)}</b>\n\n` +
+      `🎯 <b>Predicted Winner:</b> <code>${escapeHtml(prediction.predicted_winner)}</code> (${prediction.win_probability || 65}%)\n` +
+      `📊 <b>Predicted Score:</b> ${escapeHtml(prediction.predicted_score || '2:1')}\n` +
+      `🔒 <b>Confidence:</b> ${escapeHtml(prediction.confidence || 'HIGH')}\n\n` +
+      `🔥 <b>RECOMMENDED VALUE BET:</b>\n` +
+      `👉 <b>${escapeHtml(prediction.best_bet_selection || prediction.predicted_winner)}</b>\n` +
+      `📌 <i>Market: ${escapeHtml(prediction.best_bet_market || 'Full Time Winner')}</i>\n` +
+      (prediction.best_bet_rationale ? `💬 "${escapeHtml(prediction.best_bet_rationale)}"\n` : '') +
+      (prediction.alt_bet_selection ? `\n🛡 <b>Option Bet:</b> ${escapeHtml(prediction.alt_bet_selection)} (${escapeHtml(prediction.alt_bet_market)})\n` : '') +
+      `----------------------------------------\n` +
+      `💡 <i>Check full physical & environmental deltas in our WebApp!</i>`;
+  }
 
   try {
     const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
       parse_mode: 'HTML',
       reply_markup: keyboard,
     });
-    console.log(`✅ Published prediction #${prediction.id} to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
+    console.log(`✅ Published prediction #${prediction.id} (Teaser: ${isTeaser}) to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
     return res.message_id;
   } catch (err: any) {
     console.error(`❌ Failed to post to Telegram Channel (${currentChannelId}):`, err.message);

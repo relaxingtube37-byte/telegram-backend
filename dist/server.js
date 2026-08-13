@@ -197,7 +197,8 @@ app.post('/api/admin/predictions/publish', requireAdminAuth, async (req, res) =>
     // Post to Telegram Channel if requested (default true)
     let channelMsgId = null;
     if (p.postToChannel !== false) {
-        channelMsgId = await (0, bot_1.publishPredictionToChannel)(prediction);
+        const isTeaserMode = p.isTeaser !== false; // default true if not specified
+        channelMsgId = await (0, bot_1.publishPredictionToChannel)(prediction, isTeaserMode);
         if (channelMsgId) {
             db_1.db.prepare(`
         INSERT INTO channel_posts (prediction_id, message_id, channel_id, posted_at)
