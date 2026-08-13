@@ -50,16 +50,29 @@ if (bot) {
  * Format and publish a prediction card to the Telegram Channel
  */
 export const publishPredictionToChannel = async (prediction: any): Promise<number | null> => {
-  if (!bot || !channelId) {
-    console.warn('Bot or Channel ID not configured for channel publishing.');
+  const currentChannelId = (process.env.CHANNEL_ID || '').trim();
+  const currentWebAppUrl = (process.env.WEBAPP_URL || '').trim();
+
+  if (!bot) {
+    console.warn('⚠ Bot instance not initialized. Check BOT_TOKEN in environment variables.');
+    return null;
+  }
+  if (!currentChannelId) {
+    console.warn('⚠ CHANNEL_ID not configured in environment variables.');
     return null;
   }
 
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱 Clay'
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱 Grass' : '🟦 Hard';
 
-  const keyboard = new InlineKeyboard()
-    .webApp('🚀 Open Full Analysis in WebApp', webAppUrl);
+  let keyboard: InlineKeyboard;
+  if (currentWebAppUrl.startsWith('https://t.me')) {
+    keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', currentWebAppUrl);
+  } else if (currentWebAppUrl.startsWith('https://')) {
+    keyboard = new InlineKeyboard().webApp('🚀 Open Full Analysis in WebApp', currentWebAppUrl);
+  } else {
+    keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', `https://t.me/${process.env.BOT_USERNAME || ''}`);
+  }
 
   const htmlMsg = 
     `🎾 <b>AI TENNIS MATCH PREDICTION</b>\n` +
@@ -78,15 +91,22 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
     `💡 <i>Check full physical & environmental deltas in our WebApp!</i>`;
 
   try {
-    const res = await bot.api.sendMessage(channelId, htmlMsg, {
+    const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
       parse_mode: 'HTML',
       reply_markup: keyboard,
     });
-    console.log(`✅ Published prediction #${prediction.id} to channel ${channelId}, Msg ID: ${res.message_id}`);
+    console.log(`✅ Published prediction #${prediction.id} to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
     return res.message_id;
   } catch (err: any) {
-    console.error('Failed to post to Telegram Channel:', err.message);
-    return null;
+    console.error(`❌ Failed to post to Telegram Channel (${currentChannelId}):`, err.message);
+    try {
+      const fallbackRes = await bot.api.sendMessage(currentChannelId, htmlMsg, { parse_mode: 'HTML' });
+      console.log(`✅ Published prediction #${prediction.id} (fallback without keyboard) to channel ${currentChannelId}, Msg ID: ${fallbackRes.message_id}`);
+      return fallbackRes.message_id;
+    } catch (e2: any) {
+      console.error(`❌ Fallback post also failed:`, e2.message);
+      return null;
+    }
   }
 };
 
