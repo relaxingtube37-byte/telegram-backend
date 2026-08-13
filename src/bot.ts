@@ -67,14 +67,17 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
 
   const rawBotUsername = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
   let targetUrl = currentWebAppUrl.trim();
-  if (rawBotUsername) {
-    targetUrl = `https://t.me/${rawBotUsername}/app`;
-  } else if (!targetUrl.startsWith('https://')) {
-    if (targetUrl.startsWith('http://')) {
-      targetUrl = targetUrl.replace('http://', 'https://');
+
+  if (!targetUrl || !targetUrl.startsWith('http')) {
+    if (rawBotUsername) {
+      targetUrl = `https://t.me/${rawBotUsername}/app`;
     } else {
       targetUrl = 'https://t.me';
     }
+  }
+
+  if (targetUrl.startsWith('http://')) {
+    targetUrl = targetUrl.replace('http://', 'https://');
   }
 
   console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Button URL: ${targetUrl}`);
