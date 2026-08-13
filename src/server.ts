@@ -139,21 +139,47 @@ app.get('/api/webapp/config', (req, res) => {
   res.json({ access_mode });
 });
 
-// Get user verification status
-app.get('/api/webapp/user/:telegramId', (req, res) => {
-  const { telegramId } = req.params;
-  const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(parseInt(telegramId, 10)) as any;
+// Get user verification status & auto-record MiniApp visitors
+app.all(['/api/webapp/user/:telegramId', '/api/webapp/user/ping'], (req: Request, res: Response) => {
+  const tidParam = req.params.telegramId || req.body?.telegram_id || req.query?.telegram_id;
+  const tid = parseInt(tidParam as string, 10);
+
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode') as any;
   const access_mode = row?.value || 'REGISTRATION_REQUIRED';
 
-  if (!user) {
+  if (!tid || isNaN(tid)) {
     return res.json({ registered: false, verified: false, access_mode });
+  }
+
+  const first_name = (req.query.first_name || req.body?.first_name || '') as string;
+  const username = (req.query.username || req.body?.username || '') as string;
+  const now = new Date().toISOString();
+
+  let user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(tid) as any;
+
+  if (!user) {
+    db.prepare(`
+      INSERT INTO users (telegram_id, username, first_name, is_verified, created_at, last_active_at)
+      VALUES (?, ?, ?, 0, ?, ?)
+    `).run(tid, username || null, first_name || null, now, now);
+    user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(tid) as any;
+  } else {
+    // Update last_active_at & name info if available
+    db.prepare(`
+      UPDATE users SET 
+        last_active_at = ?,
+        username = COALESCE(NULLIF(?, ''), username),
+        first_name = COALESCE(NULLIF(?, ''), first_name)
+      WHERE telegram_id = ?
+    `).run(now, username, first_name, tid);
   }
 
   res.json({
     registered: true,
-    verified: user.is_verified === 1,
-    site_id: user.registered_site_id,
+    verified: user?.is_verified === 1,
+    first_name: user?.first_name || first_name || null,
+    username: user?.username || username || null,
+    site_id: user?.registered_site_id,
     access_mode,
   });
 });

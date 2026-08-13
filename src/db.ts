@@ -66,7 +66,8 @@ db.exec(`
     is_verified INTEGER DEFAULT 0,
     registered_site_id INTEGER,
     created_at TEXT NOT NULL,
-    verified_at TEXT
+    verified_at TEXT,
+    last_active_at TEXT
   );
 
   CREATE TABLE IF NOT EXISTS channel_posts (
@@ -83,5 +84,11 @@ db.exec(`
     value TEXT NOT NULL
   );
 `);
+
+try {
+  db.exec('ALTER TABLE users ADD COLUMN last_active_at TEXT;');
+} catch (e) {
+  // Column already exists
+}
 
 console.log('✅ SQLite Database initialized at:', dbPath);
