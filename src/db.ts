@@ -54,6 +54,8 @@ db.exec(`
     name TEXT NOT NULL,
     base_url TEXT NOT NULL,
     postback_key TEXT UNIQUE NOT NULL,
+    verify_mode TEXT DEFAULT 'postback',
+    app_url TEXT DEFAULT '',
     is_active INTEGER DEFAULT 1,
     created_at TEXT NOT NULL
   );
@@ -65,6 +67,11 @@ db.exec(`
     subid TEXT UNIQUE,
     is_verified INTEGER DEFAULT 0,
     registered_site_id INTEGER,
+    pending_site_id INTEGER,
+    screenshot_file_id TEXT,
+    verify_status TEXT DEFAULT 'none',
+    verify_source TEXT DEFAULT '',
+    has_deposited INTEGER DEFAULT 0,
     created_at TEXT NOT NULL,
     verified_at TEXT,
     last_active_at TEXT
@@ -85,10 +92,114 @@ db.exec(`
   );
 `);
 
-try {
-  db.exec('ALTER TABLE users ADD COLUMN last_active_at TEXT;');
-} catch (e) {
-  // Column already exists
-}
+// Safe migrations for existing SQLite databases
+try { db.exec("ALTER TABLE users ADD COLUMN last_active_at TEXT;"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN pending_site_id INTEGER;"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN screenshot_file_id TEXT;"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN verify_status TEXT DEFAULT 'none';"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN verify_source TEXT DEFAULT '';"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN has_deposited INTEGER DEFAULT 0;"); } catch {}
+try { db.exec("ALTER TABLE referral_sites ADD COLUMN verify_mode TEXT DEFAULT 'postback';"); } catch {}
+try { db.exec("ALTER TABLE referral_sites ADD COLUMN app_url TEXT DEFAULT '';"); } catch {}
 
 console.log('✅ SQLite Database initialized at:', dbPath);
+
+/**
+ * Attach SubID=telegram_id to affiliate base URL
+ */
+export const buildReferralUrl = (baseUrl: string, telegramId: number): string => {
+  if (!baseUrl || !baseUrl.trim()) return '';
+  const cleanUrl = baseUrl.trim();
+  const sub = String(telegramId);
+  try {
+    const parsed = new URL(cleanUrl);
+    parsed.searchParams.set('subid', sub);
+    parsed.searchParams.set('sub1', sub);
+    if (!parsed.searchParams.has('sub_id')) parsed.searchParams.set('sub_id', sub);
+    if (!parsed.searchParams.has('click_id')) parsed.searchParams.set('click_id', sub);
+    return parsed.toString();
+  } catch {
+    const separator = cleanUrl.includes('?') ? '&' : '?';
+    return `${cleanUrl}${separator}subid=${sub}&sub1=${sub}`;
+  }
+};
+
+/**
+ * Build /go/ click tracking URL
+ */
+export const buildGoUrl = (publicBaseUrl: string, siteId: number, telegramId: number): string => {
+  const base = (publicBaseUrl || 'https://telegram-backend-2yck.onrender.com').trim().replace(/\/+$/, '');
+  return `${base}/go/${siteId}/${telegramId}`;
+};
+
+/**
+ * Get latest unverified user who clicked /go/ link (Fallback matching)
+ */
+export const getLatestUnverifiedUser = (siteId?: number): any => {
+  if (siteId) {
+    const user = db.prepare(`
+      SELECT * FROM users 
+      WHERE is_verified = 0 AND pending_site_id = ? 
+      ORDER BY last_active_at DESC, telegram_id DESC LIMIT 1
+    `).get(siteId);
+    if (user) return user;
+  }
+  return db.prepare(`
+    SELECT * FROM users 
+    WHERE is_verified = 0 
+    ORDER BY 
+      CASE WHEN verify_status = 'pending' THEN 0 ELSE 1 END,
+      COALESCE(last_active_at, created_at) DESC 
+    LIMIT 1
+  `).get();
+};
+
+/**
+ * Mark user pending registration on a site
+ */
+export const setPendingSite = (telegramId: number, siteId: number) => {
+  const now = new Date().toISOString();
+  const existing = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(telegramId);
+  if (!existing) {
+    db.prepare(`
+      INSERT INTO users (telegram_id, is_verified, pending_site_id, verify_status, created_at, last_active_at)
+      VALUES (?, 0, ?, 'pending', ?, ?)
+    `).run(telegramId, siteId, now, now);
+  } else if (!(existing as any).is_verified) {
+    db.prepare(`
+      UPDATE users SET pending_site_id = ?, verify_status = 'pending', last_active_at = ? WHERE telegram_id = ?
+    `).run(siteId, now, telegramId);
+  }
+};
+
+/**
+ * Mark user as verified
+ */
+export const setVerified = (telegramId: number, siteId?: number, source: string = 'postback') => {
+  const now = new Date().toISOString();
+  const existing = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(telegramId);
+  if (existing) {
+    db.prepare(`
+      UPDATE users SET 
+        is_verified = 1,
+        verified_at = ?,
+        verify_status = 'verified',
+        verify_source = ?,
+        registered_site_id = COALESCE(?, registered_site_id)
+      WHERE telegram_id = ?
+    `).run(now, source, siteId || null, telegramId);
+  } else {
+    db.prepare(`
+      INSERT INTO users (telegram_id, is_verified, registered_site_id, verify_status, verify_source, created_at, verified_at, last_active_at)
+      VALUES (?, 1, ?, 'verified', ?, ?, ?, ?)
+    `).run(telegramId, siteId || null, source, now, now, now);
+  }
+};
+
+/**
+ * Mark user as deposited (VIP status)
+ */
+export const setUserDeposited = (telegramId: number) => {
+  setVerified(telegramId, undefined, 'deposit');
+  db.prepare('UPDATE users SET has_deposited = 1 WHERE telegram_id = ?').run(telegramId);
+};

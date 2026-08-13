@@ -1,51 +1,93 @@
 import { Request, Response } from 'express';
-import { db } from './db';
+import { db, setVerified, setUserDeposited, getLatestUnverifiedUser } from './db';
+import { bot } from './bot';
 
 /**
- * Handle Affiliate Postback Webhook (e.g. from 1xBet / Melbet / Partners)
+ * Handle Affiliate Postback Webhook (e.g. from 1xBet / Melbet / 1Win / Partners)
  * URL: /api/postback/:siteKey?subid=123456789&secret=xxx
  */
-export const handlePostbackWebhook = (req: Request, res: Response) => {
+export const handlePostbackWebhook = async (req: Request, res: Response) => {
   const { siteKey } = req.params;
+  const targetKey = siteKey || (req.query.key as string) || (req.query.secret as string);
+
+  // Find site by postback key
+  let site = targetKey ? db.prepare('SELECT * FROM referral_sites WHERE postback_key = ? AND is_active = 1').get(targetKey) as any : null;
+  if (!site) {
+    site = db.prepare('SELECT * FROM referral_sites WHERE is_active = 1 ORDER BY id ASC LIMIT 1').get() as any;
+  }
+
+  if (!site) {
+    return res.status(404).json({ error: 'No active referral site configured for postback webhook' });
+  }
+
+  // Extract raw subid from query or POST body parameters
   const rawSubId = (
-    req.query.subid || req.body.subid ||
-    req.query.sub1 || req.body.sub1 ||
-    req.query.user_id || req.body.user_id ||
-    req.query.telegram_id || req.body.telegram_id ||
-    req.query.click_id || req.body.click_id ||
-    req.query.sub_id || req.body.sub_id
+    req.query.subid || req.body?.subid ||
+    req.query.sub1 || req.body?.sub1 ||
+    req.query.telegram_id || req.body?.telegram_id ||
+    req.query.user_id || req.body?.user_id ||
+    req.query.sub_id || req.body?.sub_id ||
+    req.query.click_id || req.body?.click_id ||
+    req.query.player_id || req.body?.player_id ||
+    req.query.custom_id || req.body?.custom_id ||
+    req.query.ext_id || req.body?.ext_id
   ) as string;
 
-  if (!siteKey || !rawSubId) {
-    return res.status(400).json({ error: 'Missing siteKey, subid, or sub1 parameter' });
+  let telegramId: number | null = null;
+  if (rawSubId) {
+    const digits = String(rawSubId).replace(/\D/g, '');
+    if (digits && digits.length >= 5) {
+      telegramId = parseInt(digits, 10);
+    }
   }
 
-  // Find site
-  const site = db.prepare('SELECT * FROM referral_sites WHERE postback_key = ? AND is_active = 1').get(siteKey) as any;
-  if (!site) {
-    return res.status(404).json({ error: 'Invalid or inactive referral site postback key' });
+  // Fallback matching: if subid was omitted by partner network, match to latest unverified click user
+  if (!telegramId || isNaN(telegramId)) {
+    const fallbackUser = getLatestUnverifiedUser(site.id);
+    if (fallbackUser) {
+      telegramId = fallbackUser.telegram_id;
+      console.log(`[POSTBACK FALLBACK] subid was null, auto-matched to latest unverified user ${telegramId}`);
+    }
   }
 
-  const telegramId = parseInt(rawSubId, 10);
-  if (isNaN(telegramId)) {
-    return res.status(400).json({ error: 'Invalid subid format (must be numeric telegram_id)' });
+  if (!telegramId) {
+    return res.status(400).json({ error: 'Missing numeric subid/user_id in request and no pending user found' });
   }
 
-  // Mark user verified
-  const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(telegramId) as any;
-  const now = new Date().toISOString();
+  // Check event type (deposit vs registration)
+  const fullUrl = req.originalUrl.toLowerCase();
+  const isDepositEvent = (
+    fullUrl.includes('event=deposit') ||
+    fullUrl.includes('event=ftd') ||
+    fullUrl.includes('status=sale') ||
+    fullUrl.includes('type=deposit') ||
+    fullUrl.includes('type=ftd')
+  );
 
-  if (user) {
-    db.prepare(`
-      UPDATE users SET is_verified = 1, registered_site_id = ?, verified_at = ? WHERE telegram_id = ?
-    `).run(site.id, now, telegramId);
+  if (isDepositEvent) {
+    setUserDeposited(telegramId);
+    console.log(`🎉 [POSTBACK DEPOSIT] User ${telegramId} deposited via site "${site.name}"`);
   } else {
-    db.prepare(`
-      INSERT INTO users (telegram_id, subid, is_verified, registered_site_id, created_at, verified_at)
-      VALUES (?, ?, 1, ?, ?, ?)
-    `).run(telegramId, String(telegramId), site.id, now, now);
+    setVerified(telegramId, site.id, 'postback');
+    console.log(`✅ [POSTBACK VERIFIED] User ${telegramId} verified via site "${site.name}"`);
   }
 
-  console.log(`✅ Postback Success: User ${telegramId} verified via site "${site.name}"`);
-  return res.json({ success: true, message: `User ${telegramId} verified successfully` });
+  // Send Telegram bot notification message to user if available
+  if (bot) {
+    try {
+      const msg = isDepositEvent
+        ? `🎉 <b>Your deposit was registered!</b>\n\nVIP prediction access has been activated for your account.`
+        : `✅ <b>Access Unlocked!</b>\n\nYour account has been verified via <b>${site.name}</b>. All tennis AI predictions are now unlocked!`;
+      await bot.api.sendMessage(telegramId, msg, { parse_mode: 'HTML' });
+    } catch (e: any) {
+      console.warn(`[POSTBACK BOT NOTIFY SKIPPED] Could not message user ${telegramId}: ${e.message}`);
+    }
+  }
+
+  return res.json({
+    success: true,
+    status: isDepositEvent ? 'deposited' : 'verified',
+    telegram_id: String(telegramId),
+    site: site.name,
+  });
 };

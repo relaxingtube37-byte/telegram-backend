@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { db } from './db';
+import { db, setPendingSite, setVerified, buildReferralUrl, buildGoUrl } from './db';
 import { bot, publishPredictionToChannel, updateChannelPostResult, publishBatchSummaryToChannel } from './bot';
 import { handlePostbackWebhook } from './postback';
 
@@ -128,8 +128,42 @@ app.get('/api/webapp/stats', (req, res) => {
 
 // Get active referral sites
 app.get('/api/webapp/referrals', (req, res) => {
-  const sites = db.prepare('SELECT id, name, base_url FROM referral_sites WHERE is_active = 1').all();
+  const sites = db.prepare('SELECT id, name, base_url, app_url, verify_mode FROM referral_sites WHERE is_active = 1').all();
   res.json(sites);
+});
+
+// Click Tracking & Redirect Endpoint (/go/:siteId/:telegramId)
+app.get(['/go/:siteId/:telegramId', '/api/go/:siteId/:telegramId'], (req: Request, res: Response) => {
+  const siteId = parseInt(String(req.params.siteId || ''), 10);
+  const telegramId = parseInt(String(req.params.telegramId || ''), 10);
+
+  if (!telegramId || isNaN(telegramId)) {
+    return res.status(400).send('Invalid telegram_id');
+  }
+
+  const site = db.prepare('SELECT * FROM referral_sites WHERE id = ? AND is_active = 1').get(siteId) as any;
+  if (!site) {
+    return res.status(404).send('Referral site not found');
+  }
+
+  // Record pending site click in DB
+  setPendingSite(telegramId, siteId);
+
+  // Check if site verification mode is instant on click (OPEN_LINK)
+  if (site.verify_mode === 'open_link') {
+    setVerified(telegramId, siteId, 'open_link');
+    if (bot) {
+      bot.api.sendMessage(
+        telegramId,
+        `✅ <b>Access Unlocked!</b>\n\nYour account access has been unlocked via <b>${site.name}</b>. All tennis AI match predictions are now unlocked!`,
+        { parse_mode: 'HTML' }
+      ).catch(() => {});
+    }
+  }
+
+  // Build target referral URL with subid tracking
+  const targetUrl = buildReferralUrl(site.base_url, telegramId);
+  return res.redirect(302, targetUrl);
 });
 
 // Get WebApp public config (access_mode)
@@ -332,15 +366,15 @@ app.get('/api/admin/referrals', requireAdminAuth, (req, res) => {
 });
 
 app.post('/api/admin/referrals', requireAdminAuth, (req, res) => {
-  const { name, base_url, postback_key } = req.body;
+  const { name, base_url, postback_key, verify_mode = 'postback', app_url = '' } = req.body;
   if (!name || !base_url || !postback_key) {
     return res.status(400).json({ error: 'Name, base_url, and postback_key are required' });
   }
 
   const result = db.prepare(`
-    INSERT INTO referral_sites (name, base_url, postback_key, is_active, created_at)
-    VALUES (?, ?, ?, 1, ?)
-  `).run(name, base_url, postback_key, new Date().toISOString());
+    INSERT INTO referral_sites (name, base_url, postback_key, verify_mode, app_url, is_active, created_at)
+    VALUES (?, ?, ?, ?, ?, 1, ?)
+  `).run(name, base_url, postback_key, verify_mode, app_url, new Date().toISOString());
 
   res.json({ success: true, id: result.lastInsertRowid });
 });
