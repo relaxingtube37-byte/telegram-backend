@@ -38,7 +38,14 @@ const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
 
 // ── Health Check ───────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+  const currentSec = (process.env.ADMIN_SECRET || 'sofascore-tennis-admin-secret-2026').trim();
+  res.json({
+    status: 'ok',
+    time: new Date().toISOString(),
+    secretLength: currentSec.length,
+    secretFirstChar: currentSec.charAt(0) + '***' + currentSec.charAt(currentSec.length - 1),
+    isDefaultSecret: currentSec === 'sofascore-tennis-admin-secret-2026',
+  });
 });
 
 // ── WebApp Public Endpoints ────────────────────────────────────────────────
