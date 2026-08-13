@@ -44,23 +44,29 @@ app.get('/api/webapp/predictions', (req, res) => {
 
 // Get channel accuracy stats
 app.get('/api/webapp/stats', (req, res) => {
-  const total = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status IN ("WON", "LOST")').get() as any;
-  const won = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "WON"').get() as any;
-  const lost = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "LOST"').get() as any;
-  const upcoming = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "UPCOMING"').get() as any;
+  try {
+    const total = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status IN ("WON", "LOST")').get() as any;
+    const won = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "WON"').get() as any;
+    const lost = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "LOST"').get() as any;
+    const upcoming = db.prepare('SELECT COUNT(*) as count FROM predictions WHERE status = "UPCOMING"').get() as any;
 
-  const totalSettled = total.count || 0;
-  const winCount = won.count || 0;
-  const winRate = totalSettled > 0 ? Math.round((winCount / totalSettled) * 100) : 0;
+    const totalSettled = total?.count || 0;
+    const winCount = won?.count || 0;
+    const lostCount = lost?.count || 0;
+    const upcomingCount = upcoming?.count || 0;
+    const winRate = totalSettled > 0 ? Math.round((winCount / totalSettled) * 100) : 0;
 
-  res.json({
-    totalPredictions: totalSettled + upcoming.count,
-    settled: totalSettled,
-    won: winCount,
-    lost: lost.count || 0,
-    upcoming: upcoming.count || 0,
-    winRatePct: winRate,
-  });
+    res.json({
+      totalPredictions: totalSettled + upcomingCount,
+      settled: totalSettled,
+      won: winCount,
+      lost: lostCount,
+      upcoming: upcomingCount,
+      winRatePct: winRate,
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Get active referral sites
