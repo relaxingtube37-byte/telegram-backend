@@ -52,6 +52,33 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/api/admin/test-bot-channel', requireAdminAuth, async (req: Request, res: Response) => {
+  const currentChannelId = (process.env.CHANNEL_ID || '').trim();
+  const currentWebAppUrl = (process.env.WEBAPP_URL || '').trim();
+  const rawBotUsername = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+
+  if (!bot) return res.status(500).json({ error: 'Bot is null. Check BOT_TOKEN.' });
+
+  let targetUrl = currentWebAppUrl.trim();
+  if (!targetUrl || !targetUrl.startsWith('http')) {
+    targetUrl = rawBotUsername ? `https://t.me/${rawBotUsername}/app` : 'https://t.me';
+  }
+  if (targetUrl.startsWith('http://')) targetUrl = targetUrl.replace('http://', 'https://');
+
+  const { InlineKeyboard } = await import('grammy');
+  const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
+
+  try {
+    const result = await bot.api.sendMessage(currentChannelId, '🎾 Test message with button', {
+      parse_mode: 'HTML',
+      reply_markup: keyboard,
+    });
+    res.json({ success: true, messageId: result.message_id, targetUrl, channelId: currentChannelId });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message, targetUrl, channelId: currentChannelId });
+  }
+});
+
 // ── WebApp Public Endpoints ────────────────────────────────────────────────
 
 // Get published predictions for TWA
