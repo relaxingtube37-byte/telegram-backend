@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { db } from './db';
-import { bot, publishPredictionToChannel, updateChannelPostResult } from './bot';
+import { bot, publishPredictionToChannel, updateChannelPostResult, publishBatchSummaryToChannel } from './bot';
 import { handlePostbackWebhook } from './postback';
 
 dotenv.config();
@@ -227,6 +227,38 @@ app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req: Reque
   }
 
   res.json({ success: true, id, status });
+});
+
+// Admin: Update batch prediction results & optionally post summary to Telegram Channel
+app.post('/api/admin/predictions/batch-result', requireAdminAuth, async (req: Request, res: Response) => {
+  const { items, postBatchSummary, batchTitle } = req.body;
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Items array is required' });
+  }
+
+  const updatedPredictions: any[] = [];
+  const stmt = db.prepare('UPDATE predictions SET status = ?, result_score = ? WHERE id = ?');
+
+  for (const item of items) {
+    if (item.id && ['WON', 'LOST', 'VOID', 'UPCOMING', 'LIVE'].includes(item.status)) {
+      stmt.run(item.status, item.result_score || null, item.id);
+      const updated = db.prepare('SELECT * FROM predictions WHERE id = ?').get(item.id);
+      if (updated) updatedPredictions.push(updated);
+    }
+  }
+
+  let batchMessageId: number | null = null;
+  if (postBatchSummary !== false && updatedPredictions.length > 0) {
+    batchMessageId = await publishBatchSummaryToChannel(updatedPredictions, batchTitle);
+  }
+
+  res.json({
+    success: true,
+    count: updatedPredictions.length,
+    postedBatchSummary: batchMessageId !== null,
+    batchMessageId,
+  });
 });
 
 // Admin: Delete prediction

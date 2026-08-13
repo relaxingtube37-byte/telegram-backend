@@ -150,3 +150,56 @@ export const updateChannelPostResult = async (messageId: number, status: 'WON' |
     console.warn('Could not reply result update to channel:', e.message);
   }
 };
+
+/**
+ * Format and publish a batch results summary post to the Telegram Channel
+ */
+export const publishBatchSummaryToChannel = async (predictions: any[], customTitle?: string): Promise<number | null> => {
+  const currentChannelId = (process.env.CHANNEL_ID || '').trim();
+
+  if (!bot || !currentChannelId || !predictions || predictions.length === 0) return null;
+
+  const wonCount = predictions.filter(p => p.status === 'WON').length;
+  const lostCount = predictions.filter(p => p.status === 'LOST').length;
+  const voidCount = predictions.filter(p => p.status === 'VOID').length;
+  const totalSettled = wonCount + lostCount;
+  const winRatePct = totalSettled > 0 ? Math.round((wonCount / totalSettled) * 100) : 0;
+
+  const title = customTitle || `📢 DAILY RESULTS RECAP & SUMMARY`;
+  const botUsernameEnv = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+  const rawBotUsername = botUsernameEnv || 'admdinbetbetforbot';
+  const webAppShortName = (process.env.WEBAPP_SHORT_NAME || 'app').trim();
+  const targetUrl = `https://t.me/${rawBotUsername}/${webAppShortName}`;
+
+  const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
+
+  let matchLines = '';
+  predictions.forEach((p, idx) => {
+    const badge = p.status === 'WON' ? '✅ WON' : p.status === 'LOST' ? '❌ LOST' : '🔄 VOID';
+    const scoreStr = p.result_score ? ` (${p.result_score})` : '';
+    matchLines += `${idx + 1}. <b>${p.home_name} vs ${p.away_name}</b>\n` +
+                 `   👉 Bet: <code>${p.best_bet_selection || p.predicted_winner}</code> ${badge}${scoreStr}\n\n`;
+  });
+
+  const htmlMsg = 
+    `🏆 <b>${title}</b>\n` +
+    `----------------------------------------\n` +
+    `📊 <b>Performance Stats:</b>\n` +
+    `✅ <b>Wins:</b> ${wonCount} | ❌ <b>Losses:</b> ${lostCount}${voidCount > 0 ? ` | 🔄 <b>Void:</b> ${voidCount}` : ''}\n` +
+    `🔥 <b>Accuracy / Win Rate:</b> <code>${winRatePct}%</code>\n` +
+    `----------------------------------------\n\n` +
+    `${matchLines}` +
+    `💡 <i>Check complete match history and detailed stats in our WebApp!</i>`;
+
+  try {
+    const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard,
+    });
+    console.log(`✅ Published batch summary to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
+    return res.message_id;
+  } catch (err: any) {
+    console.error(`❌ Failed to post batch summary to Telegram Channel:`, err.message);
+    return null;
+  }
+};

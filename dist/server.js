@@ -229,6 +229,33 @@ app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req, res) 
     }
     res.json({ success: true, id, status });
 });
+// Admin: Update batch prediction results & optionally post summary to Telegram Channel
+app.post('/api/admin/predictions/batch-result', requireAdminAuth, async (req, res) => {
+    const { items, postBatchSummary, batchTitle } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'Items array is required' });
+    }
+    const updatedPredictions = [];
+    const stmt = db_1.db.prepare('UPDATE predictions SET status = ?, result_score = ? WHERE id = ?');
+    for (const item of items) {
+        if (item.id && ['WON', 'LOST', 'VOID', 'UPCOMING', 'LIVE'].includes(item.status)) {
+            stmt.run(item.status, item.result_score || null, item.id);
+            const updated = db_1.db.prepare('SELECT * FROM predictions WHERE id = ?').get(item.id);
+            if (updated)
+                updatedPredictions.push(updated);
+        }
+    }
+    let batchMessageId = null;
+    if (postBatchSummary !== false && updatedPredictions.length > 0) {
+        batchMessageId = await (0, bot_1.publishBatchSummaryToChannel)(updatedPredictions, batchTitle);
+    }
+    res.json({
+        success: true,
+        count: updatedPredictions.length,
+        postedBatchSummary: batchMessageId !== null,
+        batchMessageId,
+    });
+});
 // Admin: Delete prediction
 app.delete('/api/admin/predictions/:id', requireAdminAuth, (req, res) => {
     const { id } = req.params;
