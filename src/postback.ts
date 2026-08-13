@@ -72,17 +72,8 @@ export const handlePostbackWebhook = async (req: Request, res: Response) => {
     console.log(`✅ [POSTBACK VERIFIED] User ${telegramId} verified via site "${site.name}"`);
   }
 
-  // Send Telegram bot notification message to user if available
-  if (bot) {
-    try {
-      const msg = isDepositEvent
-        ? `🎉 <b>Your deposit was registered!</b>\n\nVIP prediction access has been activated for your account.`
-        : `✅ <b>Access Unlocked!</b>\n\nYour account has been verified via <b>${site.name}</b>. All tennis AI predictions are now unlocked!`;
-      await bot.api.sendMessage(telegramId, msg, { parse_mode: 'HTML' });
-    } catch (e: any) {
-      console.warn(`[POSTBACK BOT NOTIFY SKIPPED] Could not message user ${telegramId}: ${e.message}`);
-    }
-  }
+  // Bot messaging skipped as requested
+  // Verification status is recorded silently in database
 
   return res.json({
     success: true,

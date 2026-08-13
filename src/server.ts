@@ -152,13 +152,6 @@ app.get(['/go/:siteId/:telegramId', '/api/go/:siteId/:telegramId'], (req: Reques
   // Check if site verification mode is instant on click (OPEN_LINK)
   if (site.verify_mode === 'open_link') {
     setVerified(telegramId, siteId, 'open_link');
-    if (bot) {
-      bot.api.sendMessage(
-        telegramId,
-        `✅ <b>Access Unlocked!</b>\n\nYour account access has been unlocked via <b>${site.name}</b>. All tennis AI match predictions are now unlocked!`,
-        { parse_mode: 'HTML' }
-      ).catch(() => {});
-    }
   }
 
   // Build target referral URL with subid tracking
