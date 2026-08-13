@@ -84,14 +84,13 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱 Clay'
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱 Grass' : '🟦 Hard';
 
-  const rawBotUsername = (process.env.BOT_USERNAME || 'admdinbetbetforbot').replace(/^@/, '').trim();
+  const botUsernameEnv = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+  const rawBotUsername = botUsernameEnv || 'admdinbetbetforbot';
   const webAppShortName = (process.env.WEBAPP_SHORT_NAME || 'app').trim();
   
   // Format Telegram Direct Mini App Link: https://t.me/BotUsername/app
   // When configured in @BotFather via /newapp, Telegram opens this natively as a WebApp overlay inside Telegram!
-  const targetUrl = rawBotUsername 
-    ? `https://t.me/${rawBotUsername}/${webAppShortName}?startapp=pred_${prediction.id}`
-    : (currentWebAppUrl || 'https://t.me');
+  const targetUrl = `https://t.me/${rawBotUsername}/${webAppShortName}?startapp=pred_${prediction.id}`;
 
   console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Direct MiniApp URL: ${targetUrl}`);
   const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
