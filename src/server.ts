@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { db } from './db';
-import { publishPredictionToChannel, updateChannelPostResult } from './bot';
+import { bot, publishPredictionToChannel, updateChannelPostResult } from './bot';
 import { handlePostbackWebhook } from './postback';
 
 dotenv.config();
