@@ -66,21 +66,9 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱 Grass' : '🟦 Hard';
 
   const rawBotUsername = (process.env.BOT_USERNAME || 'admdinbetbetforbot').replace(/^@/, '').trim();
-  let targetUrl = currentWebAppUrl.trim();
+  const targetUrl = rawBotUsername ? `https://t.me/${rawBotUsername}/app` : (currentWebAppUrl || 'https://t.me');
 
-  if (!targetUrl || !targetUrl.startsWith('http')) {
-    if (rawBotUsername) {
-      targetUrl = `https://t.me/${rawBotUsername}/app`;
-    } else {
-      targetUrl = 'https://t.me';
-    }
-  }
-
-  if (targetUrl.startsWith('http://')) {
-    targetUrl = targetUrl.replace('http://', 'https://');
-  }
-
-  console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Button URL: ${targetUrl}`);
+  console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Direct MiniApp URL: ${targetUrl}`);
   const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
 
   const htmlMsg = 
