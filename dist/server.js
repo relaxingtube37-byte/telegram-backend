@@ -179,6 +179,8 @@ app.get('/api/webapp/user/:telegramId', (req, res) => {
 // ── Referral Postback Webhook ─────────────────────────────────────────────
 app.get('/api/postback/:siteKey', postback_1.handlePostbackWebhook);
 app.post('/api/postback/:siteKey', postback_1.handlePostbackWebhook);
+app.get('/postback/:siteKey', postback_1.handlePostbackWebhook);
+app.post('/postback/:siteKey', postback_1.handlePostbackWebhook);
 // ── Admin Endpoints (Used by state football Admin Panel) ──────────────────
 // Admin: Publish prediction to Channel & TWA
 app.post('/api/admin/predictions/publish', requireAdminAuth, async (req, res) => {

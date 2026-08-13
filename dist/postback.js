@@ -8,17 +8,21 @@ const db_1 = require("./db");
  */
 const handlePostbackWebhook = (req, res) => {
     const { siteKey } = req.params;
-    const subid = (req.query.subid || req.body.subid || req.query.user_id || req.body.user_id);
-    const secret = (req.query.secret || req.body.secret);
-    if (!siteKey || !subid) {
-        return res.status(400).json({ error: 'Missing siteKey or subid parameter' });
+    const rawSubId = (req.query.subid || req.body.subid ||
+        req.query.sub1 || req.body.sub1 ||
+        req.query.user_id || req.body.user_id ||
+        req.query.telegram_id || req.body.telegram_id ||
+        req.query.click_id || req.body.click_id ||
+        req.query.sub_id || req.body.sub_id);
+    if (!siteKey || !rawSubId) {
+        return res.status(400).json({ error: 'Missing siteKey, subid, or sub1 parameter' });
     }
     // Find site
     const site = db_1.db.prepare('SELECT * FROM referral_sites WHERE postback_key = ? AND is_active = 1').get(siteKey);
     if (!site) {
         return res.status(404).json({ error: 'Invalid or inactive referral site postback key' });
     }
-    const telegramId = parseInt(subid, 10);
+    const telegramId = parseInt(rawSubId, 10);
     if (isNaN(telegramId)) {
         return res.status(400).json({ error: 'Invalid subid format (must be numeric telegram_id)' });
     }

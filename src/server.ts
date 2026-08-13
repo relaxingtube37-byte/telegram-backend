@@ -161,6 +161,8 @@ app.get('/api/webapp/user/:telegramId', (req, res) => {
 // ── Referral Postback Webhook ─────────────────────────────────────────────
 app.get('/api/postback/:siteKey', handlePostbackWebhook);
 app.post('/api/postback/:siteKey', handlePostbackWebhook);
+app.get('/postback/:siteKey', handlePostbackWebhook);
+app.post('/postback/:siteKey', handlePostbackWebhook);
 
 // ── Admin Endpoints (Used by state football Admin Panel) ──────────────────
 
