@@ -16,8 +16,13 @@ app.use(express.json());
 
 // ── Admin Auth Middleware ──────────────────────────────────────────────────
 const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
-  const secretHeader = req.headers['x-admin-secret'] || req.query.secret;
-  if (secretHeader !== adminSecret) {
+  const rawHeader = (req.headers['x-admin-secret'] || req.query.secret) as string;
+  let decodedHeader = rawHeader;
+  try {
+    if (rawHeader) decodedHeader = decodeURIComponent(rawHeader);
+  } catch {}
+
+  if (rawHeader !== adminSecret && decodedHeader !== adminSecret) {
     return res.status(401).json({ error: 'Unauthorized: Invalid Admin Secret' });
   }
   next();
