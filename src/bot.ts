@@ -142,11 +142,19 @@ export const updateChannelPostResult = async (messageId: number, status: 'WON' |
     : status === 'INTERRUPTED' ? '⏸ GAME INTERRUPTED / PAUSED'
     : '🔄 VOID / CANCELLED';
 
+  const botUsernameEnv = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+  const rawBotUsername = botUsernameEnv || 'admdinbetbetforbot';
+  const webAppShortName = (process.env.WEBAPP_SHORT_NAME || 'app').trim();
+  const targetUrl = `https://t.me/${rawBotUsername}/${webAppShortName}`;
+
+  const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
+
   try {
-    // Reply to the channel post with result announcement
-    await bot.api.sendMessage(channelId, `📢 <b>MATCH RESULT UPDATE:</b>\n\n${resultBadge}${resultScore ? ` (${resultScore})` : ''}`, {
+    // Reply to the channel post with result announcement & WebApp button
+    await bot.api.sendMessage(channelId, `📢 <b>MATCH RESULT UPDATE:</b>\n\n${resultBadge}${resultScore ? ` (${escapeHtml(resultScore)})` : ''}`, {
       reply_parameters: { message_id: messageId },
       parse_mode: 'HTML',
+      reply_markup: keyboard,
     });
   } catch (e: any) {
     console.warn('Could not reply result update to channel:', e.message);

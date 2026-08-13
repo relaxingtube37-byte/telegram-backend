@@ -131,11 +131,17 @@ const updateChannelPostResult = async (messageId, status, resultScore) => {
         : status === 'LOST' ? '❌ MATCH LOST'
             : status === 'INTERRUPTED' ? '⏸ GAME INTERRUPTED / PAUSED'
                 : '🔄 VOID / CANCELLED';
+    const botUsernameEnv = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+    const rawBotUsername = botUsernameEnv || 'admdinbetbetforbot';
+    const webAppShortName = (process.env.WEBAPP_SHORT_NAME || 'app').trim();
+    const targetUrl = `https://t.me/${rawBotUsername}/${webAppShortName}`;
+    const keyboard = new grammy_1.InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
     try {
-        // Reply to the channel post with result announcement
-        await exports.bot.api.sendMessage(channelId, `📢 <b>MATCH RESULT UPDATE:</b>\n\n${resultBadge}${resultScore ? ` (${resultScore})` : ''}`, {
+        // Reply to the channel post with result announcement & WebApp button
+        await exports.bot.api.sendMessage(channelId, `📢 <b>MATCH RESULT UPDATE:</b>\n\n${resultBadge}${resultScore ? ` (${escapeHtml(resultScore)})` : ''}`, {
             reply_parameters: { message_id: messageId },
             parse_mode: 'HTML',
+            reply_markup: keyboard,
         });
     }
     catch (e) {
