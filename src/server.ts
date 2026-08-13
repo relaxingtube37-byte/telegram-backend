@@ -242,6 +242,8 @@ app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req: Reque
 app.post('/api/admin/predictions/batch-result', requireAdminAuth, async (req: Request, res: Response) => {
   const { items, postBatchSummary, batchTitle } = req.body;
 
+  console.log(`📢 [BATCH RESULT REQUEST] Items count: ${Array.isArray(items) ? items.length : 0}, PostSummary: ${postBatchSummary}, Title: "${batchTitle}"`);
+
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items array is required' });
   }
