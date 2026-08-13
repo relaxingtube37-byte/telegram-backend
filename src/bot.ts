@@ -40,7 +40,26 @@ if (bot) {
   });
 
   bot.start({
-    onStart: (info) => console.log(`🤖 Telegram Bot @${info.username} started successfully!`),
+    onStart: async (info) => {
+      console.log(`🤖 Telegram Bot @${info.username} started successfully!`);
+      try {
+        await bot.api.setMyCommands([
+          { command: 'start', description: '🚀 Launch Tennis AI WebApp' },
+        ]);
+        if (webAppUrl && webAppUrl.startsWith('http')) {
+          await bot.api.setChatMenuButton({
+            menu_button: {
+              type: 'web_app',
+              text: '🚀 Open WebApp',
+              web_app: { url: webAppUrl },
+            },
+          });
+          console.log(`✅ Auto-configured persistent Telegram Menu Button -> ${webAppUrl}`);
+        }
+      } catch (e: any) {
+        console.warn('⚠ Bot menu configuration warning:', e.message);
+      }
+    },
   }).catch((err) => console.warn('Telegram Bot start warning:', err.message));
 } else {
   console.warn('⚠ TELEGRAM BOT_TOKEN not configured or placeholder token used. Bot commands disabled until token is set.');
@@ -66,7 +85,13 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱 Grass' : '🟦 Hard';
 
   const rawBotUsername = (process.env.BOT_USERNAME || 'admdinbetbetforbot').replace(/^@/, '').trim();
-  const targetUrl = rawBotUsername ? `https://t.me/${rawBotUsername}?startapp=true` : (currentWebAppUrl || 'https://t.me');
+  const webAppShortName = (process.env.WEBAPP_SHORT_NAME || 'app').trim();
+  
+  // Format Telegram Direct Mini App Link: https://t.me/BotUsername/app
+  // When configured in @BotFather via /newapp, Telegram opens this natively as a WebApp overlay inside Telegram!
+  const targetUrl = rawBotUsername 
+    ? `https://t.me/${rawBotUsername}/${webAppShortName}?startapp=pred_${prediction.id}`
+    : (currentWebAppUrl || 'https://t.me');
 
   console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Direct MiniApp URL: ${targetUrl}`);
   const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);

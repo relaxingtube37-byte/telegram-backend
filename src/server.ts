@@ -54,15 +54,13 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/admin/test-bot-channel', requireAdminAuth, async (req: Request, res: Response) => {
   const currentChannelId = (process.env.CHANNEL_ID || '').trim();
-  const currentWebAppUrl = (process.env.WEBAPP_URL || '').trim();
-  const rawBotUsername = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+  const rawBotUsername = (process.env.BOT_USERNAME || 'admdinbetbetforbot').replace(/^@/, '').trim();
+  const webAppShortName = (process.env.WEBAPP_SHORT_NAME || 'app').trim();
 
   if (!bot) return res.status(500).json({ error: 'Bot is null. Check BOT_TOKEN.' });
 
-  let targetUrl = currentWebAppUrl.trim();
-  if (!targetUrl || !targetUrl.startsWith('http')) {
-    targetUrl = rawBotUsername ? `https://t.me/${rawBotUsername}/app` : 'https://t.me';
-  }
+  const currentWebAppUrl = (process.env.WEBAPP_URL || '').trim();
+  let targetUrl = rawBotUsername ? `https://t.me/${rawBotUsername}/${webAppShortName}` : (currentWebAppUrl || 'https://t.me');
   if (targetUrl.startsWith('http://')) targetUrl = targetUrl.replace('http://', 'https://');
 
   const { InlineKeyboard } = await import('grammy');
