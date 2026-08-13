@@ -65,7 +65,7 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱 Clay'
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱 Grass' : '🟦 Hard';
 
-  const rawBotUsername = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+  const rawBotUsername = (process.env.BOT_USERNAME || 'admdinbetbetforbot').replace(/^@/, '').trim();
   let targetUrl = currentWebAppUrl.trim();
 
   if (!targetUrl || !targetUrl.startsWith('http')) {
