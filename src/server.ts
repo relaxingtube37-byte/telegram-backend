@@ -149,9 +149,9 @@ app.get(['/go/:siteId/:telegramId', '/api/go/:siteId/:telegramId'], (req: Reques
   // Record pending site click in DB
   setPendingSite(telegramId, siteId);
 
-  // Check if site verification mode is instant on click (OPEN_LINK)
-  if (site.verify_mode === 'open_link') {
-    setVerified(telegramId, siteId, 'open_link');
+  // Check if site verification mode is instant or free (free / open_link)
+  if (site.verify_mode === 'free' || site.verify_mode === 'open_link') {
+    setVerified(telegramId, siteId, site.verify_mode || 'free');
   }
 
   // Build target referral URL with subid tracking
