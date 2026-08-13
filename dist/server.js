@@ -220,11 +220,11 @@ app.get('/api/admin/predictions', requireAdminAuth, (req, res) => {
     }));
     res.json(predictions);
 });
-// Admin: Update prediction result (WON / LOST / VOID)
+// Admin: Update prediction result (WON / LOST / VOID / INTERRUPTED)
 app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req, res) => {
     const { id } = req.params;
     const { status, result_score } = req.body;
-    if (!['WON', 'LOST', 'VOID', 'UPCOMING', 'LIVE'].includes(status)) {
+    if (!['WON', 'LOST', 'VOID', 'INTERRUPTED', 'UPCOMING', 'LIVE'].includes(status)) {
         return res.status(400).json({ error: 'Invalid status value' });
     }
     db_1.db.prepare(`
@@ -232,7 +232,7 @@ app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req, res) 
   `).run(status, result_score || null, id);
     // If there's a channel post, reply update
     const post = db_1.db.prepare('SELECT * FROM channel_posts WHERE prediction_id = ?').get(id);
-    if (post && post.message_id && ['WON', 'LOST', 'VOID'].includes(status)) {
+    if (post && post.message_id && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(status)) {
         await (0, bot_1.updateChannelPostResult)(post.message_id, status, result_score);
     }
     res.json({ success: true, id, status });
@@ -246,7 +246,7 @@ app.post('/api/admin/predictions/batch-result', requireAdminAuth, async (req, re
     const updatedPredictions = [];
     const stmt = db_1.db.prepare('UPDATE predictions SET status = ?, result_score = ? WHERE id = ?');
     for (const item of items) {
-        if (item.id && ['WON', 'LOST', 'VOID', 'UPCOMING', 'LIVE'].includes(item.status)) {
+        if (item.id && ['WON', 'LOST', 'VOID', 'INTERRUPTED', 'UPCOMING', 'LIVE'].includes(item.status)) {
             stmt.run(item.status, item.result_score || null, item.id);
             const updated = db_1.db.prepare('SELECT * FROM predictions WHERE id = ?').get(item.id);
             if (updated)

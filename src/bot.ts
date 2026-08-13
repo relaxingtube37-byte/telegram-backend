@@ -134,11 +134,13 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
 /**
  * Edit channel post when result is recorded (WON / LOST)
  */
-export const updateChannelPostResult = async (messageId: number, status: 'WON' | 'LOST' | 'VOID', resultScore?: string) => {
+export const updateChannelPostResult = async (messageId: number, status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED', resultScore?: string) => {
   if (!bot || !channelId || !messageId) return;
 
   const resultBadge = status === 'WON' ? '✅ WINNER / WON!'
-    : status === 'LOST' ? '❌ MATCH LOST' : '🔄 VOID / CANCELLED';
+    : status === 'LOST' ? '❌ MATCH LOST'
+    : status === 'INTERRUPTED' ? '⏸ GAME INTERRUPTED / PAUSED'
+    : '🔄 VOID / CANCELLED';
 
   try {
     // Reply to the channel post with result announcement
@@ -170,7 +172,7 @@ export const publishBatchSummaryToChannel = async (predictions: any[], customTit
 
   const wonCount = predictions.filter(p => p.status === 'WON').length;
   const lostCount = predictions.filter(p => p.status === 'LOST').length;
-  const voidCount = predictions.filter(p => p.status === 'VOID').length;
+  const voidCount = predictions.filter(p => p.status === 'VOID' || p.status === 'INTERRUPTED').length;
   const totalSettled = wonCount + lostCount;
   const winRatePct = totalSettled > 0 ? Math.round((wonCount / totalSettled) * 100) : 0;
 
@@ -184,7 +186,7 @@ export const publishBatchSummaryToChannel = async (predictions: any[], customTit
 
   let matchLines = '';
   predictions.forEach((p, idx) => {
-    const badge = p.status === 'WON' ? '✅ WON' : p.status === 'LOST' ? '❌ LOST' : '🔄 VOID';
+    const badge = p.status === 'WON' ? '✅ WON' : p.status === 'LOST' ? '❌ LOST' : p.status === 'INTERRUPTED' ? '⏸ INTERRUPTED' : '🔄 VOID';
     const scoreStr = p.result_score ? ` (${escapeHtml(p.result_score)})` : '';
     const hName = escapeHtml(p.home_name || 'Home');
     const aName = escapeHtml(p.away_name || 'Away');
