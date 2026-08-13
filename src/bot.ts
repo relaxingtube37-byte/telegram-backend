@@ -6,7 +6,7 @@ dotenv.config();
 
 const botToken = process.env.BOT_TOKEN || '';
 const channelId = process.env.CHANNEL_ID || '';
-const webAppUrl = process.env.WEBAPP_URL || 'http://localhost:5174';
+const webAppUrl = (process.env.WEBAPP_URL || 'https://telegram-webapp-hd6g.onrender.com').trim();
 
 export const bot = botToken && !botToken.includes('example') ? new Bot(botToken) : null;
 
