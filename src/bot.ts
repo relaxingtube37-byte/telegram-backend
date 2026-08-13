@@ -65,14 +65,15 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱 Clay'
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱 Grass' : '🟦 Hard';
 
-  let keyboard: InlineKeyboard;
-  if (currentWebAppUrl.startsWith('https://t.me')) {
-    keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', currentWebAppUrl);
-  } else if (currentWebAppUrl.startsWith('https://')) {
-    keyboard = new InlineKeyboard().webApp('🚀 Open Full Analysis in WebApp', currentWebAppUrl);
-  } else {
-    keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', `https://t.me/${process.env.BOT_USERNAME || ''}`);
+  const rawBotUsername = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
+  let targetUrl = currentWebAppUrl;
+  if (rawBotUsername) {
+    targetUrl = `https://t.me/${rawBotUsername}/app`;
+  } else if (!targetUrl.startsWith('http')) {
+    targetUrl = 'https://t.me';
   }
+
+  const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
 
   const htmlMsg = 
     `🎾 <b>AI TENNIS MATCH PREDICTION</b>\n` +
