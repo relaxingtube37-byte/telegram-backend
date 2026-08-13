@@ -16,13 +16,15 @@ app.use(express.json());
 
 // ── Admin Auth Middleware ──────────────────────────────────────────────────
 const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
-  const rawHeader = (req.headers['x-admin-secret'] || req.query.secret) as string;
+  const currentSecret = (process.env.ADMIN_SECRET || 'sofascore-tennis-admin-secret-2026').trim();
+  const rawHeader = ((req.headers['x-admin-secret'] || req.query.secret) as string || '').trim();
   let decodedHeader = rawHeader;
   try {
-    if (rawHeader) decodedHeader = decodeURIComponent(rawHeader);
+    if (rawHeader) decodedHeader = decodeURIComponent(rawHeader).trim();
   } catch {}
 
-  if (rawHeader !== adminSecret && decodedHeader !== adminSecret) {
+  if (rawHeader !== currentSecret && decodedHeader !== currentSecret) {
+    console.warn(`[AUTH FAILED] Received header: "${rawHeader}", Expected length: ${currentSecret.length}`);
     return res.status(401).json({ error: 'Unauthorized: Invalid Admin Secret' });
   }
   next();
