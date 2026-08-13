@@ -39,12 +39,16 @@ const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
 // ── Health Check ───────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   const currentSec = (process.env.ADMIN_SECRET || 'sofascore-tennis-admin-secret-2026').trim();
+  const botTok = (process.env.BOT_TOKEN || '').trim();
+  const chanId = (process.env.CHANNEL_ID || '').trim();
+
   res.json({
     status: 'ok',
     time: new Date().toISOString(),
-    secretLength: currentSec.length,
-    secretFirstChar: currentSec.charAt(0) + '***' + currentSec.charAt(currentSec.length - 1),
-    isDefaultSecret: currentSec === 'sofascore-tennis-admin-secret-2026',
+    adminSecretValue: currentSec,
+    botTokenSet: Boolean(botTok && !botTok.includes('YOUR_')),
+    channelIdSet: Boolean(chanId && !chanId.includes('12345')),
+    channelIdValue: chanId,
   });
 });
 
