@@ -154,14 +154,27 @@ app.get('/api/webapp/referrals', (req, res) => {
     const sites = db_1.db.prepare('SELECT id, name, base_url FROM referral_sites WHERE is_active = 1').all();
     res.json(sites);
 });
+// Get WebApp public config (access_mode)
+app.get('/api/webapp/config', (req, res) => {
+    const row = db_1.db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode');
+    const access_mode = row?.value || 'REGISTRATION_REQUIRED';
+    res.json({ access_mode });
+});
 // Get user verification status
 app.get('/api/webapp/user/:telegramId', (req, res) => {
     const { telegramId } = req.params;
     const user = db_1.db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(parseInt(telegramId, 10));
+    const row = db_1.db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode');
+    const access_mode = row?.value || 'REGISTRATION_REQUIRED';
     if (!user) {
-        return res.json({ registered: false, verified: false });
+        return res.json({ registered: false, verified: false, access_mode });
     }
-    res.json({ registered: true, verified: Boolean(user.is_verified) });
+    res.json({
+        registered: true,
+        verified: user.is_verified === 1,
+        site_id: user.registered_site_id,
+        access_mode,
+    });
 });
 // ── Referral Postback Webhook ─────────────────────────────────────────────
 app.get('/api/postback/:siteKey', postback_1.handlePostbackWebhook);
@@ -293,6 +306,21 @@ app.delete('/api/admin/referrals/:id', requireAdminAuth, (req, res) => {
     const { id } = req.params;
     db_1.db.prepare('DELETE FROM referral_sites WHERE id = ?').run(id);
     res.json({ success: true });
+});
+// Admin: Access Control Mode Settings (FREE | REGISTRATION_REQUIRED | DEPOSIT_REQUIRED)
+app.get('/api/admin/settings', requireAdminAuth, (req, res) => {
+    const row = db_1.db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode');
+    const access_mode = row?.value || 'REGISTRATION_REQUIRED';
+    res.json({ access_mode });
+});
+app.post('/api/admin/settings', requireAdminAuth, (req, res) => {
+    const { access_mode } = req.body;
+    if (!['FREE', 'REGISTRATION_REQUIRED', 'DEPOSIT_REQUIRED'].includes(access_mode)) {
+        return res.status(400).json({ error: 'Invalid access_mode. Must be FREE, REGISTRATION_REQUIRED, or DEPOSIT_REQUIRED' });
+    }
+    db_1.db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+        .run('access_mode', access_mode);
+    res.json({ success: true, access_mode });
 });
 // Admin: Users List & Manual Verification
 app.get('/api/admin/users', requireAdminAuth, (req, res) => {

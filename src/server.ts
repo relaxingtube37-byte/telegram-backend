@@ -132,14 +132,30 @@ app.get('/api/webapp/referrals', (req, res) => {
   res.json(sites);
 });
 
+// Get WebApp public config (access_mode)
+app.get('/api/webapp/config', (req, res) => {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode') as any;
+  const access_mode = row?.value || 'REGISTRATION_REQUIRED';
+  res.json({ access_mode });
+});
+
 // Get user verification status
 app.get('/api/webapp/user/:telegramId', (req, res) => {
   const { telegramId } = req.params;
-  const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(parseInt(telegramId, 10));
+  const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(parseInt(telegramId, 10)) as any;
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode') as any;
+  const access_mode = row?.value || 'REGISTRATION_REQUIRED';
+
   if (!user) {
-    return res.json({ registered: false, verified: false });
+    return res.json({ registered: false, verified: false, access_mode });
   }
-  res.json({ registered: true, verified: Boolean((user as any).is_verified) });
+
+  res.json({
+    registered: true,
+    verified: user.is_verified === 1,
+    site_id: user.registered_site_id,
+    access_mode,
+  });
 });
 
 // ── Referral Postback Webhook ─────────────────────────────────────────────
@@ -305,6 +321,25 @@ app.delete('/api/admin/referrals/:id', requireAdminAuth, (req, res) => {
   const { id } = req.params;
   db.prepare('DELETE FROM referral_sites WHERE id = ?').run(id);
   res.json({ success: true });
+});
+
+// Admin: Access Control Mode Settings (FREE | REGISTRATION_REQUIRED | DEPOSIT_REQUIRED)
+app.get('/api/admin/settings', requireAdminAuth, (req, res) => {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode') as any;
+  const access_mode = row?.value || 'REGISTRATION_REQUIRED';
+  res.json({ access_mode });
+});
+
+app.post('/api/admin/settings', requireAdminAuth, (req, res) => {
+  const { access_mode } = req.body;
+  if (!['FREE', 'REGISTRATION_REQUIRED', 'DEPOSIT_REQUIRED'].includes(access_mode)) {
+    return res.status(400).json({ error: 'Invalid access_mode. Must be FREE, REGISTRATION_REQUIRED, or DEPOSIT_REQUIRED' });
+  }
+
+  db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+    .run('access_mode', access_mode);
+
+  res.json({ success: true, access_mode });
 });
 
 // Admin: Users List & Manual Verification
