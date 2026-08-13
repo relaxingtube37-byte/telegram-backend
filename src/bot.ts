@@ -66,13 +66,18 @@ export const publishPredictionToChannel = async (prediction: any): Promise<numbe
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱 Grass' : '🟦 Hard';
 
   const rawBotUsername = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
-  let targetUrl = currentWebAppUrl;
+  let targetUrl = currentWebAppUrl.trim();
   if (rawBotUsername) {
     targetUrl = `https://t.me/${rawBotUsername}/app`;
-  } else if (!targetUrl.startsWith('http')) {
-    targetUrl = 'https://t.me';
+  } else if (!targetUrl.startsWith('https://')) {
+    if (targetUrl.startsWith('http://')) {
+      targetUrl = targetUrl.replace('http://', 'https://');
+    } else {
+      targetUrl = 'https://t.me';
+    }
   }
 
+  console.log(`[POST TO CHANNEL] Target Channel: ${currentChannelId}, Button URL: ${targetUrl}`);
   const keyboard = new InlineKeyboard().url('🚀 Open Full Analysis in WebApp', targetUrl);
 
   const htmlMsg = 
