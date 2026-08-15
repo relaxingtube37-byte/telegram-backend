@@ -151,8 +151,29 @@ app.get('/api/webapp/stats', (req, res) => {
 });
 // Get active referral sites
 app.get('/api/webapp/referrals', (req, res) => {
-    const sites = db_1.db.prepare('SELECT id, name, base_url FROM referral_sites WHERE is_active = 1').all();
+    const sites = db_1.db.prepare('SELECT id, name, base_url, app_url, verify_mode FROM referral_sites WHERE is_active = 1').all();
     res.json(sites);
+});
+// Click Tracking & Redirect Endpoint (/go/:siteId/:telegramId)
+app.get(['/go/:siteId/:telegramId', '/api/go/:siteId/:telegramId'], (req, res) => {
+    const siteId = parseInt(String(req.params.siteId || ''), 10);
+    const telegramId = parseInt(String(req.params.telegramId || ''), 10);
+    if (!telegramId || isNaN(telegramId)) {
+        return res.status(400).send('Invalid telegram_id');
+    }
+    const site = db_1.db.prepare('SELECT * FROM referral_sites WHERE id = ? AND is_active = 1').get(siteId);
+    if (!site) {
+        return res.status(404).send('Referral site not found');
+    }
+    // Record pending site click in DB
+    (0, db_1.setPendingSite)(telegramId, siteId);
+    // Check if site verification mode is instant or free (free / open_link)
+    if (site.verify_mode === 'free' || site.verify_mode === 'open_link') {
+        (0, db_1.setVerified)(telegramId, siteId, site.verify_mode || 'free');
+    }
+    // Build target referral URL with subid tracking
+    const targetUrl = (0, db_1.buildReferralUrl)(site.base_url, telegramId);
+    return res.redirect(302, targetUrl);
 });
 // Get WebApp public config (access_mode)
 app.get('/api/webapp/config', (req, res) => {
@@ -160,19 +181,42 @@ app.get('/api/webapp/config', (req, res) => {
     const access_mode = row?.value || 'REGISTRATION_REQUIRED';
     res.json({ access_mode });
 });
-// Get user verification status
-app.get('/api/webapp/user/:telegramId', (req, res) => {
-    const { telegramId } = req.params;
-    const user = db_1.db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(parseInt(telegramId, 10));
+// Get user verification status & auto-record MiniApp visitors
+app.all(['/api/webapp/user/:telegramId', '/api/webapp/user/ping'], (req, res) => {
+    const tidParam = req.params.telegramId || req.body?.telegram_id || req.query?.telegram_id;
+    const tid = parseInt(tidParam, 10);
     const row = db_1.db.prepare('SELECT value FROM settings WHERE key = ?').get('access_mode');
     const access_mode = row?.value || 'REGISTRATION_REQUIRED';
-    if (!user) {
+    if (!tid || isNaN(tid)) {
         return res.json({ registered: false, verified: false, access_mode });
+    }
+    const first_name = (req.query.first_name || req.body?.first_name || '');
+    const username = (req.query.username || req.body?.username || '');
+    const now = new Date().toISOString();
+    let user = db_1.db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(tid);
+    if (!user) {
+        db_1.db.prepare(`
+      INSERT INTO users (telegram_id, username, first_name, is_verified, created_at, last_active_at)
+      VALUES (?, ?, ?, 0, ?, ?)
+    `).run(tid, username || null, first_name || null, now, now);
+        user = db_1.db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(tid);
+    }
+    else {
+        // Update last_active_at & name info if available
+        db_1.db.prepare(`
+      UPDATE users SET 
+        last_active_at = ?,
+        username = COALESCE(NULLIF(?, ''), username),
+        first_name = COALESCE(NULLIF(?, ''), first_name)
+      WHERE telegram_id = ?
+    `).run(now, username, first_name, tid);
     }
     res.json({
         registered: true,
-        verified: user.is_verified === 1,
-        site_id: user.registered_site_id,
+        verified: user?.is_verified === 1,
+        first_name: user?.first_name || first_name || null,
+        username: user?.username || username || null,
+        site_id: user?.registered_site_id,
         access_mode,
     });
 });
@@ -283,10 +327,40 @@ app.post('/api/admin/predictions/batch-result', requireAdminAuth, async (req, re
 });
 // Admin: Delete prediction
 app.delete('/api/admin/predictions/:id', requireAdminAuth, (req, res) => {
-    const { id } = req.params;
-    db_1.db.prepare('DELETE FROM predictions WHERE id = ?').run(id);
-    db_1.db.prepare('DELETE FROM channel_posts WHERE prediction_id = ?').run(id);
-    res.json({ success: true });
+    try {
+        const { id } = req.params;
+        // Delete child records first to satisfy Foreign Key constraints
+        db_1.db.prepare('DELETE FROM channel_posts WHERE prediction_id = ?').run(id);
+        db_1.db.prepare('DELETE FROM predictions WHERE id = ?').run(id);
+        res.json({ success: true, id });
+    }
+    catch (e) {
+        console.error(`[DELETE PREDICTION FAILED] ID: ${req.params.id}:`, e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+// Admin: Batch Delete predictions
+app.post('/api/admin/predictions/batch-delete', requireAdminAuth, (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'ids array is required' });
+        }
+        const deletePostsStmt = db_1.db.prepare('DELETE FROM channel_posts WHERE prediction_id = ?');
+        const deletePredStmt = db_1.db.prepare('DELETE FROM predictions WHERE id = ?');
+        const deleteTx = db_1.db.transaction((idList) => {
+            for (const id of idList) {
+                deletePostsStmt.run(id);
+                deletePredStmt.run(id);
+            }
+        });
+        deleteTx(ids);
+        res.json({ success: true, deletedCount: ids.length });
+    }
+    catch (e) {
+        console.error('[BATCH DELETE FAILED]:', e.message);
+        res.status(500).json({ error: e.message });
+    }
 });
 // Admin: Manage Referral Sites
 app.get('/api/admin/referrals', requireAdminAuth, (req, res) => {
@@ -294,14 +368,14 @@ app.get('/api/admin/referrals', requireAdminAuth, (req, res) => {
     res.json(sites);
 });
 app.post('/api/admin/referrals', requireAdminAuth, (req, res) => {
-    const { name, base_url, postback_key } = req.body;
+    const { name, base_url, postback_key, verify_mode = 'postback', app_url = '' } = req.body;
     if (!name || !base_url || !postback_key) {
         return res.status(400).json({ error: 'Name, base_url, and postback_key are required' });
     }
     const result = db_1.db.prepare(`
-    INSERT INTO referral_sites (name, base_url, postback_key, is_active, created_at)
-    VALUES (?, ?, ?, 1, ?)
-  `).run(name, base_url, postback_key, new Date().toISOString());
+    INSERT INTO referral_sites (name, base_url, postback_key, verify_mode, app_url, is_active, created_at)
+    VALUES (?, ?, ?, ?, ?, 1, ?)
+  `).run(name, base_url, postback_key, verify_mode, app_url, new Date().toISOString());
     res.json({ success: true, id: result.lastInsertRowid });
 });
 app.delete('/api/admin/referrals/:id', requireAdminAuth, (req, res) => {

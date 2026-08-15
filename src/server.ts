@@ -346,10 +346,41 @@ app.post('/api/admin/predictions/batch-result', requireAdminAuth, async (req: Re
 
 // Admin: Delete prediction
 app.delete('/api/admin/predictions/:id', requireAdminAuth, (req, res) => {
-  const { id } = req.params;
-  db.prepare('DELETE FROM predictions WHERE id = ?').run(id);
-  db.prepare('DELETE FROM channel_posts WHERE prediction_id = ?').run(id);
-  res.json({ success: true });
+  try {
+    const { id } = req.params;
+    // Delete child records first to satisfy Foreign Key constraints
+    db.prepare('DELETE FROM channel_posts WHERE prediction_id = ?').run(id);
+    db.prepare('DELETE FROM predictions WHERE id = ?').run(id);
+    res.json({ success: true, id });
+  } catch (e: any) {
+    console.error(`[DELETE PREDICTION FAILED] ID: ${req.params.id}:`, e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Batch Delete predictions
+app.post('/api/admin/predictions/batch-delete', requireAdminAuth, (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids array is required' });
+    }
+    const deletePostsStmt = db.prepare('DELETE FROM channel_posts WHERE prediction_id = ?');
+    const deletePredStmt = db.prepare('DELETE FROM predictions WHERE id = ?');
+    
+    const deleteTx = db.transaction((idList: number[]) => {
+      for (const id of idList) {
+        deletePostsStmt.run(id);
+        deletePredStmt.run(id);
+      }
+    });
+
+    deleteTx(ids);
+    res.json({ success: true, deletedCount: ids.length });
+  } catch (e: any) {
+    console.error('[BATCH DELETE FAILED]:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Admin: Manage Referral Sites
