@@ -36,6 +36,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -114,9 +116,9 @@ app.get('/api/admin/test-bot-channel', requireAdminAuth, async (req, res) => {
     }
 });
 // ── Player Image Proxy & Permanent Caching Service ─────────────────────────
-const IMAGE_CACHE_DIR = path.join(process.cwd(), 'data', 'player_images');
-if (!fs.existsSync(IMAGE_CACHE_DIR)) {
-    fs.mkdirSync(IMAGE_CACHE_DIR, { recursive: true });
+const IMAGE_CACHE_DIR = path_1.default.join(process.cwd(), 'data', 'player_images');
+if (!fs_1.default.existsSync(IMAGE_CACHE_DIR)) {
+    fs_1.default.mkdirSync(IMAGE_CACHE_DIR, { recursive: true });
 }
 app.get(['/api/images/player/:id', '/images/player/:id'], async (req, res) => {
     const playerId = parseInt(String(req.params.id || ''), 10);
@@ -124,11 +126,11 @@ app.get(['/api/images/player/:id', '/images/player/:id'], async (req, res) => {
     if (!playerId || isNaN(playerId)) {
         return serveFallbackAvatar(res, playerName || 'TP');
     }
-    const cacheFile = path.join(IMAGE_CACHE_DIR, `player_${playerId}.png`);
-    if (fs.existsSync(cacheFile)) {
+    const cacheFile = path_1.default.join(IMAGE_CACHE_DIR, `player_${playerId}.png`);
+    if (fs_1.default.existsSync(cacheFile)) {
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        return fs.createReadStream(cacheFile).pipe(res);
+        return fs_1.default.createReadStream(cacheFile).pipe(res);
     }
     // Attempt to fetch from RapidAPI or Sofascore with headers
     const rapidApiKey = process.env.RAPIDAPI_KEY || process.env.TENNIS_API_KEY || '';
@@ -142,7 +144,7 @@ app.get(['/api/images/player/:id', '/images/player/:id'], async (req, res) => {
             });
             if (fetchRes.ok) {
                 const buffer = Buffer.from(await fetchRes.arrayBuffer());
-                fs.writeFileSync(cacheFile, buffer);
+                fs_1.default.writeFileSync(cacheFile, buffer);
                 res.setHeader('Content-Type', 'image/png');
                 res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
                 return res.send(buffer);
