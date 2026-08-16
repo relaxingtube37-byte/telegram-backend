@@ -85,6 +85,78 @@ app.get('/api/admin/test-bot-channel', requireAdminAuth, async (req: Request, re
   }
 });
 
+
+// ── Player Image Proxy & Permanent Caching Service ─────────────────────────
+const IMAGE_CACHE_DIR = path.join(process.cwd(), 'data', 'player_images');
+if (!fs.existsSync(IMAGE_CACHE_DIR)) {
+  fs.mkdirSync(IMAGE_CACHE_DIR, { recursive: true });
+}
+
+app.get(['/api/images/player/:id', '/images/player/:id'], async (req: Request, res: Response) => {
+  const playerId = parseInt(String(req.params.id || ''), 10);
+  const playerName = String(req.query.name || '').trim();
+
+  if (!playerId || isNaN(playerId)) {
+    return serveFallbackAvatar(res, playerName || 'TP');
+  }
+
+  const cacheFile = path.join(IMAGE_CACHE_DIR, `player_${playerId}.png`);
+  if (fs.existsSync(cacheFile)) {
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return fs.createReadStream(cacheFile).pipe(res);
+  }
+
+  // Attempt to fetch from RapidAPI or Sofascore with headers
+  const rapidApiKey = process.env.RAPIDAPI_KEY || process.env.TENNIS_API_KEY || '';
+  if (rapidApiKey) {
+    try {
+      const fetchRes = await fetch(`https://tennisapi1.p.rapidapi.com/api/tennis/player/${playerId}/image`, {
+        headers: {
+          'X-RapidAPI-Key': rapidApiKey,
+          'X-RapidAPI-Host': 'tennisapi1.p.rapidapi.com',
+        },
+      });
+
+      if (fetchRes.ok) {
+        const buffer = Buffer.from(await fetchRes.arrayBuffer());
+        fs.writeFileSync(cacheFile, buffer);
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        return res.send(buffer);
+      }
+    } catch (e: any) {
+      console.warn(`[IMAGE PROXY] RapidAPI fetch error for player #${playerId}:`, e.message);
+    }
+  }
+
+  // Fallback: Generate a sleek tennis player avatar SVG
+  return serveFallbackAvatar(res, playerName || 'TP');
+});
+
+function serveFallbackAvatar(res: Response, name: string) {
+  const initials = name
+    ? name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+    : '🎾';
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+    <defs>
+      <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0284c7"/>
+        <stop offset="100%" stop-color="#0369a1"/>
+      </linearGradient>
+    </defs>
+    <rect width="96" height="96" rx="48" fill="url(#g)"/>
+    <circle cx="48" cy="48" r="44" fill="none" stroke="#38bdf8" stroke-width="2" stroke-opacity="0.4"/>
+    <text x="48" y="55" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="30" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${initials}</text>
+  </svg>`;
+
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send(svg);
+}
+
+
 // ── WebApp Public Endpoints ────────────────────────────────────────────────
 
 // Get published predictions for TWA
