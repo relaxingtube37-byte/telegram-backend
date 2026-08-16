@@ -312,7 +312,7 @@ app.post('/api/admin/predictions/sync-fixture-results', requireAdminAuth, async 
           updatedItems.push(updated);
           // Also update channel message reply if exists
           const post = db.prepare('SELECT * FROM channel_posts WHERE prediction_id = ?').get(updated.id) as any;
-          if (post && post.message_id && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(r.status)) {
+          if (post && post.message_id && ['WON', 'LOST', 'VOID'].includes(r.status)) {
             try {
               await updateChannelPostResult(post.message_id, r.status, r.result_score);
             } catch (err: any) {
@@ -343,7 +343,7 @@ app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req: Reque
 
   // If there's a channel post, reply update
   const post = db.prepare('SELECT * FROM channel_posts WHERE prediction_id = ?').get(id) as any;
-  if (post && post.message_id && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(status)) {
+  if (post && post.message_id && ['WON', 'LOST', 'VOID'].includes(status)) {
     await updateChannelPostResult(post.message_id, status, result_score);
   }
 
