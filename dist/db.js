@@ -44,6 +44,8 @@ exports.db.exec(`
     alt_bet_rationale TEXT,
     alt_bet_risk TEXT,
     ai_summary TEXT,
+    match_date TEXT,
+    devils_advocate_risk TEXT,
     status TEXT DEFAULT 'UPCOMING', -- UPCOMING, LIVE, WON, LOST, VOID
     result_score TEXT,
     published_at TEXT NOT NULL,
@@ -123,6 +125,14 @@ try {
 catch { }
 try {
     exports.db.exec("ALTER TABLE referral_sites ADD COLUMN app_url TEXT DEFAULT '';");
+}
+catch { }
+try {
+    exports.db.exec("ALTER TABLE predictions ADD COLUMN match_date TEXT;");
+}
+catch { }
+try {
+    exports.db.exec("ALTER TABLE predictions ADD COLUMN devils_advocate_risk TEXT;");
 }
 catch { }
 console.log('✅ SQLite Database initialized at:', dbPath);

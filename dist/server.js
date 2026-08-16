@@ -236,21 +236,21 @@ app.post('/api/admin/predictions/publish', requireAdminAuth, async (req, res) =>
     const keyFactorsJson = Array.isArray(p.key_factors) ? JSON.stringify(p.key_factors) : JSON.stringify([]);
     const result = db_1.db.prepare(`
     INSERT INTO predictions (
-      fixture_id, match_title, tournament_name, surface, round_name,
+      fixture_id, match_title, tournament_name, surface, round_name, match_date,
       home_name, away_name, home_odds, away_odds,
       predicted_winner, predicted_score, win_probability, confidence,
       key_factors, best_bet_market, best_bet_selection, best_bet_rationale, best_bet_ev,
       alt_bet_market, alt_bet_selection, alt_bet_rationale, alt_bet_risk,
-      ai_summary, status, published_at, created_at
+      devils_advocate_risk, ai_summary, status, published_at, created_at
     ) VALUES (
-      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
       ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
-      ?, 'UPCOMING', ?, ?
+      ?, ?, 'UPCOMING', ?, ?
     )
-  `).run(p.fixture_id || null, p.match_title, p.tournament_name || null, p.surface || null, p.round_name || null, p.home_name, p.away_name, p.home_odds || null, p.away_odds || null, p.predicted_winner, p.predicted_score || null, p.win_probability || 65, p.confidence || 'HIGH', keyFactorsJson, p.best_bet_market || null, p.best_bet_selection || null, p.best_bet_rationale || null, p.best_bet_ev || 'POSITIVE', p.alt_bet_market || null, p.alt_bet_selection || null, p.alt_bet_rationale || null, p.alt_bet_risk || 'LOW', p.ai_summary || null, now, now);
+  `).run(p.fixture_id || null, p.match_title, p.tournament_name || null, p.surface || null, p.round_name || null, p.match_date || null, p.home_name, p.away_name, p.home_odds || null, p.away_odds || null, p.predicted_winner, p.predicted_score || null, p.win_probability || 65, p.confidence || 'HIGH', keyFactorsJson, p.best_bet_market || null, p.best_bet_selection || null, p.best_bet_rationale || null, p.best_bet_ev || 'POSITIVE', p.alt_bet_market || null, p.alt_bet_selection || null, p.alt_bet_rationale || null, p.alt_bet_risk || 'LOW', p.devils_advocate_risk || null, p.ai_summary || null, now, now);
     const predictionId = result.lastInsertRowid;
     const prediction = db_1.db.prepare('SELECT * FROM predictions WHERE id = ?').get(predictionId);
     // Post to Telegram Channel if requested (default true)
@@ -279,6 +279,42 @@ app.get('/api/admin/predictions', requireAdminAuth, (req, res) => {
         key_factors: p.key_factors ? JSON.parse(p.key_factors) : [],
     }));
     res.json(predictions);
+});
+// Admin: Auto-sync match results by fixture_id from Desktop app
+app.post('/api/admin/predictions/sync-fixture-results', requireAdminAuth, async (req, res) => {
+    const { results } = req.body;
+    if (!Array.isArray(results) || results.length === 0) {
+        return res.json({ success: true, updatedCount: 0, items: [] });
+    }
+    const updatedItems = [];
+    const stmt = db_1.db.prepare(`
+    UPDATE predictions 
+    SET status = ?, result_score = ? 
+    WHERE fixture_id = ? AND status IN ('UPCOMING', 'LIVE')
+  `);
+    for (const r of results) {
+        if (r.fixture_id && ['WON', 'LOST', 'VOID', 'INTERRUPTED', 'LIVE'].includes(r.status)) {
+            const resUpdate = stmt.run(r.status, r.result_score || null, r.fixture_id);
+            if (resUpdate.changes > 0) {
+                const updated = db_1.db.prepare('SELECT * FROM predictions WHERE fixture_id = ?').get(r.fixture_id);
+                if (updated) {
+                    updatedItems.push(updated);
+                    // Also update channel message reply if exists
+                    const post = db_1.db.prepare('SELECT * FROM channel_posts WHERE prediction_id = ?').get(updated.id);
+                    if (post && post.message_id && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(r.status)) {
+                        try {
+                            await (0, bot_1.updateChannelPostResult)(post.message_id, r.status, r.result_score);
+                        }
+                        catch (err) {
+                            console.warn(`[CHANNEL REPLY UPDATE FAILED] message_id: ${post.message_id}:`, err.message);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    console.log(`✅ [AUTO-SYNC FIXTURE RESULTS] Received ${results.length} results, updated ${updatedItems.length} prediction(s)`);
+    res.json({ success: true, updatedCount: updatedItems.length, items: updatedItems });
 });
 // Admin: Update prediction result (WON / LOST / VOID / INTERRUPTED)
 app.put('/api/admin/predictions/:id/result', requireAdminAuth, async (req, res) => {
