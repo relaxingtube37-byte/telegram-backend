@@ -146,33 +146,45 @@ exports.publishPredictionToChannel = publishPredictionToChannel;
 /**
  * Edit/reply to channel post when result is recorded (WON / LOST)
  */
+/**
+ * Edit/reply to channel post when result is recorded (WON / LOST / VOID)
+ * Never sends any message on INTERRUPTED or UPCOMING/LIVE
+ */
 const updateChannelPostResult = async (messageId, status, resultScore) => {
-    if (!exports.bot || !channelId || !messageId)
+    // Strict Guard: Never send message for INTERRUPTED, UPCOMING, or LIVE
+    if (!exports.bot || !channelId || !messageId || status === 'INTERRUPTED' || status === 'UPCOMING' || status === 'LIVE') {
         return;
-    const resultBadge = status === 'WON' ? '✅ WINNER / WON!'
-        : status === 'LOST' ? '❌ MATCH LOST'
-            : status === 'INTERRUPTED' ? '⏸ MATCH INTERRUPTED / POSTPONED'
-                : '🔄 VOID / CANCELLED';
+    }
+    // Only allow valid numeric scores (e.g. "2:1", "6-4, 6-3"), ignore non-score strings like "INTERRUPTED"
+    const isValidScore = resultScore &&
+        !['INTERRUPTED', 'UPCOMING', 'LIVE', 'VOID', 'WON', 'LOST'].includes(resultScore.toUpperCase().trim()) &&
+        /\d/.test(resultScore);
+    const scoreStr = isValidScore ? ` (${escapeHtml(resultScore.trim())})` : '';
+    const resultBadge = status === 'WON'
+        ? `🎯 <b>MATCH RESULT: WON!</b> ✅`
+        : status === 'LOST'
+            ? `❌ <b>MATCH RESULT: LOST</b>`
+            : `🔄 <b>MATCH RESULT: VOID / CANCELLED</b>`;
     const botUsernameEnv = (process.env.BOT_USERNAME || '').replace(/^@/, '').trim();
     const rawBotUsername = botUsernameEnv || 'admdinbetbetforbot';
     const webAppShortName = (process.env.WEBAPP_SHORT_NAME || 'app').trim();
     const targetUrl = `https://t.me/${rawBotUsername}/${webAppShortName}`;
     const keyboard = new grammy_1.InlineKeyboard().url('🚀 📱 View Live Stats in MiniApp', targetUrl);
+    const htmlMsg = `${resultBadge}${scoreStr}\n\n` +
+        `📊 <i>Live stats, updated accuracy & upcoming picks are live in the MiniApp!</i>`;
     try {
-        await exports.bot.api.sendMessage(channelId, `📢 <b>MATCH RESULT CONFIRMED:</b>\n\n${resultBadge}${resultScore ? ` (<b>${escapeHtml(resultScore)}</b>)` : ''}\n\n📊 <i>Check updated win rates and upcoming picks in the MiniApp!</i>`, {
+        await exports.bot.api.sendMessage(channelId, htmlMsg, {
             reply_parameters: { message_id: messageId },
             parse_mode: 'HTML',
             reply_markup: keyboard,
         });
+        console.log(`✅ Replied result update (${status}) to message #${messageId}`);
     }
     catch (e) {
         console.warn('Could not reply result update to channel:', e.message);
     }
 };
 exports.updateChannelPostResult = updateChannelPostResult;
-/**
- * Format and publish a batch results summary post to the Telegram Channel
- */
 const publishBatchSummaryToChannel = async (predictions, customTitle) => {
     const currentChannelId = (process.env.CHANNEL_ID || '').trim();
     if (!exports.bot || !currentChannelId || !predictions || predictions.length === 0)
