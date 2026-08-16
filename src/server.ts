@@ -233,14 +233,14 @@ app.post('/api/admin/predictions/publish', requireAdminAuth, async (req: Request
   const result = db.prepare(`
     INSERT INTO predictions (
       fixture_id, match_title, tournament_name, surface, round_name, match_date,
-      home_name, away_name, home_odds, away_odds,
+      home_name, away_name, home_id, away_id, home_image, away_image, home_odds, away_odds,
       predicted_winner, predicted_score, win_probability, confidence,
       key_factors, best_bet_market, best_bet_selection, best_bet_rationale, best_bet_ev,
       alt_bet_market, alt_bet_selection, alt_bet_rationale, alt_bet_risk,
       devils_advocate_risk, ai_summary, status, published_at, created_at
     ) VALUES (
       ?, ?, ?, ?, ?, ?,
-      ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
       ?, ?, ?, ?,
@@ -248,7 +248,7 @@ app.post('/api/admin/predictions/publish', requireAdminAuth, async (req: Request
     )
   `).run(
     p.fixture_id || null, p.match_title, p.tournament_name || null, p.surface || null, p.round_name || null, p.match_date || null,
-    p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
+    p.home_name, p.away_name, p.home_id || null, p.away_id || null, p.home_image || null, p.away_image || null, p.home_odds || null, p.away_odds || null,
     p.predicted_winner, p.predicted_score || null, p.win_probability || 65, p.confidence || 'HIGH',
     keyFactorsJson, p.best_bet_market || null, p.best_bet_selection || null, p.best_bet_rationale || null, p.best_bet_ev || 'POSITIVE',
     p.alt_bet_market || null, p.alt_bet_selection || null, p.alt_bet_rationale || null, p.alt_bet_risk || 'LOW',

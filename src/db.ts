@@ -27,6 +27,10 @@ db.exec(`
     round_name TEXT,
     home_name TEXT NOT NULL,
     away_name TEXT NOT NULL,
+    home_id INTEGER,
+    away_id INTEGER,
+    home_image TEXT,
+    away_image TEXT,
     home_odds TEXT,
     away_odds TEXT,
     predicted_winner TEXT NOT NULL,
@@ -105,6 +109,10 @@ try { db.exec("ALTER TABLE referral_sites ADD COLUMN verify_mode TEXT DEFAULT 'p
 try { db.exec("ALTER TABLE referral_sites ADD COLUMN app_url TEXT DEFAULT '';"); } catch {}
 try { db.exec("ALTER TABLE predictions ADD COLUMN match_date TEXT;"); } catch {}
 try { db.exec("ALTER TABLE predictions ADD COLUMN devils_advocate_risk TEXT;"); } catch {}
+try { db.exec("ALTER TABLE predictions ADD COLUMN home_image TEXT;"); } catch {}
+try { db.exec("ALTER TABLE predictions ADD COLUMN away_image TEXT;"); } catch {}
+try { db.exec("ALTER TABLE predictions ADD COLUMN home_id INTEGER;"); } catch {}
+try { db.exec("ALTER TABLE predictions ADD COLUMN away_id INTEGER;"); } catch {}
 
 console.log('✅ SQLite Database initialized at:', dbPath);
 
