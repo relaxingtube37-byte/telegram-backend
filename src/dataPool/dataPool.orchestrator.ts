@@ -157,7 +157,7 @@ export class BackendDataPoolOrchestrator {
 
       // ─── Status Text & Point Determination by Date Relation ────────────────
       let isLive = false;
-      let statusText = 'SCHEDULED';
+      let statusText = '';
       let point = '-';
 
       if (relation === 'past') {
@@ -180,13 +180,14 @@ export class BackendDataPoolOrchestrator {
           point = 'FT';
         }
       } else if (relation === 'future') {
-        // Future dates: Every match is Scheduled
+        // Future dates: Clean match time, no SCHEDULED string
         isLive = false;
-        statusText = 'SCHEDULED';
+        statusText = '';
         point = '-';
       } else {
-        // Today's date: accurately resolve in-progress vs finished vs scheduled
-        if (statusType === 'inprogress') {
+        // Today's date: accurately resolve in-progress vs finished vs upcoming
+        const sType = (statusType || '').toLowerCase();
+        if (sType === 'inprogress') {
           isLive = true;
           const currentSetNum = sets1.length > 0 ? sets1.length : 1;
           const p1Last = sets1.length > 0 ? Number(sets1[sets1.length - 1]) : 0;
@@ -201,7 +202,7 @@ export class BackendDataPoolOrchestrator {
           const p1Point = homeScore.point !== undefined ? String(homeScore.point) : '0';
           const p2Point = awayScore.point !== undefined ? String(awayScore.point) : '0';
           point = (p1Point !== '0' || p2Point !== '0') ? `${p1Point}-${p2Point}` : '0-0';
-        } else if (desc.includes('FINISH') || desc.includes('ENDED') || statusType === 'finished') {
+        } else if (desc.includes('FINISH') || desc.includes('ENDED') || sType === 'finished') {
           statusText = 'FINISHED';
           point = 'FT';
         } else if (desc.includes('RETIRED') || desc.includes('RET')) {
@@ -216,11 +217,11 @@ export class BackendDataPoolOrchestrator {
         } else if (desc.includes('POSTPON')) {
           statusText = 'POSTPONED';
           point = '-';
-        } else if (statusType === 'notstarted') {
-          statusText = 'SCHEDULED';
+        } else if (sType === 'notstarted' || desc === 'NOT STARTED' || desc === 'SCHEDULED') {
+          statusText = '';
           point = '-';
         } else {
-          statusText = desc || 'SCHEDULED';
+          statusText = desc;
           point = '-';
         }
       }
