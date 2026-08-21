@@ -143,6 +143,16 @@ export class BackendDataPoolOrchestrator {
       const rank1 = typeof home.ranking === 'number' ? home.ranking : undefined;
       const rank2 = typeof away.ranking === 'number' ? away.ranking : undefined;
 
+      let pId1 = typeof home.id === 'number' ? home.id : undefined;
+      if (!pId1 && Array.isArray(home.subTeams) && home.subTeams.length > 0 && typeof home.subTeams[0]?.id === 'number') {
+        pId1 = home.subTeams[0].id;
+      }
+
+      let pId2 = typeof away.id === 'number' ? away.id : undefined;
+      if (!pId2 && Array.isArray(away.subTeams) && away.subTeams.length > 0 && typeof away.subTeams[0]?.id === 'number') {
+        pId2 = away.subTeams[0].id;
+      }
+
       const player1 = home.name || 'Player 1';
       const player2 = away.name || 'Player 2';
       const country1 = home.country?.alpha3 || home.country?.alpha2 || 'INT';
@@ -165,6 +175,8 @@ export class BackendDataPoolOrchestrator {
 
       const matchItem: BackendMatchRowItem = {
         id: ev.id || Math.floor(Math.random() * 100000),
+        playerId1: pId1,
+        playerId2: pId2,
         player1,
         player2,
         country1,

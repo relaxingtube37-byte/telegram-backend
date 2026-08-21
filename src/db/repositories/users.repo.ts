@@ -39,6 +39,25 @@ export const UsersRepo = {
     }
   },
 
+  upsertFromBot: (telegramId: number, profile: { first_name?: string; username?: string }): void => {
+    const now = new Date().toISOString();
+    const existing = db.prepare('SELECT id FROM users WHERE telegram_id = ?').get(telegramId);
+    if (!existing) {
+      db.prepare(`
+        INSERT INTO users (telegram_id, first_name, username, is_verified, created_at, last_active_at)
+        VALUES (?, ?, ?, 0, ?, ?)
+      `).run(telegramId, profile.first_name || null, profile.username || null, now, now);
+    } else {
+      db.prepare(`
+        UPDATE users SET 
+          first_name = COALESCE(?, first_name),
+          username = COALESCE(?, username),
+          last_active_at = ?
+        WHERE telegram_id = ?
+      `).run(profile.first_name || null, profile.username || null, now, telegramId);
+    }
+  },
+
   setPendingSite: (telegramId: number, siteId: number): void => {
     const now = new Date().toISOString();
     const existing = db.prepare('SELECT id, is_verified FROM users WHERE telegram_id = ?').get(telegramId) as any;

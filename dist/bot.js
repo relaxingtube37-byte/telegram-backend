@@ -11,6 +11,8 @@ const startBot = async () => {
             onStart: (botInfo) => {
                 logger_1.Logger.success(`🤖 Telegram Bot started as @${botInfo.username}`);
             },
+        }).catch((err) => {
+            logger_1.Logger.warn(`⚠️ Telegram bot polling error (server still running): ${err}`);
         });
     }
     else {

@@ -3,6 +3,7 @@ import { GoRedirectController } from '../controllers/go-redirect.controller';
 
 const router = Router();
 
-router.get('/:siteId/:userId', GoRedirectController.handleRedirect);
+router.get('/go/:siteId/:userId', GoRedirectController.handleRedirect);
+router.get('/:siteId(\\d+)/:userId(\\d+)', GoRedirectController.handleRedirect);
 
 export const goRoutes = router;

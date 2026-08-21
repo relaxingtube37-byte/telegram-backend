@@ -23,6 +23,57 @@ export const PredictionsRepo = {
   },
 
   create: (p: Prediction): number => {
+    if (p.fixture_id) {
+      const existing = PredictionsRepo.getByFixtureId(p.fixture_id);
+      if (existing) {
+        const updateStmt = db.prepare(`
+          UPDATE predictions SET
+            tournament_name = COALESCE(?, tournament_name),
+            round_name = COALESCE(?, round_name),
+            surface = COALESCE(?, surface),
+            match_date = COALESCE(?, match_date),
+            home_name = ?,
+            away_name = ?,
+            home_odds = COALESCE(?, home_odds),
+            away_odds = COALESCE(?, away_odds),
+            predicted_winner = ?,
+            win_probability = ?,
+            confidence = ?,
+            predicted_score = COALESCE(?, predicted_score),
+            best_bet_selection = COALESCE(?, best_bet_selection),
+            best_bet_market = COALESCE(?, best_bet_market),
+            best_bet_ev = COALESCE(?, best_bet_ev),
+            best_bet_rationale = COALESCE(?, best_bet_rationale),
+            alt_bet_selection = COALESCE(?, alt_bet_selection),
+            alt_bet_market = COALESCE(?, alt_bet_market),
+            key_factors = COALESCE(?, key_factors),
+            devils_advocate_risk = COALESCE(?, devils_advocate_risk),
+            ai_summary = COALESCE(?, ai_summary),
+            home_image = COALESCE(?, home_image),
+            away_image = COALESCE(?, away_image),
+            home_id = COALESCE(?, home_id),
+            away_id = COALESCE(?, away_id),
+            status = COALESCE(?, status)
+          WHERE id = ?
+        `);
+
+        updateStmt.run(
+          p.tournament_name || null, p.round_name || null, p.surface || null, p.match_date || null,
+          p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
+          p.predicted_winner, p.win_probability, p.confidence, p.predicted_score || null,
+          p.best_bet_selection || null, p.best_bet_market || null, p.best_bet_ev || null, p.best_bet_rationale || null,
+          p.alt_bet_selection || null, p.alt_bet_market || null,
+          Array.isArray(p.key_factors) ? JSON.stringify(p.key_factors) : p.key_factors || null,
+          p.devils_advocate_risk || null, p.ai_summary || null,
+          p.home_image || null, p.away_image || null, p.home_id || null, p.away_id || null,
+          p.status || 'UPCOMING',
+          existing.id
+        );
+
+        return Number(existing.id);
+      }
+    }
+
     const stmt = db.prepare(`
       INSERT INTO predictions (
         fixture_id, tournament_name, round_name, surface, match_date,

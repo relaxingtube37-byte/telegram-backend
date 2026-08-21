@@ -18,6 +18,8 @@ export interface BackendMatchStats {
 
 export interface BackendMatchRowItem {
   id: number;
+  playerId1?: number;
+  playerId2?: number;
   player1: string;
   player2: string;
   country1: string;

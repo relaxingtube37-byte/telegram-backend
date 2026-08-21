@@ -33,6 +33,8 @@ export const runMigrations = () => {
     } catch {}
 
   const migrations = [
+    "ALTER TABLE users ADD COLUMN username TEXT;",
+    "ALTER TABLE users ADD COLUMN first_name TEXT;",
     "ALTER TABLE users ADD COLUMN last_active_at TEXT;",
     "ALTER TABLE users ADD COLUMN pending_site_id INTEGER;",
     "ALTER TABLE users ADD COLUMN screenshot_file_id TEXT;",
