@@ -296,17 +296,20 @@ export class BackendDataPoolOrchestrator {
         group.matches = group.matches.filter(m => m.isLive);
       }
 
-      // Sort matches: Live first -> Scheduled (by time) -> Finished
+      // Sort matches chronologically by match start time:
+      // Live matches first (if in-play), then strictly by startTimestamp / time ascending (e.g. 10:00 -> 12:30 -> 18:30 -> 20:30 -> 20:55)
       group.matches.sort((a, b) => {
         if (a.isLive && !b.isLive) return -1;
         if (!a.isLive && b.isLive) return 1;
 
-        const aSched = a.statusText === 'SCHEDULED';
-        const bSched = b.statusText === 'SCHEDULED';
-        if (aSched && !bSched) return -1;
-        if (!aSched && bSched) return 1;
+        const aTs = (a.startTimestamp && a.startTimestamp > 0) ? a.startTimestamp : 0;
+        const bTs = (b.startTimestamp && b.startTimestamp > 0) ? b.startTimestamp : 0;
 
-        return a.time.localeCompare(b.time);
+        if (aTs > 0 && bTs > 0 && aTs !== bTs) {
+          return aTs - bTs;
+        }
+
+        return (a.time || '').localeCompare(b.time || '');
       });
     }
 
@@ -331,7 +334,20 @@ export class BackendDataPoolOrchestrator {
       if (aLive && !bLive) return -1;
       if (!aLive && bLive) return 1;
 
-      return getTier(a.category) - getTier(b.category);
+      const tierDiff = getTier(a.category) - getTier(b.category);
+      if (tierDiff !== 0) return tierDiff;
+
+      const getEarliestTs = (g: BackendTournamentGroup) => {
+        let minTs = Infinity;
+        for (const m of g.matches) {
+          if (m.startTimestamp && m.startTimestamp > 0 && m.startTimestamp < minTs) {
+            minTs = m.startTimestamp;
+          }
+        }
+        return minTs === Infinity ? 0 : minTs;
+      };
+
+      return getEarliestTs(a) - getEarliestTs(b);
     });
 
     return activeGroups;
