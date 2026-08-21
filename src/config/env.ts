@@ -14,4 +14,5 @@ export const ENV = {
   PUBLIC_BASE_URL: (process.env.PUBLIC_BASE_URL || 'https://telegram-backend-2yck.onrender.com').trim().replace(/\/+$/, ''),
   DATABASE_FILE: process.env.DATABASE_FILE || path.join(process.cwd(), 'data', 'database.sqlite'),
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
+  RAPIDAPI_KEY: (process.env.RAPIDAPI_KEY || '3b98e0a4e3mshfb887513c847f6bp1602e4jsnaa6342ccddfa').trim(),
 };

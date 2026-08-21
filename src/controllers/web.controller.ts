@@ -3,6 +3,9 @@ import { PredictionsService } from '../services/predictions.service';
 import { StatsService } from '../services/stats.service';
 import { PlayersService } from '../services/players.service';
 import { SettingsRepo } from '../db/repositories/settings.repo';
+import { BackendDataPoolOrchestrator } from '../dataPool/dataPool.orchestrator';
+import { BackendDataPoolStore } from '../dataPool/dataPool.store';
+import { ENV } from '../config/env';
 
 export const WebController = {
   getLandingData: async (req: Request, res: Response) => {
@@ -14,13 +17,31 @@ export const WebController = {
       const websiteConfig = rawWebConfig ? JSON.parse(rawWebConfig) : {};
 
       res.json({
-        platform: 'State Football Tennis Web',
+        platform: 'PTIN Sports Analytics',
         stats,
         websiteConfig,
         featuredMatches: active.slice(0, 6),
         featuredPlayers: featuredPlayers.slice(0, 8),
         availableTournaments: Array.from(new Set(active.map(p => p.tournament_name).filter(Boolean))),
       });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  getLiveTournaments: async (req: Request, res: Response) => {
+    try {
+      const groups = await BackendDataPoolOrchestrator.getLiveTournamentGroups();
+      res.json(groups);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  getTodayTournaments: async (req: Request, res: Response) => {
+    try {
+      const groups = await BackendDataPoolOrchestrator.getTodayTournamentGroups();
+      res.json(groups);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -57,14 +78,12 @@ export const WebController = {
     }
   },
 
-  
   getPlayerImage: async (req: Request, res: Response) => {
     try {
       const playerId = String(req.params.playerId);
-      const rapidKey = process.env.RAPIDAPI_KEY || '3b98e0a4e3mshfb887513c847f6bp1602e4jsnaa6342ccddfa';
-      const fetchRes = await fetch(`https://tennisapi1.p.rapidapi.com/api/tennis/player/${playerId}/image`, {
+      const fetchRes = await fetch('https://tennisapi1.p.rapidapi.com/api/tennis/player/' + playerId + '/image', {
         headers: {
-          'x-rapidapi-key': rapidKey,
+          'x-rapidapi-key': ENV.RAPIDAPI_KEY,
           'x-rapidapi-host': 'tennisapi1.p.rapidapi.com',
         },
       });
@@ -79,6 +98,14 @@ export const WebController = {
       res.send(buffer);
     } catch (err: any) {
       res.status(500).send('Failed to fetch player image');
+    }
+  },
+
+  getPoolStats: async (req: Request, res: Response) => {
+    try {
+      res.json(BackendDataPoolStore.getStats());
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
   },
 
