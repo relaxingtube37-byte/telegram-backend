@@ -37,15 +37,29 @@ export class BackendDataPoolOrchestrator {
     return promise;
   }
 
+  static getDateRelation(dateStr?: string): 'past' | 'today' | 'future' {
+    if (!dateStr) return 'today';
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const localToday = `${year}-${month}-${day}`;
+
+    if (dateStr === localToday) {
+      return 'today';
+    }
+
+    return dateStr < localToday ? 'past' : 'future';
+  }
+
   static async getTodayTournamentGroups(): Promise<BackendTournamentGroup[]> {
     const todayStr = new Date().toISOString().split('T')[0];
     return this.getDateTournamentGroups(todayStr);
   }
 
   static async getDateTournamentGroups(dateStr: string): Promise<BackendTournamentGroup[]> {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const isToday = (dateStr === todayStr);
-    const ttl = isToday ? this.LIVE_TTL : this.DAILY_TTL;
+    const relation = this.getDateRelation(dateStr);
+    const ttl = relation === 'today' ? this.LIVE_TTL : (relation === 'past' ? 60 * 60 * 1000 : this.DAILY_TTL);
     const key = 'tournaments_daily_' + dateStr;
     const cached = BackendDataPoolStore.get<BackendTournamentGroup[]>(key);
     if (cached) return cached;
@@ -56,9 +70,9 @@ export class BackendDataPoolOrchestrator {
 
     const promise = (async () => {
       try {
-        // Fetch daily events (and live events if today) in sequence via rate-limited queue
+        // Fetch daily events (and live events ONLY if today) in sequence via rate-limited queue
         const dailyRaw = await BackendTennisApi.getDailyEvents(dateStr);
-        const liveRaw = isToday ? await BackendTennisApi.getLiveEvents() : null;
+        const liveRaw = (relation === 'today') ? await BackendTennisApi.getLiveEvents() : null;
 
         const eventsMap = new Map<number, any>();
 
@@ -68,8 +82,8 @@ export class BackendDataPoolOrchestrator {
           }
         }
 
-        // Merge real-time live events (overriding with freshest in-play points/status)
-        if (liveRaw && Array.isArray(liveRaw.events)) {
+        // Merge real-time live events ONLY for today
+        if (relation === 'today' && liveRaw && Array.isArray(liveRaw.events)) {
           for (const liveEv of liveRaw.events) {
             if (liveEv && liveEv.id) {
               eventsMap.set(liveEv.id, liveEv);
@@ -79,7 +93,7 @@ export class BackendDataPoolOrchestrator {
 
         const allEvents = Array.from(eventsMap.values());
         if (allEvents.length > 0) {
-          const groups = this.groupRawEvents(allEvents, false);
+          const groups = this.groupRawEvents(allEvents, false, dateStr);
           BackendDataPoolStore.set(key, groups, ttl);
           return groups;
         }
@@ -88,14 +102,17 @@ export class BackendDataPoolOrchestrator {
       } finally {
         IN_FLIGHT_REQUESTS.delete(key);
       }
-      return this.getFallbackGroups();
+
+      // If today and error, return fallback; otherwise for past/future empty dates return empty list
+      return relation === 'today' ? this.getFallbackGroups() : [];
     })();
 
     IN_FLIGHT_REQUESTS.set(key, promise);
     return promise;
   }
 
-  private static groupRawEvents(events: any[], isLiveFilter: boolean): BackendTournamentGroup[] {
+  private static groupRawEvents(events: any[], isLiveFilter: boolean, dateStr?: string): BackendTournamentGroup[] {
+    const relation = this.getDateRelation(dateStr);
     const map = new Map<string, BackendTournamentGroup>();
 
     for (const ev of events) {
@@ -136,29 +153,55 @@ export class BackendDataPoolOrchestrator {
       }
 
       const statusType = ev.status?.type;
-      const isLive = statusType === 'inprogress';
+      const desc = (ev.status?.description || '').toUpperCase();
 
-      // ─── Status Text & Point ───────────────────────────────────────────────
+      // ─── Status Text & Point Determination by Date Relation ────────────────
+      let isLive = false;
       let statusText = 'SCHEDULED';
-      let point = '0-0';
+      let point = '-';
 
-      if (isLive) {
-        const currentSetNum = sets1.length > 0 ? sets1.length : 1;
-        const p1Last = sets1.length > 0 ? Number(sets1[sets1.length - 1]) : 0;
-        const p2Last = sets2.length > 0 ? Number(sets2[sets2.length - 1]) : 0;
-
-        if (p1Last === 6 && p2Last === 6) {
-          statusText = 'TIEBREAK';
+      if (relation === 'past') {
+        // Past dates: Every match is concluded (Finished / Retired / Cancelled / Walkover)
+        isLive = false;
+        if (desc.includes('RETIRED') || desc.includes('RET')) {
+          statusText = 'RETIRED';
+          point = 'RET';
+        } else if (desc.includes('CANCEL')) {
+          statusText = 'CANCELLED';
+          point = '-';
+        } else if (desc.includes('WALK')) {
+          statusText = 'WALKOVER';
+          point = 'WO';
+        } else if (desc.includes('POSTPON')) {
+          statusText = 'POSTPONED';
+          point = '-';
         } else {
-          statusText = `SET ${currentSetNum}`;
+          statusText = 'FINISHED';
+          point = 'FT';
         }
-
-        const p1Point = homeScore.point !== undefined ? String(homeScore.point) : '0';
-        const p2Point = awayScore.point !== undefined ? String(awayScore.point) : '0';
-        point = (p1Point !== '0' || p2Point !== '0') ? `${p1Point}-${p2Point}` : '0-0';
+      } else if (relation === 'future') {
+        // Future dates: Every match is Scheduled
+        isLive = false;
+        statusText = 'SCHEDULED';
+        point = '-';
       } else {
-        const desc = (ev.status?.description || '').toUpperCase();
-        if (desc.includes('FINISH') || desc.includes('ENDED') || statusType === 'finished') {
+        // Today's date: accurately resolve in-progress vs finished vs scheduled
+        if (statusType === 'inprogress') {
+          isLive = true;
+          const currentSetNum = sets1.length > 0 ? sets1.length : 1;
+          const p1Last = sets1.length > 0 ? Number(sets1[sets1.length - 1]) : 0;
+          const p2Last = sets2.length > 0 ? Number(sets2[sets2.length - 1]) : 0;
+
+          if (p1Last === 6 && p2Last === 6) {
+            statusText = 'TIEBREAK';
+          } else {
+            statusText = `SET ${currentSetNum}`;
+          }
+
+          const p1Point = homeScore.point !== undefined ? String(homeScore.point) : '0';
+          const p2Point = awayScore.point !== undefined ? String(awayScore.point) : '0';
+          point = (p1Point !== '0' || p2Point !== '0') ? `${p1Point}-${p2Point}` : '0-0';
+        } else if (desc.includes('FINISH') || desc.includes('ENDED') || statusType === 'finished') {
           statusText = 'FINISHED';
           point = 'FT';
         } else if (desc.includes('RETIRED') || desc.includes('RET')) {
@@ -177,8 +220,8 @@ export class BackendDataPoolOrchestrator {
           statusText = 'SCHEDULED';
           point = '-';
         } else {
-          statusText = desc || 'FINISHED';
-          point = 'FT';
+          statusText = desc || 'SCHEDULED';
+          point = '-';
         }
       }
 
