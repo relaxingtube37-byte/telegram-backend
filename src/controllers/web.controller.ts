@@ -5,6 +5,7 @@ import { PlayersService } from '../services/players.service';
 import { SettingsRepo } from '../db/repositories/settings.repo';
 import { BackendDataPoolOrchestrator } from '../dataPool/dataPool.orchestrator';
 import { BackendDataPoolStore } from '../dataPool/dataPool.store';
+import { BackendTennisApi } from '../dataPool/dataPool.tennisApi';
 import { ENV } from '../config/env';
 
 export const WebController = {
@@ -92,9 +93,38 @@ export const WebController = {
     }
   },
 
+  getRankings: async (req: Request, res: Response) => {
+    try {
+      const tour = String(req.params.tour || 'atp').toLowerCase() as 'atp' | 'wta';
+      const key = 'rankings_' + tour;
+      const cached = BackendDataPoolStore.get<any>(key);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const data = await BackendTennisApi.getRankings(tour);
+      if (data) {
+        BackendDataPoolStore.set(key, data, 12 * 60 * 60 * 1000); // 12h TTL
+        return res.json(data);
+      }
+
+      res.status(500).json({ error: 'Failed to fetch rankings' });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   getPlayerImage: async (req: Request, res: Response) => {
     try {
       const playerId = String(req.params.playerId);
+      const cacheKey = 'player_img_' + playerId;
+      const cachedBuf = BackendDataPoolStore.get<string>(cacheKey);
+      if (cachedBuf) {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=604800');
+        return res.send(Buffer.from(cachedBuf, 'base64'));
+      }
+
       const fetchRes = await fetch('https://tennisapi1.p.rapidapi.com/api/tennis/player/' + playerId + '/image', {
         headers: {
           'x-rapidapi-key': ENV.RAPIDAPI_KEY,
@@ -107,6 +137,8 @@ export const WebController = {
       }
 
       const buffer = Buffer.from(await fetchRes.arrayBuffer());
+      BackendDataPoolStore.set(cacheKey, buffer.toString('base64'), 7 * 24 * 60 * 60 * 1000); // 7 days TTL
+
       res.setHeader('Content-Type', 'image/png');
       res.setHeader('Cache-Control', 'public, max-age=604800');
       res.send(buffer);
