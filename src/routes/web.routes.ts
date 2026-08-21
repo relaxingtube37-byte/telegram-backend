@@ -6,6 +6,7 @@ const router = Router();
 router.get('/landing', WebController.getLandingData);
 router.get('/config', WebController.getConfig);
 router.get('/players', WebController.getPlayers);
+router.get('/players/:playerId/image', WebController.getPlayerImage);
 router.get('/players/:slugOrId', WebController.getPlayerDetails);
 
 export const webRoutes = router;

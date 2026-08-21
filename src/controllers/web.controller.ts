@@ -57,6 +57,31 @@ export const WebController = {
     }
   },
 
+  
+  getPlayerImage: async (req: Request, res: Response) => {
+    try {
+      const playerId = String(req.params.playerId);
+      const rapidKey = process.env.RAPIDAPI_KEY || '3b98e0a4e3mshfb887513c847f6bp1602e4jsnaa6342ccddfa';
+      const fetchRes = await fetch(`https://tennisapi1.p.rapidapi.com/api/tennis/player/${playerId}/image`, {
+        headers: {
+          'x-rapidapi-key': rapidKey,
+          'x-rapidapi-host': 'tennisapi1.p.rapidapi.com',
+        },
+      });
+
+      if (!fetchRes.ok) {
+        return res.status(fetchRes.status).send('Image unavailable');
+      }
+
+      const buffer = Buffer.from(await fetchRes.arrayBuffer());
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+      res.send(buffer);
+    } catch (err: any) {
+      res.status(500).send('Failed to fetch player image');
+    }
+  },
+
   getConfig: async (req: Request, res: Response) => {
     try {
       const rawConfig = SettingsRepo.get('website_config');
