@@ -47,6 +47,20 @@ export const WebController = {
     }
   },
 
+  getTournamentsByDate: async (req: Request, res: Response) => {
+    try {
+      const date = String(req.params.date);
+      // Validate format YYYY-MM-DD
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD' });
+      }
+      const groups = await BackendDataPoolOrchestrator.getDateTournamentGroups(date);
+      res.json(groups);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   getPlayers: async (req: Request, res: Response) => {
     try {
       const limit = parseInt(String(req.query.limit || '100'), 10);

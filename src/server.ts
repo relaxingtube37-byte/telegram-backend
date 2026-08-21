@@ -32,8 +32,12 @@ app.listen(ENV.PORT, () => {
   Logger.success(`🎾 Unified Tennis AI Backend running on port ${ENV.PORT} [${ENV.NODE_ENV}]`);
   Logger.info(`🌐 Health check: ${ENV.PUBLIC_BASE_URL}/health`);
   
-  // Start bot polling
-  startBot();
+  // Start bot polling (non-fatal — bad token won't crash the HTTP server)
+  try {
+    startBot();
+  } catch (err) {
+    Logger.warn?.(`⚠️ Telegram bot failed to start: ${err}`);
+  }
 });
 
 export default app;

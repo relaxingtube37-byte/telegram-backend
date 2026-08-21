@@ -27,12 +27,16 @@ export class BackendDataPoolOrchestrator {
 
   static async getTodayTournamentGroups(): Promise<BackendTournamentGroup[]> {
     const todayStr = new Date().toISOString().split('T')[0];
-    const key = 'tournaments_daily_' + todayStr;
+    return this.getDateTournamentGroups(todayStr);
+  }
+
+  static async getDateTournamentGroups(dateStr: string): Promise<BackendTournamentGroup[]> {
+    const key = 'tournaments_daily_' + dateStr;
     const cached = BackendDataPoolStore.get<BackendTournamentGroup[]>(key);
     if (cached) return cached;
 
     try {
-      const raw = await BackendTennisApi.getDailyEvents(todayStr);
+      const raw = await BackendTennisApi.getDailyEvents(dateStr);
       if (raw && Array.isArray(raw.events) && raw.events.length > 0) {
         const groups = this.groupRawEvents(raw.events, false);
         BackendDataPoolStore.set(key, groups, this.DAILY_TTL);

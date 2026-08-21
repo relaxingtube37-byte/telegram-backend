@@ -8,6 +8,8 @@ export const startBot = async () => {
       onStart: (botInfo) => {
         Logger.success(`🤖 Telegram Bot started as @${botInfo.username}`);
       },
+    }).catch((err: unknown) => {
+      Logger.warn(`⚠️ Telegram bot polling error (server still running): ${err}`);
     });
   } else {
     Logger.warn('Telegram bot is not running (BOT_TOKEN is missing or empty)');
