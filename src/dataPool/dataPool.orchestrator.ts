@@ -3,6 +3,8 @@ import { BackendTennisApi } from './dataPool.tennisApi';
 import { BackendTournamentGroup, BackendMatchRowItem, BackendMatchStats } from './dataPool.types';
 import { Logger } from '../utils/logger';
 
+const IN_FLIGHT_REQUESTS = new Map<string, Promise<BackendTournamentGroup[]>>();
+
 export class BackendDataPoolOrchestrator {
   private static LIVE_TTL = 5 * 1000;       // 5s – live scores update frequently
   private static DAILY_TTL = 10 * 60 * 1000; // 10m – scheduled/historical data
@@ -11,18 +13,28 @@ export class BackendDataPoolOrchestrator {
     const cached = BackendDataPoolStore.get<BackendTournamentGroup[]>('tournaments_live');
     if (cached) return cached;
 
-    try {
-      const raw = await BackendTennisApi.getLiveEvents();
-      if (raw && Array.isArray(raw.events) && raw.events.length > 0) {
-        const groups = this.groupRawEvents(raw.events, true);
-        BackendDataPoolStore.set('tournaments_live', groups, this.LIVE_TTL);
-        return groups;
-      }
-    } catch (err: any) {
-      Logger.warn('Live pool fallback: ' + err.message);
+    if (IN_FLIGHT_REQUESTS.has('tournaments_live')) {
+      return IN_FLIGHT_REQUESTS.get('tournaments_live')!;
     }
 
-    return this.getFallbackGroups();
+    const promise = (async () => {
+      try {
+        const raw = await BackendTennisApi.getLiveEvents();
+        if (raw && Array.isArray(raw.events) && raw.events.length > 0) {
+          const groups = this.groupRawEvents(raw.events, true);
+          BackendDataPoolStore.set('tournaments_live', groups, this.LIVE_TTL);
+          return groups;
+        }
+      } catch (err: any) {
+        Logger.warn('Live pool fallback: ' + err.message);
+      } finally {
+        IN_FLIGHT_REQUESTS.delete('tournaments_live');
+      }
+      return this.getFallbackGroups();
+    })();
+
+    IN_FLIGHT_REQUESTS.set('tournaments_live', promise);
+    return promise;
   }
 
   static async getTodayTournamentGroups(): Promise<BackendTournamentGroup[]> {
@@ -38,41 +50,49 @@ export class BackendDataPoolOrchestrator {
     const cached = BackendDataPoolStore.get<BackendTournamentGroup[]>(key);
     if (cached) return cached;
 
-    try {
-      // Fetch daily events (and live events if today) in parallel for complete coverage
-      const [dailyRaw, liveRaw] = await Promise.all([
-        BackendTennisApi.getDailyEvents(dateStr),
-        isToday ? BackendTennisApi.getLiveEvents() : Promise.resolve(null),
-      ]);
-
-      const eventsMap = new Map<number, any>();
-
-      if (dailyRaw && Array.isArray(dailyRaw.events)) {
-        for (const ev of dailyRaw.events) {
-          if (ev && ev.id) eventsMap.set(ev.id, ev);
-        }
-      }
-
-      // Merge real-time live events (overriding with freshest in-play points/status)
-      if (liveRaw && Array.isArray(liveRaw.events)) {
-        for (const liveEv of liveRaw.events) {
-          if (liveEv && liveEv.id) {
-            eventsMap.set(liveEv.id, liveEv);
-          }
-        }
-      }
-
-      const allEvents = Array.from(eventsMap.values());
-      if (allEvents.length > 0) {
-        const groups = this.groupRawEvents(allEvents, false);
-        BackendDataPoolStore.set(key, groups, ttl);
-        return groups;
-      }
-    } catch (err: any) {
-      Logger.warn('Daily pool fallback: ' + err.message);
+    if (IN_FLIGHT_REQUESTS.has(key)) {
+      return IN_FLIGHT_REQUESTS.get(key)!;
     }
 
-    return this.getFallbackGroups();
+    const promise = (async () => {
+      try {
+        // Fetch daily events (and live events if today) in sequence via rate-limited queue
+        const dailyRaw = await BackendTennisApi.getDailyEvents(dateStr);
+        const liveRaw = isToday ? await BackendTennisApi.getLiveEvents() : null;
+
+        const eventsMap = new Map<number, any>();
+
+        if (dailyRaw && Array.isArray(dailyRaw.events)) {
+          for (const ev of dailyRaw.events) {
+            if (ev && ev.id) eventsMap.set(ev.id, ev);
+          }
+        }
+
+        // Merge real-time live events (overriding with freshest in-play points/status)
+        if (liveRaw && Array.isArray(liveRaw.events)) {
+          for (const liveEv of liveRaw.events) {
+            if (liveEv && liveEv.id) {
+              eventsMap.set(liveEv.id, liveEv);
+            }
+          }
+        }
+
+        const allEvents = Array.from(eventsMap.values());
+        if (allEvents.length > 0) {
+          const groups = this.groupRawEvents(allEvents, false);
+          BackendDataPoolStore.set(key, groups, ttl);
+          return groups;
+        }
+      } catch (err: any) {
+        Logger.warn('Daily pool fallback: ' + err.message);
+      } finally {
+        IN_FLIGHT_REQUESTS.delete(key);
+      }
+      return this.getFallbackGroups();
+    })();
+
+    IN_FLIGHT_REQUESTS.set(key, promise);
+    return promise;
   }
 
   private static groupRawEvents(events: any[], isLiveFilter: boolean): BackendTournamentGroup[] {

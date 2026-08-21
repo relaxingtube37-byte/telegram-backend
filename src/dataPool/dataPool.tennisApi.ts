@@ -2,28 +2,64 @@ import { ENV } from '../config/env';
 import { Logger } from '../utils/logger';
 
 const RAPID_HOST = 'tennisapi1.p.rapidapi.com';
+const INTERVAL_MS = 140; // ~7 req/sec (Safe for 8 req/s RapidAPI plan)
+
+let lastRequestTime = 0;
+let requestQueue: Promise<any> = Promise.resolve();
 
 export class BackendTennisApi {
-  private static async request<T>(endpoint: string): Promise<T | null> {
-    try {
-      const url = 'https://' + RAPID_HOST + endpoint;
-      const res = await fetch(url, {
-        headers: {
-          'x-rapidapi-key': ENV.RAPIDAPI_KEY,
-          'x-rapidapi-host': RAPID_HOST,
-        },
-      });
+  /**
+   * Paced, rate-limited and auto-retrying fetch for RapidAPI Tennis.
+   */
+  private static async request<T>(endpoint: string, retries = 2): Promise<T | null> {
+    return new Promise<T | null>((resolve) => {
+      requestQueue = requestQueue
+        .catch(() => {}) // keep queue alive even if previous request failed
+        .then(async () => {
+          const now = Date.now();
+          const elapsed = now - lastRequestTime;
+          if (elapsed < INTERVAL_MS) {
+            await new Promise((r) => setTimeout(r, INTERVAL_MS - elapsed));
+          }
+          lastRequestTime = Date.now();
 
-      if (!res.ok) {
-        Logger.warn('RapidAPI Tennis error ' + res.status + ' on ' + endpoint);
-        return null;
-      }
+          try {
+            const url = 'https://' + RAPID_HOST + endpoint;
+            const res = await fetch(url, {
+              headers: {
+                'x-rapidapi-key': ENV.RAPIDAPI_KEY,
+                'x-rapidapi-host': RAPID_HOST,
+              },
+            });
 
-      return (await res.json()) as T;
-    } catch (err: any) {
-      Logger.error('Failed RapidAPI call: ' + err.message);
-      return null;
-    }
+            if (res.status === 429 && retries > 0) {
+              Logger.warn(`[TennisAPI RateLimiter] 429 on ${endpoint}. Backing off 1.5s... (${retries} retries left)`);
+              await new Promise((r) => setTimeout(r, 1500));
+              const retryRes = await BackendTennisApi.request<T>(endpoint, retries - 1);
+              resolve(retryRes);
+              return;
+            }
+
+            if (!res.ok) {
+              Logger.warn(`RapidAPI Tennis HTTP ${res.status} on ${endpoint}`);
+              resolve(null);
+              return;
+            }
+
+            const data = (await res.json()) as T;
+            resolve(data);
+          } catch (err: any) {
+            if (retries > 0) {
+              await new Promise((r) => setTimeout(r, 600));
+              const retryRes = await BackendTennisApi.request<T>(endpoint, retries - 1);
+              resolve(retryRes);
+            } else {
+              Logger.error('Failed RapidAPI call: ' + err.message);
+              resolve(null);
+            }
+          }
+        });
+    });
   }
 
   static async getLiveEvents(): Promise<any> {
@@ -50,12 +86,14 @@ export class BackendTennisApi {
         y = now.getFullYear();
       }
 
-      const categories = [3, 6, 72]; // 3=ATP, 6=WTA, 72=Challenger
-      const results = await Promise.all(
-        categories.map((catId) =>
-          this.request<{ events?: any[] }>(`/api/tennis/category/${catId}/events/${d}/${m}/${y}`)
-        )
-      );
+      // Categories: 3 = ATP, 6 = WTA, 72 = Challenger
+      // Dispatched through our rate-limited sequential queue
+      const categories = [3, 6, 72];
+      const results: any[] = [];
+      for (const catId of categories) {
+        const res = await this.request<{ events?: any[] }>(`/api/tennis/category/${catId}/events/${d}/${m}/${y}`);
+        if (res) results.push(res);
+      }
 
       const allEvents: any[] = [];
       const seenIds = new Set<number>();
