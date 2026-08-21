@@ -25,4 +25,10 @@ router.post('/settings', AdminController.saveSetting);
 
 router.get('/backup/export', AdminController.exportBackup);
 
+router.get('/players', AdminController.getWebPlayers);
+router.post('/players/publish', AdminController.publishPlayer);
+router.delete('/players/:playerId', AdminController.deletePlayer);
+router.post('/players/featured', AdminController.toggleFeaturedPlayer);
+router.post('/website/config', AdminController.saveWebsiteConfig);
+
 export const adminRoutes = router;

@@ -76,6 +76,33 @@ export const initSchema = () => {
       FOREIGN KEY(prediction_id) REFERENCES predictions(id)
     );
 
+    CREATE TABLE IF NOT EXISTS players (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      player_id INTEGER UNIQUE NOT NULL,
+      slug TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      short_name TEXT,
+      country_code TEXT,
+      country_name TEXT,
+      ranking INTEGER,
+      gender TEXT DEFAULT 'M',
+      image_url TEXT,
+      bio TEXT,
+      playstyle TEXT,
+      surface_stats_json TEXT,
+      recent_matches_json TEXT,
+      ai_dossier_json TEXT,
+      is_featured INTEGER DEFAULT 0,
+      is_published INTEGER DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS website_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL

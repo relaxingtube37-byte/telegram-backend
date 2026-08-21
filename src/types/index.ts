@@ -80,3 +80,38 @@ export interface StatsSummary {
   winRatePct: number;
   activeCount: number;
 }
+
+
+export interface PublishedPlayer {
+  id?: number;
+  player_id: number;
+  slug: string;
+  full_name: string;
+  short_name?: string;
+  country_code?: string;
+  country_name?: string;
+  ranking?: number;
+  gender: 'M' | 'F';
+  image_url?: string;
+  bio?: string;
+  playstyle?: string;
+  surface_stats_json?: string; // Serialized PlayerYearSurfaceStats[]
+  recent_matches_json?: string; // Serialized Match[]
+  ai_dossier_json?: string; // Serialized tactical strengths, weaknesses, radar
+  is_featured?: number; // 0 or 1
+  is_published?: number; // 0 or 1
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WebsiteConfig {
+  hero_title?: string;
+  hero_subtitle?: string;
+  announcement_badge?: string;
+  announcement_url?: string;
+  featured_player_ids?: number[];
+  cta_button_text?: string;
+  cta_button_url?: string;
+  vip_banner_text?: string;
+  vip_banner_url?: string;
+}

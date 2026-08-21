@@ -6,9 +6,64 @@ import { ReferralsRepo } from '../db/repositories/referrals.repo';
 import { SettingsRepo } from '../db/repositories/settings.repo';
 import { ChannelPosterService } from '../services/channel-poster.service';
 import { StatsService } from '../services/stats.service';
+import { PlayersService } from '../services/players.service';
 import type { Prediction, MatchStatus } from '../types';
 
 export const AdminController = {
+
+  getWebPlayers: async (req: Request, res: Response) => {
+    try {
+      const players = PlayersService.getAll(200);
+      res.json(players);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  publishPlayer: async (req: Request, res: Response) => {
+    try {
+      const player = req.body;
+      if (!player.player_id || !player.full_name) {
+        return res.status(400).json({ error: 'Missing required player fields (player_id, full_name)' });
+      }
+
+      const id = PlayersService.publishPlayer(player);
+      res.json({ success: true, id, player_id: player.player_id, slug: player.slug });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  deletePlayer: async (req: Request, res: Response) => {
+    try {
+      const playerId = parseInt(String(req.params.playerId), 10);
+      const success = PlayersService.deletePlayer(playerId);
+      res.json({ success, playerId });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  toggleFeaturedPlayer: async (req: Request, res: Response) => {
+    try {
+      const { playerId, featured } = req.body;
+      const success = PlayersService.toggleFeatured(Number(playerId), featured === true);
+      res.json({ success, playerId, featured });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  saveWebsiteConfig: async (req: Request, res: Response) => {
+    try {
+      const config = req.body;
+      SettingsRepo.set('website_config', JSON.stringify(config));
+      res.json({ success: true, config });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   getOverview: async (req: Request, res: Response) => {
     try {
       const predictions = PredictionsService.getAll(200);
