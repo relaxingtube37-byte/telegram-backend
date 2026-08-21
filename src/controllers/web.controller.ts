@@ -118,32 +118,31 @@ export const WebController = {
     try {
       const playerId = String(req.params.playerId);
       const cacheKey = 'player_img_' + playerId;
+      
       const cachedBuf = BackendDataPoolStore.get<string>(cacheKey);
       if (cachedBuf) {
+        if (cachedBuf === 'NOT_FOUND') {
+          return res.status(404).send('Image unavailable');
+        }
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Cache-Control', 'public, max-age=604800');
         return res.send(Buffer.from(cachedBuf, 'base64'));
       }
 
-      const fetchRes = await fetch('https://tennisapi1.p.rapidapi.com/api/tennis/player/' + playerId + '/image', {
-        headers: {
-          'x-rapidapi-key': ENV.RAPIDAPI_KEY,
-          'x-rapidapi-host': 'tennisapi1.p.rapidapi.com',
-        },
-      });
-
-      if (!fetchRes.ok) {
-        return res.status(fetchRes.status).send('Image unavailable');
+      // Fetch through RateLimiter queue
+      const buffer = await BackendTennisApi.getPlayerImage(playerId);
+      if (!buffer || buffer.length === 0) {
+        BackendDataPoolStore.set(cacheKey, 'NOT_FOUND', 24 * 60 * 60 * 1000); // 24h negative cache
+        return res.status(404).send('Image unavailable');
       }
 
-      const buffer = Buffer.from(await fetchRes.arrayBuffer());
       BackendDataPoolStore.set(cacheKey, buffer.toString('base64'), 7 * 24 * 60 * 60 * 1000); // 7 days TTL
 
       res.setHeader('Content-Type', 'image/png');
       res.setHeader('Cache-Control', 'public, max-age=604800');
       res.send(buffer);
     } catch (err: any) {
-      res.status(500).send('Failed to fetch player image');
+      res.status(404).send('Image unavailable');
     }
   },
 

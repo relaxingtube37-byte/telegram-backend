@@ -119,4 +119,48 @@ export class BackendTennisApi {
   static async getRankings(tour: 'atp' | 'wta'): Promise<any> {
     return this.request('/api/tennis/rankings/' + tour);
   }
+
+  static async getPlayerImage(playerId: string | number, retries = 1): Promise<Buffer | null> {
+    const endpoint = `/api/tennis/player/${playerId}/image`;
+    return new Promise<Buffer | null>((resolve) => {
+      requestQueue = requestQueue
+        .catch(() => {})
+        .then(async () => {
+          const now = Date.now();
+          const elapsed = now - lastRequestTime;
+          if (elapsed < INTERVAL_MS) {
+            await new Promise((r) => setTimeout(r, INTERVAL_MS - elapsed));
+          }
+          lastRequestTime = Date.now();
+
+          try {
+            const url = 'https://' + RAPID_HOST + endpoint;
+            const res = await fetch(url, {
+              headers: {
+                'x-rapidapi-key': ENV.RAPIDAPI_KEY,
+                'x-rapidapi-host': RAPID_HOST,
+              },
+            });
+
+            if (res.status === 429 && retries > 0) {
+              Logger.warn(`[TennisAPI RateLimiter] Image 429 on ${endpoint}. Backing off 1.5s...`);
+              await new Promise((r) => setTimeout(r, 1500));
+              const retryRes = await BackendTennisApi.getPlayerImage(playerId, retries - 1);
+              resolve(retryRes);
+              return;
+            }
+
+            if (!res.ok) {
+              resolve(null);
+              return;
+            }
+
+            const arrayBuffer = await res.arrayBuffer();
+            resolve(Buffer.from(arrayBuffer));
+          } catch (err: any) {
+            resolve(null);
+          }
+        });
+    });
+  }
 }
