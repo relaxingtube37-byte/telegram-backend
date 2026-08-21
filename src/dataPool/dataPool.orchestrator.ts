@@ -31,15 +31,41 @@ export class BackendDataPoolOrchestrator {
   }
 
   static async getDateTournamentGroups(dateStr: string): Promise<BackendTournamentGroup[]> {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isToday = (dateStr === todayStr);
+    const ttl = isToday ? this.LIVE_TTL : this.DAILY_TTL;
     const key = 'tournaments_daily_' + dateStr;
     const cached = BackendDataPoolStore.get<BackendTournamentGroup[]>(key);
     if (cached) return cached;
 
     try {
-      const raw = await BackendTennisApi.getDailyEvents(dateStr);
-      if (raw && Array.isArray(raw.events) && raw.events.length > 0) {
-        const groups = this.groupRawEvents(raw.events, false);
-        BackendDataPoolStore.set(key, groups, this.DAILY_TTL);
+      // Fetch daily events (and live events if today) in parallel for complete coverage
+      const [dailyRaw, liveRaw] = await Promise.all([
+        BackendTennisApi.getDailyEvents(dateStr),
+        isToday ? BackendTennisApi.getLiveEvents() : Promise.resolve(null),
+      ]);
+
+      const eventsMap = new Map<number, any>();
+
+      if (dailyRaw && Array.isArray(dailyRaw.events)) {
+        for (const ev of dailyRaw.events) {
+          if (ev && ev.id) eventsMap.set(ev.id, ev);
+        }
+      }
+
+      // Merge real-time live events (overriding with freshest in-play points/status)
+      if (liveRaw && Array.isArray(liveRaw.events)) {
+        for (const liveEv of liveRaw.events) {
+          if (liveEv && liveEv.id) {
+            eventsMap.set(liveEv.id, liveEv);
+          }
+        }
+      }
+
+      const allEvents = Array.from(eventsMap.values());
+      if (allEvents.length > 0) {
+        const groups = this.groupRawEvents(allEvents, false);
+        BackendDataPoolStore.set(key, groups, ttl);
         return groups;
       }
     } catch (err: any) {
@@ -199,7 +225,52 @@ export class BackendDataPoolOrchestrator {
       map.get(tournId)!.matches.push(matchItem);
     }
 
-    return Array.from(map.values()).filter(g => g.matches.length > 0);
+    const groups = Array.from(map.values()).filter(g => g.matches.length > 0);
+
+    for (const group of groups) {
+      if (isLiveFilter) {
+        group.matches = group.matches.filter(m => m.isLive);
+      }
+
+      // Sort matches: Live first -> Scheduled (by time) -> Finished
+      group.matches.sort((a, b) => {
+        if (a.isLive && !b.isLive) return -1;
+        if (!a.isLive && b.isLive) return 1;
+
+        const aSched = a.statusText === 'SCHEDULED';
+        const bSched = b.statusText === 'SCHEDULED';
+        if (aSched && !bSched) return -1;
+        if (!aSched && bSched) return 1;
+
+        return a.time.localeCompare(b.time);
+      });
+    }
+
+    // Filter out any groups that became empty
+    const activeGroups = groups.filter(g => g.matches.length > 0);
+
+    // Sort tournament groups by live presence and category priority
+    const getTier = (category: string) => {
+      const c = category.toUpperCase();
+      if (c.includes('GRAND SLAM')) return 1;
+      if (c.includes('1000') || c.includes('MASTERS')) return 2;
+      if (c.includes('500')) return 3;
+      if (c.includes('250')) return 4;
+      if (c.includes('CHALLENGER')) return 5;
+      if (c.includes('WTA') || c.includes('ATP')) return 6;
+      return 7;
+    };
+
+    activeGroups.sort((a, b) => {
+      const aLive = a.matches.some(m => m.isLive);
+      const bLive = b.matches.some(m => m.isLive);
+      if (aLive && !bLive) return -1;
+      if (!aLive && bLive) return 1;
+
+      return getTier(a.category) - getTier(b.category);
+    });
+
+    return activeGroups;
   }
 
   // ─── Category Resolution ──────────────────────────────────────────────────
