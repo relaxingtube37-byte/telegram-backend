@@ -279,6 +279,7 @@ export class BackendDataPoolOrchestrator {
         point,
         statusText,
         isLive,
+        startTimestamp: ev.startTimestamp ? Number(ev.startTimestamp) : undefined,
         time: ev.startTimestamp
           ? new Date(ev.startTimestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           : (isLive ? 'LIVE' : '18:00'),

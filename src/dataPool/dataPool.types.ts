@@ -34,6 +34,7 @@ export interface BackendMatchRowItem {
   statusText: string;
   isLive: boolean;
   time: string;
+  startTimestamp?: number;
   stats: BackendMatchStats;
 }
 
