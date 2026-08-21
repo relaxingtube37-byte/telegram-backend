@@ -4,8 +4,8 @@ import { BackendTournamentGroup, BackendMatchRowItem } from './dataPool.types';
 import { Logger } from '../utils/logger';
 
 export class BackendDataPoolOrchestrator {
-  private static LIVE_TTL = 30 * 1000;
-  private static DAILY_TTL = 10 * 60 * 1000;
+  private static LIVE_TTL = 5 * 1000;       // 5s – live scores update frequently
+  private static DAILY_TTL = 10 * 60 * 1000; // 10m – scheduled/historical data
 
   static async getLiveTournamentGroups(): Promise<BackendTournamentGroup[]> {
     const cached = BackendDataPoolStore.get<BackendTournamentGroup[]>('tournaments_live');
