@@ -10,11 +10,13 @@
     "test": "tsx src/test_backend_full.ts"
   },
   "dependencies": {
+    "@types/sharp": "^0.31.1",
     "better-sqlite3": "^11.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "grammy": "^1.35.0"
+    "grammy": "^1.35.0",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

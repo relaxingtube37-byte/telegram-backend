@@ -96,9 +96,9 @@ export class BackendTennisApi {
         y = now.getFullYear();
       }
 
-      // Categories: 3 = ATP, 6 = WTA, 72 = Challenger
-      // Dispatched through our rate-limited sequential queue
-      const categories = [3, 6, 72];
+      // All Official Professional & Semi-Pro Tennis Categories:
+      // 3 = ATP, 6 = WTA, 72 = Challenger, 785 = ITF Men, 213 = ITF Women, 1843 = UTR Men, 1844 = UTR Women
+      const categories = [3, 6, 72, 785, 213, 1843, 1844];
       const results: any[] = [];
 
       for (const catId of categories) {

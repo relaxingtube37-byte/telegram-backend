@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import sharp from 'sharp';
 import { PredictionsService } from '../services/predictions.service';
 import { StatsService } from '../services/stats.service';
 import { PlayersService } from '../services/players.service';
@@ -117,30 +118,47 @@ export const WebController = {
   getPlayerImage: async (req: Request, res: Response) => {
     try {
       const playerId = String(req.params.playerId);
-      const cacheKey = 'player_img_' + playerId;
+      const targetSize = Math.min(Math.max(parseInt(String(req.query.size || req.query.w || '96'), 10) || 96, 32), 512);
+      const cacheKey = `player_webp_${playerId}_${targetSize}`;
       
       const cachedBuf = BackendDataPoolStore.get<string>(cacheKey);
       if (cachedBuf) {
         if (cachedBuf === 'NOT_FOUND') {
           return res.status(404).send('Image unavailable');
         }
-        res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, max-age=604800');
+        res.setHeader('Content-Type', 'image/webp');
+        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
         return res.send(Buffer.from(cachedBuf, 'base64'));
       }
 
-      // Fetch through RateLimiter queue
+      // Fetch raw image buffer through RateLimiter queue
       const buffer = await BackendTennisApi.getPlayerImage(playerId);
       if (!buffer || buffer.length === 0) {
         BackendDataPoolStore.set(cacheKey, 'NOT_FOUND', 24 * 60 * 60 * 1000); // 24h negative cache
         return res.status(404).send('Image unavailable');
       }
 
-      BackendDataPoolStore.set(cacheKey, buffer.toString('base64'), 7 * 24 * 60 * 60 * 1000); // 7 days TTL
+      // Convert & optimize to WebP using sharp
+      let optimizedWebP: Buffer;
+      try {
+        optimizedWebP = await sharp(buffer)
+          .resize(targetSize, targetSize, {
+            fit: 'cover',
+            position: 'top',
+            withoutEnlargement: false,
+          })
+          .webp({ quality: 85, effort: 4 })
+          .toBuffer();
+      } catch {
+        // Fallback to original buffer if sharp encounters unknown image format
+        optimizedWebP = buffer;
+      }
 
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Cache-Control', 'public, max-age=604800');
-      res.send(buffer);
+      BackendDataPoolStore.set(cacheKey, optimizedWebP.toString('base64'), 14 * 24 * 60 * 60 * 1000); // 14 days TTL
+
+      res.setHeader('Content-Type', 'image/webp');
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+      res.send(optimizedWebP);
     } catch (err: any) {
       res.status(404).send('Image unavailable');
     }

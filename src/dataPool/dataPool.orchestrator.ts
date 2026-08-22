@@ -167,8 +167,23 @@ export class BackendDataPoolOrchestrator {
         const p1 = homeScore['period' + s];
         const p2 = awayScore['period' + s];
         if (p1 !== undefined && p2 !== undefined) {
-          sets1.push(String(p1));
-          sets2.push(String(p2));
+          const tb1 = homeScore['period' + s + 'TieBreak'] ?? homeScore['period' + s + 'Tiebreak'] ?? homeScore['period' + s + '_tiebreak'] ?? ev.time?.['period' + s + 'TieBreak'];
+          const tb2 = awayScore['period' + s + 'TieBreak'] ?? awayScore['period' + s + 'Tiebreak'] ?? awayScore['period' + s + '_tiebreak'] ?? ev.time?.['period' + s + 'TieBreak'];
+
+          let s1Str = String(p1);
+          let s2Str = String(p2);
+
+          if (tb1 !== undefined && tb2 !== undefined) {
+            s1Str = `${p1}(${tb1})`;
+            s2Str = `${p2}(${tb2})`;
+          } else if (tb1 !== undefined) {
+            s1Str = `${p1}(${tb1})`;
+          } else if (tb2 !== undefined) {
+            s2Str = `${p2}(${tb2})`;
+          }
+
+          sets1.push(s1Str);
+          sets2.push(s2Str);
         }
       }
 
@@ -247,17 +262,29 @@ export class BackendDataPoolOrchestrator {
       }
 
       // ─── Strict Date Alignment ──────────────────────────────────────────────
-      // Ensure match is strictly on the requested date (unless currently live)
-      if (dateStr && ev.startTimestamp && ev.startTimestamp > 0 && !isLive) {
+      // Ensure match is strictly on the requested date (unless currently live on today)
+      if (dateStr && ev.startTimestamp && ev.startTimestamp > 0) {
         const evDate = new Date(ev.startTimestamp * 1000);
-        const y = evDate.getUTCFullYear();
-        const m = String(evDate.getUTCMonth() + 1).padStart(2, '0');
-        const d = String(evDate.getUTCDate()).padStart(2, '0');
-        const evUtcDateStr = `${y}-${m}-${d}`;
+        const yUtc = evDate.getUTCFullYear();
+        const mUtc = String(evDate.getUTCMonth() + 1).padStart(2, '0');
+        const dUtc = String(evDate.getUTCDate()).padStart(2, '0');
+        const evUtcDateStr = `${yUtc}-${mUtc}-${dUtc}`;
 
-        if (evUtcDateStr !== dateStr) {
-          continue;
+        const yLoc = evDate.getFullYear();
+        const mLoc = String(evDate.getMonth() + 1).padStart(2, '0');
+        const dLoc = String(evDate.getDate()).padStart(2, '0');
+        const evLocDateStr = `${yLoc}-${mLoc}-${dLoc}`;
+
+        if (evUtcDateStr !== dateStr && evLocDateStr !== dateStr) {
+          if (!(relation === 'today' && isLive)) {
+            continue;
+          }
         }
+      }
+
+      // For past dates (Yesterday / historic): never show upcoming or ghost fixtures
+      if (relation === 'past' && !isLive && sets1.length === 0 && sets2.length === 0 && !['FINISHED', 'FT', 'RETIRED', 'RET', 'WALKOVER', 'WO', 'CANCELLED', 'POSTPONED'].includes(statusText)) {
+        continue;
       }
 
       // ─── Serve Indicator Calculation ───────────────────────────────────────
@@ -519,8 +546,8 @@ export class BackendDataPoolOrchestrator {
     let inTieBreak = false;
 
     for (let i = 0; i < sets1.length; i++) {
-      const g1 = Number(sets1[i]) || 0;
-      const g2 = Number(sets2[i]) || 0;
+      const g1 = parseInt(sets1[i].split('(')[0], 10) || 0;
+      const g2 = parseInt(sets2[i].split('(')[0], 10) || 0;
       totalGames += (g1 + g2);
       if (i === sets1.length - 1 && g1 === 6 && g2 === 6) {
         inTieBreak = true;
@@ -568,8 +595,8 @@ export class BackendDataPoolOrchestrator {
     let setsWon2 = 0;
 
     for (let i = 0; i < sets1.length; i++) {
-      const g1 = Number(sets1[i]) || 0;
-      const g2 = Number(sets2[i]) || 0;
+      const g1 = parseInt(sets1[i].split('(')[0], 10) || 0;
+      const g2 = parseInt(sets2[i].split('(')[0], 10) || 0;
       totalGamesP1 += g1;
       totalGamesP2 += g2;
 
