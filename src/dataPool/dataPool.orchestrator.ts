@@ -126,6 +126,21 @@ export class BackendDataPoolOrchestrator {
       const tourn = ev.tournament || {};
       const tournName = tourn.name || 'World Tennis Tour';
       const category = this.resolveCategory(tourn, tournName);
+      
+      // Strict tennis verification: reject other sports if returned by multi-sport APIs
+      const catUpper = category.toUpperCase();
+      const nameUpper = tournName.toUpperCase();
+      if (
+        catUpper === 'INTERNATIONAL' ||
+        nameUpper.includes('HANDBALL') ||
+        catUpper.includes('HANDBALL') ||
+        nameUpper.includes('FRIENDLY GAMES') ||
+        nameUpper.includes('FUTSAL') ||
+        nameUpper.includes('BASKETBALL')
+      ) {
+        continue;
+      }
+
       const country = tourn.category?.country?.alpha2 || tourn.category?.country?.name || 'World';
       const surface = tourn.groundType || 'Hardcourt Outdoor';
       const tournId = String(tourn.id || tournName.toLowerCase().replace(/\s+/g, '_'));
