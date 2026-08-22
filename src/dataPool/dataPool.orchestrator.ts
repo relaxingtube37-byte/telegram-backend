@@ -344,41 +344,95 @@ export class BackendDataPoolOrchestrator {
     // Filter out any groups that became empty
     const activeGroups = groups.filter(g => g.matches.length > 0);
 
-    // Sort tournament groups by live presence and category priority
-    const getTier = (category: string) => {
-      const c = category.toUpperCase();
-      if (c.includes('GRAND SLAM')) return 1;
-      if (c.includes('1000') || c.includes('MASTERS')) return 2;
-      if (c.includes('500')) return 3;
-      if (c.includes('250')) return 4;
-      if (c.includes('CHALLENGER')) return 5;
-      if (c.includes('WTA') || c.includes('ATP')) return 6;
-      return 7;
-    };
-
+    // Hierarchical Paired Tournament Sort:
+    // 1. Tier (Main Tour Grand Slam / ATP / WTA -> Challenger -> ITF -> UTR -> Other)
+    // 2. Paired Base Name (Keeps Men & Women tournaments of the same city directly consecutive)
+    // 3. Singles before Doubles
+    // 4. Main draw before Qualifying
+    // 5. Men (ATP) before Women (WTA)
     activeGroups.sort((a, b) => {
-      const aLive = a.matches.some(m => m.isLive);
-      const bLive = b.matches.some(m => m.isLive);
-      if (aLive && !bLive) return -1;
-      if (!aLive && bLive) return 1;
+      const ka = this.getTournamentSortKey(a);
+      const kb = this.getTournamentSortKey(b);
 
-      const tierDiff = getTier(a.category) - getTier(b.category);
-      if (tierDiff !== 0) return tierDiff;
+      if (ka.tier !== kb.tier) return ka.tier - kb.tier;
+      if (ka.tier === 1 && ka.subTier !== kb.subTier) return ka.subTier - kb.subTier;
 
-      const getEarliestTs = (g: BackendTournamentGroup) => {
-        let minTs = Infinity;
-        for (const m of g.matches) {
-          if (m.startTimestamp && m.startTimestamp > 0 && m.startTimestamp < minTs) {
-            minTs = m.startTimestamp;
-          }
-        }
-        return minTs === Infinity ? 0 : minTs;
-      };
+      if (ka.baseName !== kb.baseName) {
+        return ka.baseName.localeCompare(kb.baseName);
+      }
 
-      return getEarliestTs(a) - getEarliestTs(b);
+      if (ka.isDoubles !== kb.isDoubles) return ka.isDoubles - kb.isDoubles;
+      if (ka.isQualifying !== kb.isQualifying) return ka.isQualifying - kb.isQualifying;
+      if (ka.genderOrder !== kb.genderOrder) return ka.genderOrder - kb.genderOrder;
+
+      return (a.name || '').localeCompare(b.name || '');
     });
 
     return activeGroups;
+  }
+
+  private static getTournamentSortKey(g: BackendTournamentGroup): {
+    tier: number;
+    subTier: number;
+    baseName: string;
+    isDoubles: number;
+    isQualifying: number;
+    genderOrder: number;
+  } {
+    const cat = (g.category || '').toUpperCase();
+    const name = (g.name || '').toUpperCase();
+    
+    let tier = 5;
+    let subTier = 9;
+
+    if (name.includes('AUSTRALIAN OPEN') || name.includes('ROLAND GARROS') || name.includes('WIMBLEDON') || name.includes('US OPEN') || cat.includes('GRAND SLAM')) {
+      tier = 1; subTier = 1;
+    } else if (cat.includes('1000') || name.includes('1000') || cat.includes('MASTERS') || name.includes('MASTERS')) {
+      tier = 1; subTier = 2;
+    } else if (cat.includes('500') || name.includes('500')) {
+      tier = 1; subTier = 3;
+    } else if (cat.includes('250') || name.includes('250')) {
+      tier = 1; subTier = 4;
+    } else if (cat.includes('ATP') || cat.includes('WTA') || name.includes('ATP') || name.includes('WTA')) {
+      tier = 1; subTier = 5;
+    } else if (cat.includes('CHALLENGER') || name.includes('CHALLENGER')) {
+      tier = 2; subTier = 1;
+    } else if (cat.includes('ITF') || name.includes('ITF') || name.includes('FUTURES')) {
+      tier = 3; subTier = 1;
+    } else if (cat.includes('UTR') || name.includes('UTR') || name.includes('PTT')) {
+      tier = 4; subTier = 1;
+    }
+
+    const isDoubles = (name.includes('DOUBLES') || cat.includes('DOUBLES')) ? 1 : 0;
+    const isQualifying = (name.includes('QUALIFYING') || name.includes('QUALIFIERS') || name.includes(' Q,')) ? 1 : 0;
+
+    const isWta = cat.includes('WTA') || name.includes('WTA') || name.includes('WOMEN');
+    const genderOrder = isWta ? 1 : 0;
+
+    // Clean base name for grouping paired tournaments (e.g. "cincinnati, usa" for both ATP & WTA)
+    let baseName = name
+      .replace(/,\s*DOUBLES/gi, '')
+      .replace(/DOUBLES/gi, '')
+      .replace(/,\s*QUALIFYING/gi, '')
+      .replace(/QUALIFYING/gi, '')
+      .replace(/\bATP\b/gi, '')
+      .replace(/\bWTA\b/gi, '')
+      .replace(/\bMEN\b/gi, '')
+      .replace(/\bWOMEN\b/gi, '')
+      .replace(/\[.*?\]/g, '')
+      .replace(/\(.*?\)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+
+    return {
+      tier,
+      subTier,
+      baseName,
+      isDoubles,
+      isQualifying,
+      genderOrder,
+    };
   }
 
   // ─── Category Resolution ──────────────────────────────────────────────────
