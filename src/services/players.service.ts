@@ -39,6 +39,10 @@ export const PlayersService = {
     return PlayersRepo.upsert(player);
   },
 
+  publishPlayersBulk: (players: PublishedPlayer[]): number => {
+    return PlayersRepo.bulkUpsert(players);
+  },
+
   deletePlayer: (playerId: number): boolean => {
     return PlayersRepo.delete(playerId);
   },

@@ -34,6 +34,20 @@ export const AdminController = {
     }
   },
 
+  publishWebPlayersBulk: async (req: Request, res: Response) => {
+    try {
+      const players = Array.isArray(req.body) ? req.body : req.body.players;
+      if (!Array.isArray(players) || players.length === 0) {
+        return res.status(400).json({ error: 'players array is required' });
+      }
+
+      const count = PlayersService.publishPlayersBulk(players);
+      res.json({ success: true, count });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   deletePlayer: async (req: Request, res: Response) => {
     try {
       const playerId = parseInt(String(req.params.playerId), 10);

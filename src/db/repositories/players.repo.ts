@@ -72,6 +72,60 @@ export const PlayersRepo = {
     return Number(info.lastInsertRowid);
   },
 
+  bulkUpsert: (players: PublishedPlayer[]): number => {
+    if (!players || players.length === 0) return 0;
+    const now = new Date().toISOString();
+
+    const stmt = db.prepare(`
+      INSERT INTO players (
+        player_id, slug, full_name, short_name, country_code, country_name,
+        ranking, gender, image_url, bio, playstyle,
+        surface_stats_json, recent_matches_json, ai_dossier_json,
+        is_featured, is_published, created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?,
+        ?, ?, ?, ?
+      )
+      ON CONFLICT(player_id) DO UPDATE SET
+        slug = excluded.slug,
+        full_name = excluded.full_name,
+        short_name = excluded.short_name,
+        country_code = excluded.country_code,
+        country_name = excluded.country_name,
+        ranking = excluded.ranking,
+        gender = excluded.gender,
+        image_url = excluded.image_url,
+        bio = excluded.bio,
+        playstyle = excluded.playstyle,
+        surface_stats_json = excluded.surface_stats_json,
+        recent_matches_json = excluded.recent_matches_json,
+        ai_dossier_json = excluded.ai_dossier_json,
+        is_featured = excluded.is_featured,
+        is_published = excluded.is_published,
+        updated_at = excluded.updated_at
+    `);
+
+    const insertMany = db.transaction((list: PublishedPlayer[]) => {
+      let count = 0;
+      for (const p of list) {
+        const slug = (p.slug || p.full_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')).trim();
+        stmt.run(
+          p.player_id, slug, p.full_name, p.short_name || null, p.country_code || null, p.country_name || null,
+          p.ranking || null, p.gender || 'M', p.image_url || null, p.bio || null, p.playstyle || null,
+          p.surface_stats_json || null, p.recent_matches_json || null, p.ai_dossier_json || null,
+          p.is_featured ? 1 : 0, p.is_published !== undefined ? (p.is_published ? 1 : 0) : 1,
+          p.created_at || now, now
+        );
+        count++;
+      }
+      return count;
+    });
+
+    return insertMany(players);
+  },
+
   delete: (playerId: number): boolean => {
     const info = db.prepare('DELETE FROM players WHERE player_id = ? OR id = ?').run(playerId, playerId);
     return info.changes > 0;

@@ -27,6 +27,7 @@ router.get('/backup/export', AdminController.exportBackup);
 
 router.get('/players', AdminController.getWebPlayers);
 router.post('/players/publish', AdminController.publishPlayer);
+router.post('/players/bulk-sync', AdminController.publishWebPlayersBulk);
 router.delete('/players/:playerId', AdminController.deletePlayer);
 router.post('/players/featured', AdminController.toggleFeaturedPlayer);
 router.post('/website/config', AdminController.saveWebsiteConfig);
