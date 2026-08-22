@@ -6,7 +6,7 @@ import { Logger } from '../utils/logger';
 const IN_FLIGHT_REQUESTS = new Map<string, Promise<BackendTournamentGroup[]>>();
 
 export class BackendDataPoolOrchestrator {
-  private static LIVE_TTL = 5 * 1000;       // 5s – live scores update frequently
+  private static LIVE_TTL = 4 * 1000;       // 4s – slightly under Flutter's 5s poll cycle to ensure fresh data
   private static DAILY_TTL = 10 * 60 * 1000; // 10m – scheduled/historical data
 
   static async getLiveTournamentGroups(): Promise<BackendTournamentGroup[]> {
@@ -53,9 +53,14 @@ export class BackendDataPoolOrchestrator {
   }
 
   static async getTodayTournamentGroups(): Promise<BackendTournamentGroup[]> {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
     return this.getDateTournamentGroups(todayStr);
   }
+
 
   static async getDateTournamentGroups(dateStr: string): Promise<BackendTournamentGroup[]> {
     const relation = this.getDateRelation(dateStr);
@@ -281,9 +286,16 @@ export class BackendDataPoolOrchestrator {
         statusText,
         isLive,
         startTimestamp: ev.startTimestamp ? Number(ev.startTimestamp) : undefined,
+        // NOTE: Flutter ignores this 'time' field when startTimestamp is present and converts
+        // startTimestamp to the user's local timezone. We send UTC HH:MM as a safe fallback.
         time: ev.startTimestamp
-          ? new Date(ev.startTimestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          : (isLive ? 'LIVE' : '18:00'),
+          ? (() => {
+              const d = new Date(ev.startTimestamp * 1000);
+              const hh = String(d.getUTCHours()).padStart(2, '0');
+              const mm = String(d.getUTCMinutes()).padStart(2, '0');
+              return `${hh}:${mm}`;
+            })()
+          : (isLive ? 'LIVE' : '--:--'),
         stats,
       };
 
@@ -356,19 +368,43 @@ export class BackendDataPoolOrchestrator {
 
   // ─── Category Resolution ──────────────────────────────────────────────────
   private static resolveCategory(tourn: any, tournName: string): string {
-    if (tourn.category?.name) return tourn.category.name;
-    const nameUpper = tournName.toUpperCase();
-    if (nameUpper.includes('AUSTRALIAN OPEN') || nameUpper.includes('ROLAND GARROS') || nameUpper.includes('WIMBLEDON') || nameUpper.includes('US OPEN')) return 'Grand Slam';
-    if (nameUpper.includes('1000') || nameUpper.includes('MASTERS')) return 'ATP 1000';
-    if (nameUpper.includes('ATP 500')) return 'ATP 500';
-    if (nameUpper.includes('ATP 250')) return 'ATP 250';
-    if (nameUpper.includes('WTA 1000')) return 'WTA 1000';
-    if (nameUpper.includes('WTA 500')) return 'WTA 500';
-    if (nameUpper.includes('WTA 250')) return 'WTA 250';
-    if (nameUpper.includes('CHALLENGER')) return 'Challenger';
-    if (nameUpper.includes('ITF') && nameUpper.includes('WOMEN')) return 'ITF Women';
-    if (nameUpper.includes('ITF')) return 'ITF Men';
-    if (nameUpper.includes('UTR')) return 'UTR';
+    const nameUpper = (tournName || '').toUpperCase();
+    const catName = tourn.category?.name || '';
+    const catUpper = catName.toUpperCase();
+
+    if (nameUpper.includes('AUSTRALIAN OPEN') || nameUpper.includes('ROLAND GARROS') || 
+        nameUpper.includes('WIMBLEDON') || nameUpper.includes('US OPEN') || 
+        catUpper.includes('GRAND SLAM')) {
+      return 'Grand Slam';
+    }
+    if (nameUpper.includes('1000') || nameUpper.includes('MASTERS') || catUpper.includes('1000') || catUpper.includes('MASTERS')) {
+      return (nameUpper.includes('WTA') || catUpper.includes('WTA')) ? 'WTA 1000' : 'ATP 1000';
+    }
+    if (nameUpper.includes('ATP 500') || (catUpper.includes('500') && !catUpper.includes('WTA'))) {
+      return 'ATP 500';
+    }
+    if (nameUpper.includes('WTA 500') || (catUpper.includes('500') && catUpper.includes('WTA'))) {
+      return 'WTA 500';
+    }
+    if (nameUpper.includes('ATP 250') || (catUpper.includes('250') && !catUpper.includes('WTA'))) {
+      return 'ATP 250';
+    }
+    if (nameUpper.includes('WTA 250') || (catUpper.includes('250') && catUpper.includes('WTA'))) {
+      return 'WTA 250';
+    }
+    if (nameUpper.includes('CHALLENGER') || catUpper.includes('CHALLENGER')) {
+      return 'Challenger';
+    }
+    if ((nameUpper.includes('ITF') || catUpper.includes('ITF')) && (nameUpper.includes('WOMEN') || catUpper.includes('WOMEN') || nameUpper.includes(' W') || catUpper.includes(' W'))) {
+      return 'ITF Women';
+    }
+    if (nameUpper.includes('ITF') || catUpper.includes('ITF')) {
+      return 'ITF Men';
+    }
+    if (nameUpper.includes('UTR') || catUpper.includes('UTR') || nameUpper.includes('PTT')) {
+      return 'UTR';
+    }
+    if (catName) return catName;
     if (nameUpper.includes('WTA')) return 'WTA';
     return 'ATP';
   }

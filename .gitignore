@@ -10,9 +10,10 @@ dist/
 .env.production
 
 # Database & Data
-data/*.db
+data/
 *.db
 *.sqlite
+*.sqlite-*
 
 # Logs
 logs/
