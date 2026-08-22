@@ -246,6 +246,20 @@ export class BackendDataPoolOrchestrator {
         }
       }
 
+      // ─── Strict Date Alignment ──────────────────────────────────────────────
+      // Ensure match is strictly on the requested date (unless currently live)
+      if (dateStr && ev.startTimestamp && ev.startTimestamp > 0 && !isLive) {
+        const evDate = new Date(ev.startTimestamp * 1000);
+        const y = evDate.getUTCFullYear();
+        const m = String(evDate.getUTCMonth() + 1).padStart(2, '0');
+        const d = String(evDate.getUTCDate()).padStart(2, '0');
+        const evUtcDateStr = `${y}-${m}-${d}`;
+
+        if (evUtcDateStr !== dateStr) {
+          continue;
+        }
+      }
+
       // ─── Serve Indicator Calculation ───────────────────────────────────────
       const { serve1, serve2 } = this.calculateServe(ev, homeScore, awayScore, sets1, sets2, isLive);
 
