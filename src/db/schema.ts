@@ -500,4 +500,80 @@ export const initSchema = () => {
   } catch (err: any) {
     console.warn('gold schema initialization note:', err.message);
   }
+
+  // Resilient Seed: ensure Render ephemeral restarts always have active baseline data
+  try {
+    const refCount = (db.prepare('SELECT count(*) as c FROM referral_sites').get() as { c: number })?.c || 0;
+    if (refCount === 0) {
+      const now = new Date().toISOString();
+      db.prepare(`
+        INSERT INTO referral_sites (name, logo_url, referral_url, app_url, promo_code, bonus_text, steps_text, is_active, order_index, postback_key, verify_mode, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        '1win',
+        '',
+        'https://r1wvvyb.life/betting?open=register&p=5ccv',
+        '',
+        '',
+        '',
+        '',
+        1,
+        0,
+        '1win-key-ctsi8',
+        'postback',
+        now
+      );
+    }
+  } catch (err: any) {
+    console.warn('referral_sites seed note:', err.message);
+  }
+
+  try {
+    const predCount = (db.prepare('SELECT count(*) as c FROM predictions').get() as { c: number })?.c || 0;
+    if (predCount === 0) {
+      const now = new Date().toISOString();
+      db.prepare(`
+        INSERT INTO predictions (
+          fixture_id, tournament_name, round_name, surface, match_date,
+          home_name, away_name, home_odds, away_odds,
+          predicted_winner, win_probability, confidence, predicted_score,
+          best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
+          alt_bet_selection, alt_bet_market, key_factors, devils_advocate_risk,
+          ai_summary, status, published_at, created_at
+        ) VALUES (
+          ?, ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?
+        )
+      `).run(
+        16901525, 'US Open, New York, USA', 'Round of 16', 'Hardcourt outdoor', '2026-09-06T23:00:00.000Z',
+        'Ben Shelton', 'Stefanos Tsitsipas', '1.4', '3',
+        'Ben Shelton', 62, 'MODERATE', '3:1',
+        'Ben Shelton', 'Match Winner', 'NEUTRAL', 'Synthesis: Strong winner consensus for Ben Shelton @ 1.40 (P=62%, 2/3 specialists).',
+        'NO BET / PASS', 'NO_BET',
+        JSON.stringify([
+          "Shelton's elite serve hold rate (88%) on fast hardcourt",
+          'Ranking and ELO gap (359 points) favoring Shelton',
+          "Tsitsipas's chronic back strain and moderate return vulnerability"
+        ]),
+        "Tsitsipas's superior mental readiness and all-court versatility could exploit Shelton's aggressive errors in extended rallies.",
+        'Consensus Bet: Ben Shelton (Synthesis: Strong winner consensus for Ben Shelton @ 1.40 (P=62%, 2/3 specialists).)',
+        'UPCOMING', now, now
+      );
+    }
+  } catch (err: any) {
+    console.warn('predictions seed note:', err.message);
+  }
+
+  try {
+    const accSetting = db.prepare("SELECT value FROM settings WHERE key = 'access_mode'").get();
+    if (!accSetting) {
+      db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('access_mode', 'FREE')").run();
+    }
+  } catch (err: any) {
+    console.warn('settings seed note:', err.message);
+  }
 };
