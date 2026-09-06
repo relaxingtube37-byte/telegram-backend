@@ -345,7 +345,7 @@ export const AdminController = {
   downloadWalSafeSqlite: async (req: Request, res: Response) => {
     try {
       const result = await BackupService.createWalSafeBackup();
-      res.download(result.backupPath, (downloadErr) => {
+      res.download(result.backupPath, (downloadErr: any) => {
         if (downloadErr) {
           Logger.error('Failed to send binary backup file:', downloadErr.message);
         }
