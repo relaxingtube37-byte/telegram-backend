@@ -15,6 +15,11 @@ Secure backend admin endpoints; protect operational web admin routes.
 - Local dev stack: backend `:8080`, website `VITE_API_BASE=/api/web`, webapp `/api/webapp`, desktop `VITE_API_SERVER` + `VITE_ADMIN_SECRET` or Settings UI.
 
 ## Progress
+- 2026-09-06: End-to-end integration hardening between State Football, Telegram Backend, and Telegram WebApp:
+  - Mounted `webappRoutes` at root (`/`), `/webapp`, and `/api/webapp` so any client `VITE_API_BASE` configuration resolves.
+  - Added baseline auto-seeding in `schema.ts` for referral partner (`1win`) and active prediction so Render ephemeral disk wipes never leave the DB empty.
+  - Removed ML gating cutoff blocking in `ChannelPosterService.publishPrediction` so admin-published predictions post immediately to Telegram channel without silent drops.
+  - Fixed WebApp UI issues: truncated score in status pill (`WON 2:0`) to eliminate overlap with player names, replaced duplicate win probability pill with `✓ Pick` badge, and expanded gender heuristic keywords with WTA player surnames to display correct `WTA` tour badges.
 - 2026-09-06: Hardened deployment compatibility for Render with Persistent Disk: created `tsconfig.build.json`, fixed TS build blockers in `admin.controller.ts`, `channel-poster.service.ts`, `incrementalApiEnrichment.service.ts`, and `historicalMatchInsert.ts`; bound server to `0.0.0.0`; added `BACKUP_DIR` and `DATABASE_PATH` support in `env.ts`; implemented snapshot retention policy (pruneOldBackups=3) in `backup.service.ts`. Verified `npm run build:prod` (0 errors), `npm test` (47/47 passed), and dry-run backup & settler suite (5/5 passed).
 - 2026-08-27: Hardened admin auth; protected web admin routes; added security test suite.
 - 2026-08-27: Aligned four-project local dev config (port 8080, env names, admin headers, route alias `sync-fixture-results`).

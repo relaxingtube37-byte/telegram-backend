@@ -1,5 +1,5 @@
 import { InlineKeyboard } from 'grammy';
-import { bot } from './telegram-bot.service';
+import { bot, resolveWebAppUrl } from './telegram-bot.service';
 import { ENV } from '../config/env';
 import { escapeHtml, getSurfaceEmoji } from '../utils/htmlEscaper';
 import { Logger } from '../utils/logger';
@@ -91,7 +91,7 @@ export const ChannelPosterService = {
       Logger.warn('Gating evaluation skipped:', e.message);
     }
 
-    const targetUrl = ENV.WEBAPP_DIRECT_URL || `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
+    const targetUrl = resolveWebAppUrl();
     const keyboard = new InlineKeyboard().url('🚀 🎾 Open MiniApp & View Full Analysis', targetUrl);
     const htmlMsg = ChannelPosterService.formatPredictionHtml(prediction, isTeaser);
 
@@ -132,7 +132,7 @@ export const ChannelPosterService = {
       ? `❌ <b>MATCH RESULT: LOST</b>`
       : `🔄 <b>MATCH RESULT: VOID / CANCELLED</b>`;
 
-    const targetUrl = `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
+    const targetUrl = resolveWebAppUrl();
     const keyboard = new InlineKeyboard().url('🚀 📱 View Live Stats in MiniApp', targetUrl);
 
     const htmlMsg = 
@@ -164,7 +164,7 @@ export const ChannelPosterService = {
     const winRatePct = totalSettled > 0 ? Math.round((wonCount / totalSettled) * 100) : 0;
 
     const title = escapeHtml(customTitle || '📢 DAILY RESULTS RECAP · TENNIS AI STUDIO');
-    const targetUrl = ENV.WEBAPP_DIRECT_URL || `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
+    const targetUrl = resolveWebAppUrl();
     const keyboard = new InlineKeyboard().url('🚀 🏆 Open MiniApp & Get Tomorrow Picks', targetUrl);
 
     let matchLines = '';

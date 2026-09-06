@@ -6,7 +6,40 @@ import { Logger } from '../utils/logger';
 const isValidToken = Boolean(ENV.BOT_TOKEN && /^\d+:[A-Za-z0-9_-]{20,}$/.test(ENV.BOT_TOKEN));
 export const bot = isValidToken ? new Bot(ENV.BOT_TOKEN) : null;
 
+let cachedBotUsername: string | null = null;
+
+export const setResolvedBotUsername = (username: string) => {
+  if (username) {
+    cachedBotUsername = username.replace(/^@/, '').trim();
+  }
+};
+
+export const getResolvedBotUsername = (): string => {
+  if (cachedBotUsername) return cachedBotUsername;
+  return ENV.BOT_USERNAME || 'admdinbetbetforbot';
+};
+
+export const resolveWebAppUrl = (): string => {
+  if (ENV.WEBAPP_DIRECT_URL) {
+    let url = ENV.WEBAPP_DIRECT_URL.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    return url;
+  }
+  const username = getResolvedBotUsername();
+  const shortName = (ENV.WEBAPP_SHORT_NAME || 'app').trim();
+  return `https://t.me/${username}/${shortName}`;
+};
+
 if (bot) {
+  bot.api.getMe().then((me) => {
+    if (me?.username) {
+      setResolvedBotUsername(me.username);
+      Logger.info(`Verified Telegram bot username: @${me.username}`);
+    }
+  }).catch(() => {});
+
   // Command /start
   bot.command('start', async (ctx) => {
     const telegramId = ctx.from?.id;
@@ -15,7 +48,7 @@ if (bot) {
     }
 
     const firstName = ctx.from?.first_name || 'Champion';
-    const targetUrl = `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
+    const targetUrl = resolveWebAppUrl();
 
     const keyboard = new InlineKeyboard()
       .url('🚀 🎾 Open Tennis AI Predictions', targetUrl)
