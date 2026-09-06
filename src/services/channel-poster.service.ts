@@ -92,7 +92,7 @@ export const ChannelPosterService = {
       return null;
     }
 
-    const targetUrl = `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
+    const targetUrl = ENV.WEBAPP_DIRECT_URL || `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
     const keyboard = new InlineKeyboard().url('🚀 🎾 Open MiniApp & View Full Analysis', targetUrl);
     const htmlMsg = ChannelPosterService.formatPredictionHtml(prediction, isTeaser);
 
@@ -165,7 +165,7 @@ export const ChannelPosterService = {
     const winRatePct = totalSettled > 0 ? Math.round((wonCount / totalSettled) * 100) : 0;
 
     const title = escapeHtml(customTitle || '📢 DAILY RESULTS RECAP · TENNIS AI STUDIO');
-    const targetUrl = `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
+    const targetUrl = ENV.WEBAPP_DIRECT_URL || `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
     const keyboard = new InlineKeyboard().url('🚀 🏆 Open MiniApp & Get Tomorrow Picks', targetUrl);
 
     let matchLines = '';

@@ -28,6 +28,7 @@ export const ENV = {
   CHANNEL_ID: (process.env.CHANNEL_ID || '').trim(),
   BOT_USERNAME: (process.env.BOT_USERNAME || '').replace(/^@/, '').trim() || 'admdinbetbetforbot',
   WEBAPP_SHORT_NAME: (process.env.WEBAPP_SHORT_NAME || 'app').trim(),
+  WEBAPP_DIRECT_URL: (process.env.WEBAPP_DIRECT_URL || '').trim(),
   ADMIN_SECRET: (process.env.ADMIN_SECRET || '').trim(),
   PUBLIC_BASE_URL: (process.env.PUBLIC_BASE_URL || 'https://telegram-backend-2yck.onrender.com').trim().replace(/\/+$/, ''),
   DATABASE_FILE:
