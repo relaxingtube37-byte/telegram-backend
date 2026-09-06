@@ -42,10 +42,24 @@ export interface ImportResult {
 export class BackupService {
   private static getBackupDirectory(): string {
     const backupDir = ENV.BACKUP_DIR;
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
+    try {
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
+      }
+      fs.accessSync(backupDir, fs.constants.W_OK);
+      return backupDir;
+    } catch (err: any) {
+      const fallbackDir = path.join(path.dirname(ENV.DATABASE_FILE), 'backups');
+      if (!fs.existsSync(fallbackDir)) {
+        fs.mkdirSync(fallbackDir, { recursive: true });
+      }
+      Logger.warn(
+        `⚠️ Cannot write to backup directory "${backupDir}" (${err.message}). ` +
+        `Falling back to: ${fallbackDir}`
+      );
+      ENV.BACKUP_DIR = fallbackDir;
+      return fallbackDir;
     }
-    return backupDir;
   }
 
   /**
