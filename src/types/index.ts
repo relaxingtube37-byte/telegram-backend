@@ -79,6 +79,10 @@ export interface StatsSummary {
   voidCount: number;
   winRatePct: number;
   activeCount: number;
+  settled?: number;
+  won?: number;
+  lost?: number;
+  upcoming?: number;
 }
 
 

@@ -19,4 +19,9 @@ router.use('/api/web', webRoutes);
 router.use('/api/webapp', webappRoutes);
 router.use('/api/postback', postbackRoutes);
 
+// Fallback aliases so that WebApp functions even if VITE_API_BASE was set to domain root or /webapp
+router.use('/webapp', webappRoutes);
+router.use('/', webappRoutes);
+
 export const apiRouter = router;
+

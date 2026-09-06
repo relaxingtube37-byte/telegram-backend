@@ -18,6 +18,10 @@ export const StatsService = {
       voidCount,
       winRatePct,
       activeCount,
+      settled,
+      won: wonCount,
+      lost: lostCount,
+      upcoming: activeCount,
     };
   },
 };
