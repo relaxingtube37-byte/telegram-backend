@@ -75,21 +75,20 @@ export const ChannelPosterService = {
       return null;
     }
 
-    // ── ML Observability Gating Check ───────────────────────────────────────
-    const gatingVerdict = ObservabilityService.evaluateGatingRules(
-      prediction.match_date || '',
-      prediction.win_probability || 65,
-      85, // DQS
-      10, // Surface sample count
-      false // Injury flag
-    );
-
-    if (isTeaser && !gatingVerdict.telegramTeaserAllowed) {
-      Logger.warn(`⏸️ Telegram Teaser Gated for fixture #${prediction.fixture_id}: Risk Bucket: ${gatingVerdict.riskBucket}, Failed Gates: ${gatingVerdict.failedGates.join(', ')}`);
-      return null;
-    } else if (!isTeaser && !gatingVerdict.telegramAllowed) {
-      Logger.warn(`⏸️ Telegram Broadcast Gated for fixture #${prediction.fixture_id}: Risk Bucket: ${gatingVerdict.riskBucket}, Failed Gates: ${gatingVerdict.failedGates.join(', ')}`);
-      return null;
+    // ── ML Observability Advisory Check (Non-blocking for explicit admin publishes) ──
+    try {
+      const gatingVerdict = ObservabilityService.evaluateGatingRules(
+        prediction.match_date || '',
+        prediction.win_probability || 65,
+        85, // DQS
+        10, // Surface sample count
+        false // Injury flag
+      );
+      if (!gatingVerdict.telegramAllowed) {
+        Logger.warn(`⚠️ Telegram Broadcast advisory for fixture #${prediction.fixture_id}: Risk: ${gatingVerdict.riskBucket}, Gates: ${gatingVerdict.failedGates.join(', ')}`);
+      }
+    } catch (e: any) {
+      Logger.warn('Gating evaluation skipped:', e.message);
     }
 
     const targetUrl = ENV.WEBAPP_DIRECT_URL || `https://t.me/${ENV.BOT_USERNAME}/${ENV.WEBAPP_SHORT_NAME}`;
