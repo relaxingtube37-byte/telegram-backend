@@ -3,7 +3,8 @@ import { ENV } from '../config/env';
 import { UsersRepo } from '../db/repositories/users.repo';
 import { Logger } from '../utils/logger';
 
-export const bot = ENV.BOT_TOKEN ? new Bot(ENV.BOT_TOKEN) : null;
+const isValidToken = Boolean(ENV.BOT_TOKEN && /^\d+:[A-Za-z0-9_-]{20,}$/.test(ENV.BOT_TOKEN));
+export const bot = isValidToken ? new Bot(ENV.BOT_TOKEN) : null;
 
 if (bot) {
   // Command /start

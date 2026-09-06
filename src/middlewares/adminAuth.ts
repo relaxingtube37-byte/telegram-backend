@@ -1,10 +1,22 @@
+import { timingSafeEqual } from 'crypto';
 import { Request, Response, NextFunction } from 'express';
-import { ENV } from '../config/env';
+import { ENV, isAdminSecretUsable } from '../config/env';
 
-export const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
-  const querySecret = (req.query.secret as string) || '';
-  const headerSecret = (req.headers['x-admin-secret'] as string) || '';
-  const authHeader = req.headers['authorization'] || '';
+const UNAUTHORIZED_MESSAGE = 'Unauthorized: Invalid or missing admin secret';
+
+function secretsMatch(provided: string, expected: string): boolean {
+  const providedBuf = Buffer.from(provided, 'utf8');
+  const expectedBuf = Buffer.from(expected, 'utf8');
+  if (providedBuf.length !== expectedBuf.length) {
+    return false;
+  }
+  return timingSafeEqual(providedBuf, expectedBuf);
+}
+
+function extractProvidedSecret(req: Request): string {
+  const querySecret = typeof req.query.secret === 'string' ? req.query.secret : '';
+  const headerSecret = typeof req.headers['x-admin-secret'] === 'string' ? req.headers['x-admin-secret'] : '';
+  const authHeader = typeof req.headers.authorization === 'string' ? req.headers.authorization : '';
   let bearerSecret = '';
 
   if (authHeader.startsWith('Bearer ')) {
@@ -12,19 +24,24 @@ export const requireAdminAuth = (req: Request, res: Response, next: NextFunction
   }
 
   const providedSecret = (querySecret || headerSecret || bearerSecret).trim();
-  const decodedProvided = decodeURIComponent(providedSecret).trim();
-  const validSecret = (ENV.ADMIN_SECRET || '').trim();
+  try {
+    return decodeURIComponent(providedSecret).trim();
+  } catch {
+    return providedSecret;
+  }
+}
 
-  const allowedSecrets = new Set([
-    validSecret,
-    'sofascore-tennis-admin-secret-2026',
-    'state_tennis_secret_2026',
-    'admin123',
-  ].filter(Boolean));
+export const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
+  const configuredSecret = ENV.ADMIN_SECRET;
 
-  if (decodedProvided && allowedSecrets.has(decodedProvided)) {
-    return next();
+  if (!isAdminSecretUsable(configuredSecret)) {
+    return res.status(401).json({ error: UNAUTHORIZED_MESSAGE });
   }
 
-  return res.status(401).json({ error: 'Unauthorized: Invalid or missing admin secret' });
+  const providedSecret = extractProvidedSecret(req);
+  if (!providedSecret || !secretsMatch(providedSecret, configuredSecret)) {
+    return res.status(401).json({ error: UNAUTHORIZED_MESSAGE });
+  }
+
+  return next();
 };

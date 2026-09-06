@@ -17,3 +17,9 @@ db.pragma('busy_timeout = 5000');
 db.pragma('synchronous = NORMAL');
 
 Logger.success(`SQLite Database connected at: ${ENV.DATABASE_FILE}`);
+
+// Schema must exist before any module prepares SQL against historical_matches.
+import { initSchema } from './schema';
+import { runMigrations } from './migrations';
+initSchema();
+runMigrations();

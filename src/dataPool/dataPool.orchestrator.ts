@@ -1,6 +1,8 @@
 import { BackendDataPoolStore } from './dataPool.store';
 import { BackendTennisApi } from './dataPool.tennisApi';
 import { BackendTournamentGroup, BackendMatchRowItem, BackendMatchStats } from './dataPool.types';
+import { PrecomputationService } from '../services/precomputation.service';
+import { calculateWeightedFatigueLoad } from '../engine/physics/fatigueEngine';
 import { Logger } from '../utils/logger';
 
 const IN_FLIGHT_REQUESTS = new Map<string, Promise<BackendTournamentGroup[]>>();
@@ -187,8 +189,30 @@ export class BackendDataPoolOrchestrator {
         }
       }
 
-      const statusType = ev.status?.type;
+      const statusType = (ev.status?.type || '').toLowerCase();
+      const statusCode = typeof ev.status?.code === 'number' ? ev.status.code : undefined;
       const desc = (ev.status?.description || '').toUpperCase();
+      const reason = (ev.status?.reason?.name || (ev as any).statusReason || (ev as any).winnerReason || '').toUpperCase();
+
+      // Check for retirement or walkover or stoppage
+      const isRet = statusCode === 91 || desc.includes('RETIRED') || desc.includes('RET') || reason.includes('RETIRED') || reason.includes('RET');
+      const isWalk = statusCode === 92 || desc.includes('WALK') || reason.includes('WALK');
+      const isCanc = statusCode === 70 || desc.includes('CANCEL') || reason.includes('CANCEL');
+      const isPostp = statusCode === 60 || desc.includes('POSTPON') || reason.includes('POSTPON');
+      const isInterr = statusCode === 31 || desc.includes('INTERRUPT') || desc.includes('RAIN') || reason.includes('RAIN');
+      const isSusp = statusCode === 32 || desc.includes('SUSPEND') || desc.includes('DARK') || reason.includes('DARK');
+      const isDelayed = desc.includes('DELAY');
+
+      // Check for score-inferred retirement in concluded matches (e.g. 4-6, 0-3)
+      let isIncompleteSetRetirement = false;
+      if ((statusType === 'finished' || desc.includes('FINISH') || desc.includes('ENDED') || relation === 'past') && sets1.length > 0) {
+        const last1 = Number(sets1[sets1.length - 1].replace(/\(.*?\)/, ''));
+        const last2 = Number(sets2[sets2.length - 1].replace(/\(.*?\)/, ''));
+        const neitherReached6 = last1 < 6 && last2 < 6;
+        if (neitherReached6 && (last1 > 0 || last2 > 0)) {
+          isIncompleteSetRetirement = true;
+        }
+      }
 
       // ─── Status Text & Point Determination by Date Relation ────────────────
       let isLive = false;
@@ -198,16 +222,16 @@ export class BackendDataPoolOrchestrator {
       if (relation === 'past') {
         // Past dates: Every match is concluded (Finished / Retired / Cancelled / Walkover)
         isLive = false;
-        if (desc.includes('RETIRED') || desc.includes('RET')) {
+        if (isRet || isIncompleteSetRetirement) {
           statusText = 'RETIRED';
           point = 'RET';
-        } else if (desc.includes('CANCEL')) {
+        } else if (isCanc) {
           statusText = 'CANCELLED';
           point = '-';
-        } else if (desc.includes('WALK')) {
+        } else if (isWalk) {
           statusText = 'WALKOVER';
           point = 'WO';
-        } else if (desc.includes('POSTPON')) {
+        } else if (isPostp) {
           statusText = 'POSTPONED';
           point = '-';
         } else {
@@ -221,12 +245,33 @@ export class BackendDataPoolOrchestrator {
         point = '-';
       } else {
         // Today's date: accurately resolve in-progress vs finished vs upcoming
-        const sType = (statusType || '').toLowerCase();
-        if (sType === 'inprogress') {
+        const sType = statusType;
+        if (isRet || isIncompleteSetRetirement) {
+          statusText = 'RETIRED';
+          point = 'RET';
+        } else if (isWalk) {
+          statusText = 'WALKOVER';
+          point = 'WO';
+        } else if (isCanc) {
+          statusText = 'CANCELLED';
+          point = '-';
+        } else if (isInterr) {
+          statusText = 'INTERRUPTED';
+          point = '-';
+        } else if (isSusp) {
+          statusText = 'SUSPENDED';
+          point = '-';
+        } else if (isPostp) {
+          statusText = 'POSTPONED';
+          point = '-';
+        } else if (isDelayed) {
+          statusText = 'DELAYED';
+          point = '-';
+        } else if (sType === 'inprogress') {
           isLive = true;
           const currentSetNum = sets1.length > 0 ? sets1.length : 1;
-          const p1Last = sets1.length > 0 ? Number(sets1[sets1.length - 1]) : 0;
-          const p2Last = sets2.length > 0 ? Number(sets2[sets2.length - 1]) : 0;
+          const p1Last = sets1.length > 0 ? Number(sets1[sets1.length - 1].replace(/\(.*?\)/, '')) : 0;
+          const p2Last = sets2.length > 0 ? Number(sets2[sets2.length - 1].replace(/\(.*?\)/, '')) : 0;
 
           if (p1Last === 6 && p2Last === 6) {
             statusText = 'TIEBREAK';
@@ -240,18 +285,6 @@ export class BackendDataPoolOrchestrator {
         } else if (desc.includes('FINISH') || desc.includes('ENDED') || sType === 'finished') {
           statusText = 'FINISHED';
           point = 'FT';
-        } else if (desc.includes('RETIRED') || desc.includes('RET')) {
-          statusText = 'RETIRED';
-          point = 'RET';
-        } else if (desc.includes('CANCEL')) {
-          statusText = 'CANCELLED';
-          point = '-';
-        } else if (desc.includes('WALK')) {
-          statusText = 'WALKOVER';
-          point = 'WO';
-        } else if (desc.includes('POSTPON')) {
-          statusText = 'POSTPONED';
-          point = '-';
         } else if (sType === 'notstarted' || desc === 'NOT STARTED' || desc === 'SCHEDULED') {
           statusText = '';
           point = '-';
@@ -311,7 +344,7 @@ export class BackendDataPoolOrchestrator {
 
       // ─── Realistic & Stable Match Stats ───────────────────────────────────
       const stats = this.calculateRealisticMatchStats(
-        ev.id || Math.floor(Math.random() * 100000),
+        ev.id || 0,
         player1,
         player2,
         rank1,
@@ -324,8 +357,79 @@ export class BackendDataPoolOrchestrator {
         serve2
       );
 
+      // ─── Attach Real Precomputed Analytics from SQLite ────────────────────
+      const analytics = ev.id ? PrecomputationService.getAnalyticsByFixtureId(Number(ev.id)) : null;
+      let homeWinPct = stats.winProbability1;
+      let awayWinPct = stats.winProbability2;
+      let homeOddsStr: string | undefined;
+      let awayOddsStr: string | undefined;
+      let cpiVal = 37;
+      let homeHold = 78;
+      let awayHold = 78;
+      let homeBreak = 22;
+      let awayBreak = 22;
+      let homeClutch = 'Solid Competitor';
+      let awayClutch = 'Solid Competitor';
+      let expectedGames: number | undefined;
+
+      // ─── Scientific Physical Stamina (Layer 1 Bio-Fatigue & Recovery) ───
+      let homeStamina = 96;
+      let awayStamina = 96;
+
+      if (analytics?.energy?.home?.energyTankPct !== undefined && analytics.energy.home.energyTankPct > 0) {
+        homeStamina = analytics.energy.home.energyTankPct;
+      } else {
+        const p1Recent = PrecomputationService.queryPlayerRecentMatches(player1);
+        const homeFatigue = calculateWeightedFatigueLoad(p1Recent, pId1, ev.startTimestamp ? new Date(ev.startTimestamp * 1000).toISOString() : undefined);
+        homeStamina = homeFatigue.energyTankPct || 96;
+      }
+
+      if (analytics?.energy?.away?.energyTankPct !== undefined && analytics.energy.away.energyTankPct > 0) {
+        awayStamina = analytics.energy.away.energyTankPct;
+      } else {
+        const p2Recent = PrecomputationService.queryPlayerRecentMatches(player2);
+        const awayFatigue = calculateWeightedFatigueLoad(p2Recent, pId2, ev.startTimestamp ? new Date(ev.startTimestamp * 1000).toISOString() : undefined);
+        awayStamina = awayFatigue.energyTankPct || 96;
+      }
+
+      // Live In-Match Physiological Energy Drain during actual play
+      // Each player drains based on total rally games (both combined), but extra drain for the server
+      const p1LiveGames = sets1.reduce((a, b) => a + (parseInt(String(b).replace(/[^0-9]/g, ''), 10) || 0), 0);
+      const p2LiveGames = sets2.reduce((a, b) => a + (parseInt(String(b).replace(/[^0-9]/g, ''), 10) || 0), 0);
+      const totalLiveGames = p1LiveGames + p2LiveGames;
+      if (totalLiveGames > 0) {
+        // Base drain is shared (rallies tire both players)
+        const baseDrain = Math.min(30, Math.round(totalLiveGames * 0.85 + (sets1.length > 2 ? 5.0 : 0)));
+        // Serving player burns ~5% more energy per game on serve
+        const servingDrainBonus = 3;
+        const p1ExtraDrain = serve1 ? servingDrainBonus : 0;
+        const p2ExtraDrain = serve2 ? servingDrainBonus : 0;
+        homeStamina = Math.max(25, homeStamina - baseDrain - p1ExtraDrain);
+        awayStamina = Math.max(25, awayStamina - baseDrain - p2ExtraDrain);
+      }
+
+      if (analytics && analytics.markovOdds) {
+        homeWinPct = Math.round((analytics.markovOdds.matchWinProbHome || 0.5) * 100);
+        awayWinPct = 100 - homeWinPct;
+        stats.winProbability1 = homeWinPct;
+        stats.winProbability2 = awayWinPct;
+        homeOddsStr = analytics.markovOdds.fairOddsHome ? String(analytics.markovOdds.fairOddsHome) : undefined;
+        awayOddsStr = analytics.markovOdds.fairOddsAway ? String(analytics.markovOdds.fairOddsAway) : undefined;
+        expectedGames = analytics.markovOdds.expectedTotalGames;
+        cpiVal = analytics.surfaceKpis?.cpi || 37;
+        homeHold = analytics.synergy?.homeSynergy?.holdPct || 78;
+        awayHold = analytics.synergy?.awaySynergy?.holdPct || 78;
+        homeBreak = analytics.synergy?.homeSynergy?.breakPct || 22;
+        awayBreak = analytics.synergy?.awaySynergy?.breakPct || 22;
+        homeClutch = analytics.synergy?.homeSetDynamics?.clutchVerdict || 'Solid Competitor';
+        awayClutch = analytics.synergy?.awaySetDynamics?.clutchVerdict || 'Solid Competitor';
+        stats.aiVerdict = `${player1} (${homeWinPct}% modeled win chance) vs ${player2} (${awayWinPct}%). Markov fair odds: ${homeOddsStr || '-'} vs ${awayOddsStr || '-'}. Energy: ${homeStamina}% vs ${awayStamina}%.`;
+      }
+
+      const courtSpeedTag = cpiVal >= 40 ? '⚡ Fast Court' : cpiVal <= 30 ? '🐢 Slow Clay' : '🎯 Medium Court';
+
       const matchItem: BackendMatchRowItem = {
-        id: ev.id || Math.floor(Math.random() * 100000),
+        id: ev.id || 0,
         playerId1: pId1,
         playerId2: pId2,
         player1,
@@ -341,9 +445,8 @@ export class BackendDataPoolOrchestrator {
         point,
         statusText,
         isLive,
+        winnerCode: typeof ev.winnerCode === 'number' ? ev.winnerCode : (ev.winner ? (ev.winner === 'home' ? 1 : 2) : undefined),
         startTimestamp: ev.startTimestamp ? Number(ev.startTimestamp) : undefined,
-        // NOTE: Flutter ignores this 'time' field when startTimestamp is present and converts
-        // startTimestamp to the user's local timezone. We send UTC HH:MM as a safe fallback.
         time: ev.startTimestamp
           ? (() => {
               const d = new Date(ev.startTimestamp * 1000);
@@ -353,6 +456,22 @@ export class BackendDataPoolOrchestrator {
             })()
           : (isLive ? 'LIVE' : '--:--'),
         stats,
+        analytics,
+        homeOdds: homeOddsStr,
+        awayOdds: awayOddsStr,
+        courtSpeed: courtSpeedTag,
+        cpi: cpiVal,
+        homeStamina,
+        awayStamina,
+        homePureWinChance: homeWinPct,
+        awayPureWinChance: awayWinPct,
+        homeHoldRate: homeHold,
+        awayHoldRate: awayHold,
+        homeBreakRate: homeBreak,
+        awayBreakRate: awayBreak,
+        homeClutchVerdict: homeClutch,
+        awayClutchVerdict: awayClutch,
+        expectedTotalGames: expectedGames,
       };
 
       map.get(tournId)!.matches.push(matchItem);
@@ -481,41 +600,58 @@ export class BackendDataPoolOrchestrator {
     const nameUpper = (tournName || '').toUpperCase();
     const catName = tourn.category?.name || '';
     const catUpper = catName.toUpperCase();
+    const catId = tourn.category?.id;
+    const isWomen = nameUpper.includes('WOMEN') || catUpper.includes('WOMEN') || nameUpper.includes('WTA') || catUpper.includes('WTA') || nameUpper.includes('GIRLS') || catId === 6 || tourn.id === 196860;
+    const isMixed = nameUpper.includes('MIXED') || catUpper.includes('MIXED');
 
+    if (nameUpper.includes('DAVIS') || catUpper.includes('DAVIS')) {
+      return 'Davis Cup';
+    }
+    if (nameUpper.includes('BILLIE') || nameUpper.includes('BJK') || catUpper.includes('BILLIE') || catUpper.includes('BJK')) {
+      return 'BJK Cup';
+    }
+    if (nameUpper.includes('UNITED CUP') || catUpper.includes('UNITED CUP') || nameUpper.includes('LAVER CUP') || catUpper.includes('LAVER CUP') || nameUpper.includes('HOPMAN') || catUpper.includes('HOPMAN')) {
+      return 'Team Cup';
+    }
     if (nameUpper.includes('AUSTRALIAN OPEN') || nameUpper.includes('ROLAND GARROS') || 
         nameUpper.includes('WIMBLEDON') || nameUpper.includes('US OPEN') || 
         catUpper.includes('GRAND SLAM')) {
-      return 'Grand Slam';
+      if (isMixed) return 'Mixed Grand Slam';
+      if (isWomen) return 'WTA Grand Slam';
+      return 'ATP Grand Slam';
     }
     if (nameUpper.includes('1000') || nameUpper.includes('MASTERS') || catUpper.includes('1000') || catUpper.includes('MASTERS')) {
-      return (nameUpper.includes('WTA') || catUpper.includes('WTA')) ? 'WTA 1000' : 'ATP 1000';
+      return (isWomen || nameUpper.includes('WTA') || catUpper.includes('WTA')) ? 'WTA 1000' : 'ATP 1000';
     }
-    if (nameUpper.includes('ATP 500') || (catUpper.includes('500') && !catUpper.includes('WTA'))) {
+    if (nameUpper.includes('ATP 500') || (catUpper.includes('500') && !catUpper.includes('WTA') && !isWomen)) {
       return 'ATP 500';
     }
-    if (nameUpper.includes('WTA 500') || (catUpper.includes('500') && catUpper.includes('WTA'))) {
+    if (nameUpper.includes('WTA 500') || ((catUpper.includes('500') || nameUpper.includes('500')) && (catUpper.includes('WTA') || isWomen))) {
       return 'WTA 500';
     }
-    if (nameUpper.includes('ATP 250') || (catUpper.includes('250') && !catUpper.includes('WTA'))) {
+    if (nameUpper.includes('ATP 250') || (catUpper.includes('250') && !catUpper.includes('WTA') && !isWomen)) {
       return 'ATP 250';
     }
-    if (nameUpper.includes('WTA 250') || (catUpper.includes('250') && catUpper.includes('WTA'))) {
+    if (nameUpper.includes('WTA 250') || ((catUpper.includes('250') || nameUpper.includes('250')) && (catUpper.includes('WTA') || isWomen))) {
       return 'WTA 250';
     }
     if (nameUpper.includes('CHALLENGER') || catUpper.includes('CHALLENGER')) {
       return 'Challenger';
     }
-    if ((nameUpper.includes('ITF') || catUpper.includes('ITF')) && (nameUpper.includes('WOMEN') || catUpper.includes('WOMEN') || nameUpper.includes(' W') || catUpper.includes(' W'))) {
+    if ((nameUpper.includes('ITF') || catUpper.includes('ITF')) && (isWomen || nameUpper.includes(' W') || catUpper.includes(' W'))) {
       return 'ITF Women';
     }
     if (nameUpper.includes('ITF') || catUpper.includes('ITF')) {
       return 'ITF Men';
     }
+    if ((nameUpper.includes('UTR') || catUpper.includes('UTR') || nameUpper.includes('PTT')) && isWomen) {
+      return 'UTR Women';
+    }
     if (nameUpper.includes('UTR') || catUpper.includes('UTR') || nameUpper.includes('PTT')) {
-      return 'UTR';
+      return 'UTR Men';
     }
     if (catName) return catName;
-    if (nameUpper.includes('WTA')) return 'WTA';
+    if (isWomen) return 'WTA';
     return 'ATP';
   }
 

@@ -1,18 +1,23 @@
 import { bot } from './services/telegram-bot.service';
 import { ChannelPosterService } from './services/channel-poster.service';
+import { ENV } from './config/env';
 import { Logger } from './utils/logger';
 
 export const startBot = async () => {
-  if (bot) {
-    bot.start({
-      onStart: (botInfo) => {
-        Logger.success(`🤖 Telegram Bot started as @${botInfo.username}`);
-      },
-    }).catch((err: unknown) => {
-      Logger.warn(`⚠️ Telegram bot polling error (server still running): ${err}`);
-    });
+  if (bot && ENV.NODE_ENV === 'production' && ENV.BOT_TOKEN) {
+    try {
+      bot.start({
+        onStart: (botInfo) => {
+          Logger.success(`🤖 Telegram Bot started as @${botInfo.username}`);
+        },
+      }).catch((err: unknown) => {
+        Logger.warn(`⚠️ Telegram bot polling error (server still running): ${err}`);
+      });
+    } catch (err) {
+      Logger.warn(`⚠️ Telegram bot failed to start: ${err}`);
+    }
   } else {
-    Logger.warn('Telegram bot is not running (BOT_TOKEN is missing or empty)');
+    Logger.info('Telegram bot polling skipped in development mode.');
   }
 };
 

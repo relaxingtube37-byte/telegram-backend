@@ -14,6 +14,11 @@ data/
 *.db
 *.sqlite
 *.sqlite-*
+*.csv
+audit_*.json
+gold_dataset_summary.json
+reconciled_gold_metrics.json
+scratch/
 
 # Logs
 logs/

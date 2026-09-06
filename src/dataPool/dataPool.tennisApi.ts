@@ -2,7 +2,7 @@ import { ENV } from '../config/env';
 import { Logger } from '../utils/logger';
 
 const RAPID_HOST = 'tennisapi1.p.rapidapi.com';
-const INTERVAL_MS = 140; // ~7 req/sec (Safe for 8 req/s RapidAPI plan)
+const INTERVAL_MS = 140; // ~7 req/sec (Safe for RapidAPI plan)
 
 let lastRequestTime = 0;
 let requestQueue: Promise<any> = Promise.resolve();
@@ -33,6 +33,7 @@ export class BackendTennisApi {
                   'x-rapidapi-key': ENV.RAPIDAPI_KEY,
                   'x-rapidapi-host': RAPID_HOST,
                 },
+                signal: AbortSignal.timeout(4500),
               });
 
               if (res.status === 429) {
@@ -47,13 +48,25 @@ export class BackendTennisApi {
                 }
               }
 
+              // API returns 204 with empty body when no data (e.g. no stats/PBP for match)
+              if (res.status === 204) {
+                resolve(null);
+                return;
+              }
+
               if (!res.ok) {
                 Logger.warn(`RapidAPI Tennis HTTP ${res.status} on ${endpoint}`);
                 resolve(null);
                 return;
               }
 
-              const data = (await res.json()) as T;
+              const text = await res.text();
+              if (!text.trim()) {
+                resolve(null);
+                return;
+              }
+
+              const data = JSON.parse(text) as T;
               resolve(data);
               return;
             } catch (err: any) {
@@ -96,8 +109,7 @@ export class BackendTennisApi {
         y = now.getFullYear();
       }
 
-      // All Official Professional & Semi-Pro Tennis Categories:
-      // 3 = ATP, 6 = WTA, 72 = Challenger, 785 = ITF Men, 213 = ITF Women, 1843 = UTR Men, 1844 = UTR Women
+      // Categories: 3 = ATP, 6 = WTA, 72 = Challenger, 785 = ITF Men, 213 = ITF Women, 1843 = UTR Men, 1844 = UTR Women
       const categories = [3, 6, 72, 785, 213, 1843, 1844];
       const results: any[] = [];
 
@@ -129,6 +141,61 @@ export class BackendTennisApi {
 
   static async getRankings(tour: 'atp' | 'wta'): Promise<any> {
     return this.request('/api/tennis/rankings/' + tour);
+  }
+
+  static async getPlayerProfile(playerId: string | number): Promise<any> {
+    return this.request(`/api/tennis/player/${playerId}`);
+  }
+
+  static async getPlayerStats(playerId: string | number, year: number = 2026): Promise<any> {
+    return this.request(`/api/tennis/player/${playerId}/statistics/${year}`);
+  }
+
+  static async getPlayerRecentEvents(playerId: string | number, count: number = 5): Promise<any> {
+    return this.request(`/api/tennis/player/${playerId}/events/last/${count}`);
+  }
+
+  static async getPlayerPreviousEvents(playerId: string | number, page: number = 0): Promise<any> {
+    return this.request(`/api/tennis/player/${playerId}/events/previous/${page}`);
+  }
+
+  static async searchPlayers(query: string): Promise<any> {
+    const encoded = encodeURIComponent(query.trim());
+    if (!encoded) return null;
+    return this.request(`/api/tennis/search/${encoded}`);
+  }
+
+  static async getHeadToHead(p1Id: string | number, p2Id: string | number): Promise<any> {
+    return this.request(`/api/tennis/h2h/${p1Id}/${p2Id}`);
+  }
+
+  static async getTournamentDetails(tournamentId: string | number): Promise<any> {
+    return this.request(`/api/tennis/tournament/${tournamentId}`);
+  }
+
+  static async getEventDetails(eventId: string | number): Promise<any> {
+    return this.request(`/api/tennis/event/${eventId}`);
+  }
+
+  static async getEventPointByPoint(eventId: string | number): Promise<any> {
+    return this.request(`/api/tennis/event/${eventId}/point-by-point`);
+  }
+
+  static async getEventStatistics(eventId: string | number): Promise<any> {
+    return this.request(`/api/tennis/event/${eventId}/statistics`);
+  }
+
+  static async getEventOdds(eventId: string | number): Promise<any> {
+    return this.request(`/api/tennis/event/${eventId}/odds`);
+  }
+
+  /** All match odds for one calendar day — keyed by eventId in response.odds */
+  static async getEventsOddsByDate(day: number, month: number, year: number): Promise<any> {
+    return this.request(`/api/tennis/events/odds/${day}/${month}/${year}`);
+  }
+
+  static async getEventDuel(eventId: string | number): Promise<any> {
+    return this.request(`/api/tennis/event/${eventId}/duel`);
   }
 
   static async getPlayerImage(playerId: string | number, maxRetries = 1): Promise<Buffer | null> {

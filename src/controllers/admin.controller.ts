@@ -7,6 +7,9 @@ import { SettingsRepo } from '../db/repositories/settings.repo';
 import { ChannelPosterService } from '../services/channel-poster.service';
 import { StatsService } from '../services/stats.service';
 import { PlayersService } from '../services/players.service';
+import { BackupService } from '../services/backup.service';
+import { ResultSettlerService } from '../services/result-settler.service';
+import { Logger } from '../utils/logger';
 import type { Prediction, MatchStatus } from '../types';
 
 export const AdminController = {
@@ -191,7 +194,13 @@ export const AdminController = {
       for (const item of results) {
         if (item.fixture_id && item.status) {
           const success = PredictionsService.updateResultByFixtureId(item.fixture_id, item.status, item.result_score);
-          if (success) updatedCount++;
+          if (success) {
+            updatedCount++;
+            const pred = PredictionsRepo.getByFixtureId(item.fixture_id);
+            if (pred && pred.channel_message_id && (item.status === 'WON' || item.status === 'LOST' || item.status === 'VOID')) {
+              ChannelPosterService.updateResult(pred.channel_message_id, item.status, item.result_score).catch(() => {});
+            }
+          }
         }
       }
 
@@ -214,6 +223,31 @@ export const AdminController = {
 
       const messageId = await ChannelPosterService.publishBatchSummary(targetPredictions, batch_title);
       res.json({ success: true, messageId, count: targetPredictions.length });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  deletePrediction: async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(String(req.params.id), 10);
+      const success = PredictionsRepo.delete(id);
+      res.json({ success, id });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  batchDeletePredictions: async (req: Request, res: Response) => {
+    try {
+      const { ids } = req.body;
+      let count = 0;
+      if (Array.isArray(ids)) {
+        for (const id of ids) {
+          if (PredictionsRepo.delete(Number(id))) count++;
+        }
+      }
+      res.json({ success: true, count });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -292,19 +326,66 @@ export const AdminController = {
 
   exportBackup: async (req: Request, res: Response) => {
     try {
-      const predictions = PredictionsRepo.getAll(1000);
-      const users = UsersRepo.getAll(1000);
-      const referralSites = ReferralsRepo.getAll();
-      const settings = SettingsRepo.getAll();
-      res.json({
-        exportedAt: new Date().toISOString(),
-        predictions,
-        users,
-        referralSites,
-        settings,
+      const fullBackup = BackupService.exportFullJsonBackup();
+      res.json(fullBackup);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  exportFullBackup: async (req: Request, res: Response) => {
+    try {
+      const fullBackup = BackupService.exportFullJsonBackup();
+      res.json(fullBackup);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  downloadWalSafeSqlite: async (req: Request, res: Response) => {
+    try {
+      const result = await BackupService.createWalSafeBackup();
+      res.download(result.backupPath, (downloadErr) => {
+        if (downloadErr) {
+          Logger.error('Failed to send binary backup file:', downloadErr.message);
+        }
       });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   },
+
+  importBackup: async (req: Request, res: Response) => {
+    try {
+      const { backupData, mode } = req.body;
+      const targetPayload = backupData || req.body;
+      const importMode = mode === 'replace' ? 'replace' : 'merge';
+
+      if (!targetPayload || typeof targetPayload !== 'object') {
+        return res.status(400).json({ error: 'Valid JSON backup payload is required' });
+      }
+
+      const result = await BackupService.importBackup(targetPayload, importMode);
+      res.json({
+        message: `Database restored successfully in ${importMode} mode.`,
+        ...result,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
+  runResultSettler: async (req: Request, res: Response) => {
+    try {
+      const result = await ResultSettlerService.settleActivePredictions();
+      res.json({
+        success: true,
+        message: `Settler run completed: ${result.settled} of ${result.checked} active prediction(s) settled.`,
+        ...result,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
 };
+

@@ -1,41 +1,43 @@
-import { ENV } from './config/env';
-import { BackendTennisApi } from './dataPool/dataPool.tennisApi';
-import { BackendDataPoolOrchestrator } from './dataPool/dataPool.orchestrator';
-import { BackendDataPoolStore } from './dataPool/dataPool.store';
-import express from 'express';
-import { corsMiddleware } from './middlewares/cors';
-import { apiRouter } from './routes';
-import { goRoutes } from './routes/go.routes';
-import { initSchema } from './db/schema';
-import { runMigrations } from './db/migrations';
-import http from 'http';
+process.env.ADMIN_SECRET = 'integration-test-admin-secret-key';
 
-interface TestResult {
-  suite: string;
-  name: string;
-  passed: boolean;
-  durationMs: number;
-  details?: any;
-  error?: string;
-}
+async function runFullSuite() {
+  const { ENV } = await import('./config/env');
+  const { BackendTennisApi } = await import('./dataPool/dataPool.tennisApi');
+  const { BackendDataPoolOrchestrator } = await import('./dataPool/dataPool.orchestrator');
+  const { BackendDataPoolStore } = await import('./dataPool/dataPool.store');
+  const express = (await import('express')).default;
+  const { corsMiddleware } = await import('./middlewares/cors');
+  const { apiRouter } = await import('./routes');
+  const { goRoutes } = await import('./routes/go.routes');
+  const { initSchema } = await import('./db/schema');
+  const { runMigrations } = await import('./db/migrations');
+  const http = await import('http');
 
-const results: TestResult[] = [];
-
-async function runTest(suite: string, name: string, fn: () => Promise<any>) {
-  const start = Date.now();
-  try {
-    const details = await fn();
-    const durationMs = Date.now() - start;
-    results.push({ suite, name, passed: true, durationMs, details });
-    console.log(`  ✅ [PASS] ${suite} -> ${name} (${durationMs}ms)`);
-  } catch (err: any) {
-    const durationMs = Date.now() - start;
-    results.push({ suite, name, passed: false, durationMs, error: err?.message || String(err) });
-    console.error(`  ❌ [FAIL] ${suite} -> ${name} (${durationMs}ms):`, err?.message || err);
+  interface TestResult {
+    suite: string;
+    name: string;
+    passed: boolean;
+    durationMs: number;
+    details?: any;
+    error?: string;
   }
-}
 
-async function main() {
+  const results: TestResult[] = [];
+
+  async function runTest(suite: string, name: string, fn: () => Promise<any>) {
+    const start = Date.now();
+    try {
+      const details = await fn();
+      const durationMs = Date.now() - start;
+      results.push({ suite, name, passed: true, durationMs, details });
+      console.log(`  ✅ [PASS] ${suite} -> ${name} (${durationMs}ms)`);
+    } catch (err: any) {
+      const durationMs = Date.now() - start;
+      results.push({ suite, name, passed: false, durationMs, error: err?.message || String(err) });
+      console.error(`  ❌ [FAIL] ${suite} -> ${name} (${durationMs}ms):`, err?.message || err);
+    }
+  }
+
   console.log('\n======================================================');
   console.log('🎾 FULL BACKEND & DATA POOL DIAGNOSTIC & TEST SUITE');
   console.log('======================================================\n');
@@ -43,15 +45,11 @@ async function main() {
   console.log(`RapidAPI Key: ${ENV.RAPIDAPI_KEY ? ENV.RAPIDAPI_KEY.slice(0, 8) + '...' : 'NONE'}`);
   console.log(`Database: ${ENV.DATABASE_FILE}\n`);
 
-  // Initialize DB for testing
   initSchema();
   runMigrations();
 
-  // ─────────────────────────────────────────────────────────────
-  // SUITE 1: External API (RapidAPI Tennis) Direct Verification
-  // ─────────────────────────────────────────────────────────────
   console.log('--- SUITE 1: RapidAPI Tennis Direct Fetching ---');
-  
+
   await runTest('RapidAPI', 'GET /api/tennis/events/live', async () => {
     const data = await BackendTennisApi.getLiveEvents();
     if (!data) {
@@ -86,18 +84,14 @@ async function main() {
     };
   });
 
-  // ─────────────────────────────────────────────────────────────
-  // SUITE 2: Data Pool Store & Orchestrator
-  // ─────────────────────────────────────────────────────────────
   console.log('\n--- SUITE 2: Backend DataPool Caching & Transformation ---');
 
   await runTest('DataPoolStore', 'Set, Get, TTL Expiry & Clear', async () => {
     BackendDataPoolStore.clear();
-    BackendDataPoolStore.set('test_key', { foo: 'bar' }, 100); // 100ms TTL
+    BackendDataPoolStore.set('test_key', { foo: 'bar' }, 100);
     const val1 = BackendDataPoolStore.get<{ foo: string }>('test_key');
     if (!val1 || val1.foo !== 'bar') throw new Error('DataPoolStore get failed immediately after set');
 
-    // Wait for expiration
     await new Promise((r) => setTimeout(r, 120));
     const val2 = BackendDataPoolStore.get('test_key');
     if (val2 !== null) throw new Error('DataPoolStore failed to expire key after TTL');
@@ -105,8 +99,8 @@ async function main() {
     BackendDataPoolStore.set('key_a', 1, 60000);
     BackendDataPoolStore.set('key_b', 2, 60000);
     const stats = BackendDataPoolStore.getStats();
-    if (stats.entriesCount !== 2) throw new Error(`Expected 2 entries, got ${stats.entriesCount}`);
-    
+    if (stats.memory.entriesCount !== 2) throw new Error(`Expected 2 entries, got ${stats.memory.entriesCount}`);
+
     BackendDataPoolStore.clear();
     return { status: 'Store functioning correctly', statsBeforeClear: stats };
   });
@@ -127,7 +121,6 @@ async function main() {
       throw new Error('Match missing required properties or calculated stats');
     }
 
-    // Verify stats integrity
     const stats = firstMatch.stats;
     if (typeof stats.winProbability1 !== 'number' || typeof stats.winProbability2 !== 'number') {
       throw new Error('Match stats missing win probabilities');
@@ -160,9 +153,6 @@ async function main() {
     };
   });
 
-  // ─────────────────────────────────────────────────────────────
-  // SUITE 3: HTTP Server & All Endpoints Integration
-  // ─────────────────────────────────────────────────────────────
   console.log('\n--- SUITE 3: HTTP Server & Endpoints Integration ---');
 
   const app = express();
@@ -174,7 +164,7 @@ async function main() {
 
   const testServer = http.createServer(app);
   const TEST_PORT = 3199;
-  
+
   await new Promise<void>((resolve) => {
     testServer.listen(TEST_PORT, () => {
       console.log(`  ℹ️ Test HTTP server running on port ${TEST_PORT}`);
@@ -186,7 +176,6 @@ async function main() {
   const adminSecret = ENV.ADMIN_SECRET;
 
   try {
-    // 1. Health
     await runTest('HTTP Endpoints', 'GET /health', async () => {
       const res = await fetch(`${baseUrl}/health`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -195,7 +184,6 @@ async function main() {
       return json;
     });
 
-    // 2. Web Landing
     await runTest('HTTP Endpoints', 'GET /api/web/landing', async () => {
       const res = await fetch(`${baseUrl}/api/web/landing`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -204,7 +192,6 @@ async function main() {
       return { platform: json.platform, stats: json.stats };
     });
 
-    // 3. Web Live Tournaments
     await runTest('HTTP Endpoints', 'GET /api/web/tournaments/live', async () => {
       const res = await fetch(`${baseUrl}/api/web/tournaments/live`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -213,7 +200,6 @@ async function main() {
       return { count: json.length };
     });
 
-    // 4. Web Today Tournaments
     await runTest('HTTP Endpoints', 'GET /api/web/tournaments/today', async () => {
       const res = await fetch(`${baseUrl}/api/web/tournaments/today`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -222,7 +208,6 @@ async function main() {
       return { count: json.length };
     });
 
-    // 5. Web Date Tournaments
     await runTest('HTTP Endpoints', `GET /api/web/tournaments/date/${todayStr}`, async () => {
       const res = await fetch(`${baseUrl}/api/web/tournaments/date/${todayStr}`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -231,7 +216,6 @@ async function main() {
       return { count: json.length };
     });
 
-    // 6. Web Pool Stats
     await runTest('HTTP Endpoints', 'GET /api/web/pool/stats', async () => {
       const res = await fetch(`${baseUrl}/api/web/pool/stats`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -239,7 +223,6 @@ async function main() {
       return json;
     });
 
-    // 7. Predictions Feed & Active & History
     await runTest('HTTP Endpoints', 'GET /api/predictions/feed', async () => {
       const res = await fetch(`${baseUrl}/api/predictions/feed`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -250,7 +233,6 @@ async function main() {
       return { activeCount: json.active.length, historyCount: json.history.length };
     });
 
-    // 8. Telegram WebApp Routes Compatibility
     await runTest('HTTP WebApp Routes', 'GET /api/webapp/predictions', async () => {
       const res = await fetch(`${baseUrl}/api/webapp/predictions`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
@@ -277,22 +259,39 @@ async function main() {
       return { count: json.length };
     });
 
-    await runTest('HTTP WebApp Routes', 'GET /api/webapp/user/99887766?first_name=Ali&username=alibetter', async () => {
-      const res = await fetch(`${baseUrl}/api/webapp/user/99887766?first_name=Ali&username=alibetter`);
-      if (res.status !== 200) throw new Error(`Status ${res.status}`);
+    await runTest('HTTP WebApp Routes', 'POST /api/webapp/auth (Invalid signature rejected 401)', async () => {
+      const res = await fetch(`${baseUrl}/api/webapp/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: 'auth_date=1662771648&user=%7B%22id%22%3A123%7D&hash=invalid_hash' }),
+      });
+      if (res.status !== 401) throw new Error(`Expected 401, got ${res.status}`);
+      return { status: 401, message: 'Correctly rejected invalid initData signature' };
+    });
+
+    await runTest('HTTP WebApp Routes', 'POST /api/webapp/auth (Valid signed initData accepted)', async () => {
+      const { signTelegramInitData } = await import('./utils/telegramAuth');
+      const validInitData = signTelegramInitData(
+        { id: 99887766, username: 'alibetter', first_name: 'Ali' },
+        ENV.BOT_TOKEN
+      );
+      const res = await fetch(`${baseUrl}/api/webapp/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: validInitData }),
+      });
+      if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
       const json = await res.json();
-      if (json.verified === undefined || !json.access_mode) throw new Error('Invalid user payload');
+      if (!json.success || json.user?.telegram_id !== 99887766) throw new Error('Invalid auth response');
       return json;
     });
 
-    // 9. Admin Auth Protection Test
     await runTest('HTTP Admin Auth', 'GET /api/admin/overview (Unauthorized 401)', async () => {
       const res = await fetch(`${baseUrl}/api/admin/overview`);
       if (res.status !== 401) throw new Error(`Expected 401 Unauthorized, got ${res.status}`);
       return { status: 401, message: 'Correctly rejected unauthorized request' };
     });
 
-    // 10. Admin Overview (Authorized)
     await runTest('HTTP Admin Endpoints', 'GET /api/admin/overview (Authorized)', async () => {
       const res = await fetch(`${baseUrl}/api/admin/overview?secret=${adminSecret}`, {
         headers: { 'x-admin-secret': adminSecret },
@@ -303,7 +302,6 @@ async function main() {
       return { stats: json.stats, usersCount: json.users?.length };
     });
 
-    // 11. Admin Prediction Publish & Result Update
     let testPredictionId = 0;
     await runTest('HTTP Admin Endpoints', 'POST /api/admin/predictions/publish', async () => {
       const payload = {
@@ -324,7 +322,7 @@ async function main() {
         best_bet_market: 'Match Winner',
         best_bet_ev: '+4.2%',
         best_bet_rationale: 'Dominant return depth and baseline agility on grass.',
-        post_to_channel: false, // Don't trigger Telegram bot during automated test
+        post_to_channel: false,
         status: 'UPCOMING',
       };
 
@@ -348,7 +346,6 @@ async function main() {
       return json;
     });
 
-    // 12. Update Prediction Result
     await runTest('HTTP Admin Endpoints', `PUT /api/admin/predictions/${testPredictionId}/result`, async () => {
       const res = await fetch(`${baseUrl}/api/admin/predictions/${testPredictionId}/result`, {
         method: 'PUT',
@@ -365,7 +362,6 @@ async function main() {
       return json;
     });
 
-    // 13. Admin Referrals / Sites Management
     let siteId = 0;
     await runTest('HTTP Admin Endpoints', 'POST /api/admin/sites & GET /api/admin/sites', async () => {
       const createRes = await fetch(`${baseUrl}/api/admin/sites`, {
@@ -400,7 +396,6 @@ async function main() {
       return { siteId, sitesCount: listJson.length };
     });
 
-    // 14. Postback Webhook Simulation
     await runTest('HTTP Postback Webhook', 'POST /api/postback/test1xbetkey', async () => {
       const res = await fetch(`${baseUrl}/api/postback/test1xbetkey?subid=99887766&status=deposit&amount=50`, {
         method: 'POST',
@@ -414,7 +409,6 @@ async function main() {
       return json;
     });
 
-    // Verify user is now verified in DB
     await runTest('DB State Verification', 'Check user verification after postback', async () => {
       const res = await fetch(`${baseUrl}/api/telegram/user/99887766`);
       const json = await res.json();
@@ -422,7 +416,6 @@ async function main() {
       return { verified: json.isVerified, user: json.user };
     });
 
-    // 15. Go Redirect Route
     await runTest('HTTP Go Redirect', `GET /go/${siteId}/99887766 & /${siteId}/99887766`, async () => {
       const res1 = await fetch(`${baseUrl}/go/${siteId}/99887766`, {
         redirect: 'manual',
@@ -441,14 +434,10 @@ async function main() {
 
       return { status: res1.status, redirectLocation: location1 };
     });
-
   } finally {
     testServer.close();
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // SUMMARY REPORT
-  // ─────────────────────────────────────────────────────────────
   console.log('\n======================================================');
   console.log('📊 TEST EXECUTION SUMMARY');
   console.log('======================================================');
@@ -461,12 +450,13 @@ async function main() {
     results.filter((r) => !r.passed).forEach((r) => {
       console.log(`  - [${r.suite}] ${r.name}: ${r.error}`);
     });
+    process.exit(1);
   } else {
     console.log('🎉 ALL INTEGRATION & DATA POOL TESTS PASSED 100% SUCCESSFULLY!');
   }
 }
 
-main().catch((err) => {
+runFullSuite().catch((err) => {
   console.error('Fatal execution error:', err);
   process.exit(1);
 });

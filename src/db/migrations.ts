@@ -29,6 +29,28 @@ export const runMigrations = () => {
           key TEXT PRIMARY KEY,
           value TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS match_analytics (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          fixture_id INTEGER UNIQUE NOT NULL,
+          tournament_name TEXT,
+          round_name TEXT,
+          match_date TEXT,
+          home_id INTEGER,
+          away_id INTEGER,
+          home_name TEXT NOT NULL,
+          away_name TEXT NOT NULL,
+          surface TEXT,
+          status TEXT DEFAULT 'SUCCESS',
+          error_message TEXT,
+          energy_json TEXT,
+          surface_kpis_json TEXT,
+          synergy_json TEXT,
+          tactical_json TEXT,
+          markov_odds_json TEXT,
+          raw_result_json TEXT,
+          computed_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
       `);
     } catch {}
 
@@ -49,6 +71,7 @@ export const runMigrations = () => {
     "ALTER TABLE predictions ADD COLUMN away_image TEXT;",
     "ALTER TABLE predictions ADD COLUMN home_id INTEGER;",
     "ALTER TABLE predictions ADD COLUMN away_id INTEGER;",
+    "ALTER TABLE historical_matches ADD COLUMN rapid_event_id INTEGER;",
   ];
 
   for (const sql of migrations) {

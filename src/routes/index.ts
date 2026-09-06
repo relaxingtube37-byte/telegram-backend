@@ -11,6 +11,7 @@ const router = Router();
 
 router.get('/health', HealthController.check);
 router.get('/api/cron/warmup', HealthController.cronWarmup);
+router.get('/api/cron/daily-players', HealthController.cronDailyPlayers);
 router.use('/api/admin', adminRoutes);
 router.use('/api/predictions', predictionsRoutes);
 router.use('/api/telegram', telegramRoutes);

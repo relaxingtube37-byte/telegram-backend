@@ -33,9 +33,30 @@ export interface BackendMatchRowItem {
   point: string;
   statusText: string;
   isLive: boolean;
+  winnerCode?: number;
   time: string;
   startTimestamp?: number;
   stats: BackendMatchStats;
+  analytics?: any;
+  homeOdds?: string;
+  awayOdds?: string;
+  courtSpeed?: string;
+  cpi?: number;
+  sessionType?: string;
+  thrillerTag?: string;
+  homeFormBadge?: string;
+  awayFormBadge?: string;
+  homeStamina?: number;
+  awayStamina?: number;
+  homePureWinChance?: number;
+  awayPureWinChance?: number;
+  homeHoldRate?: number;
+  awayHoldRate?: number;
+  homeBreakRate?: number;
+  awayBreakRate?: number;
+  homeClutchVerdict?: string;
+  awayClutchVerdict?: string;
+  expectedTotalGames?: number;
 }
 
 export interface BackendTournamentGroup {

@@ -1,0 +1,34 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/server.ts",
+    "src/bot.ts",
+    "src/db.ts",
+    "src/postback.ts",
+    "src/config/**/*",
+    "src/controllers/**/*",
+    "src/dataPool/**/*",
+    "src/db/**/*",
+    "src/engine/**/*",
+    "src/features/**/*",
+    "src/middlewares/**/*",
+    "src/routes/**/*",
+    "src/sentinel/**/*",
+    "src/services/**/*",
+    "src/types/**/*",
+    "src/utils/**/*",
+    "src/validation/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/bulk-fetch-ui/**/*",
+    "src/scripts/**/*",
+    "src/test_*.ts",
+    "src/test-patch-validation.ts"
+  ]
+}
