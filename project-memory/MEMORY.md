@@ -16,6 +16,16 @@ Secure backend admin endpoints; protect operational web admin routes.
 - Strict deployment rule: All ongoing development, testing, and enhancements must be performed 100% OFFLINE on local workspace copies only. Absolutely NO pushes to remote git (origin/master) or triggering Render deploys while work is in progress. The live servers are actively serving users and will only be updated after all offline changes are fully verified and user gives explicit instruction.
 
 ## Progress
+- 2026-09-08: Match Page SEO Architecture & Raw HTML Prerendering:
+  - Implemented `SeoRendererService` and `seoRoutes` serving raw HTML with route-specific `<title>`, `<meta description>`, Open Graph, Twitter Cards, canonical tags, and Schema.org JSON-LD (`SportsEvent` & `NewsArticle`).
+  - Added semantic pre-rendered HTML container in `#root` and client hydration state (`window.__INITIAL_MATCH__`).
+  - Added path-based routing (`/match/:slug`) and dual-mode query fallback (`?match=`) with history pushState and popstate handling in `App.tsx`.
+  - Added `api/seo.js` serverless function and updated `vercel.json` rewrites and `public/_redirects`.
+- 2026-09-08: Web Security Hardening & Telegram Ownership Verification:
+  - Eliminated web VIP unlock spoofing via `ptin_web_uid` and deprecated raw query `GET /api/webapp/user/:telegramId` (now returns 401).
+  - Implemented HMAC-SHA256 signed web session tokens (`POST /api/webapp/auth/web`) and cryptographic Telegram Login Widget validation (`POST /api/webapp/auth/telegram-widget`).
+  - Replaced manual Telegram ID input in `ReferralModal.tsx` with official Telegram Login widget and direct Mini App deep link.
+  - Added SPA fallback rewrites for Vercel (`vercel.json`) and Netlify/Cloudflare Pages (`public/_redirects`).
 - 2026-09-06: End-to-end integration hardening between State Football, Telegram Backend, and Telegram WebApp:
   - Mounted `webappRoutes` at root (`/`), `/webapp`, and `/api/webapp` so any client `VITE_API_BASE` configuration resolves.
   - Added baseline auto-seeding in `schema.ts` for referral partner (`1win`) and active prediction so Render ephemeral disk wipes never leave the DB empty.

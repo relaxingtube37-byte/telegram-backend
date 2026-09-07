@@ -4,6 +4,7 @@ import { corsMiddleware } from './middlewares/cors';
 import { errorHandler } from './middlewares/errorHandler';
 import { apiRouter } from './routes';
 import { goRoutes } from './routes/go.routes';
+import { seoRoutes } from './routes/seo.routes';
 import { startBot } from './bot';
 import { ResultSettlerService } from './services/result-settler.service';
 import { PrecomputationService } from './services/precomputation.service';
@@ -17,6 +18,7 @@ app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Attach routes
+app.use('/', seoRoutes);
 app.use('/', goRoutes);
 app.use('/', apiRouter);
 

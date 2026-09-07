@@ -9,6 +9,7 @@ const cors_1 = require("./middlewares/cors");
 const errorHandler_1 = require("./middlewares/errorHandler");
 const routes_1 = require("./routes");
 const go_routes_1 = require("./routes/go.routes");
+const seo_routes_1 = require("./routes/seo.routes");
 const bot_1 = require("./bot");
 const result_settler_service_1 = require("./services/result-settler.service");
 const logger_1 = require("./utils/logger");
@@ -18,6 +19,7 @@ app.use(cors_1.corsMiddleware);
 app.use(express_1.default.json({ limit: '15mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 // Attach routes
+app.use('/', seo_routes_1.seoRoutes);
 app.use('/', go_routes_1.goRoutes);
 app.use('/', routes_1.apiRouter);
 // Global error handler

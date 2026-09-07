@@ -159,3 +159,143 @@ export function validateTelegramInitData(
     return { valid: false, error: `Failed to parse initData: ${err.message}` };
   }
 }
+
+/**
+ * Validates Telegram Login Widget auth data using standard SHA256/HMAC-SHA256 protocol.
+ * https://core.telegram.org/widgets/login#checking-authorization
+ *
+ * @param authData Dictionary of fields received from Telegram Login widget
+ * @param botToken Bot token used to generate verification secret key
+ * @param maxAgeSeconds Maximum age of auth_date in seconds (default: 86400 = 24 hours)
+ */
+export function validateTelegramWidgetAuth(
+  authData: Record<string, any>,
+  botToken: string,
+  maxAgeSeconds: number = 86400
+): { valid: boolean; error?: string; user?: TelegramInitDataUser } {
+  if (!authData || typeof authData !== 'object') {
+    return { valid: false, error: 'Missing auth data' };
+  }
+
+  const { hash, ...fields } = authData;
+  if (!hash || typeof hash !== 'string') {
+    return { valid: false, error: 'Missing or invalid hash in auth data' };
+  }
+
+  if (!botToken) {
+    return { valid: false, error: 'BOT_TOKEN is not configured' };
+  }
+
+  const authDate = parseInt(String(fields.auth_date), 10);
+  if (isNaN(authDate)) {
+    return { valid: false, error: 'Invalid auth_date' };
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  if (now - authDate > maxAgeSeconds) {
+    return { valid: false, error: 'Telegram login session expired' };
+  }
+  if (authDate > now + 300) {
+    return { valid: false, error: 'Telegram login auth_date is in the future' };
+  }
+
+  // Construct data-check-string: sorted alphabetically by key, format key=value\n
+  const checkArr: string[] = [];
+  const keys = Object.keys(fields).sort();
+  for (const key of keys) {
+    const val = fields[key];
+    if (val !== undefined && val !== null) {
+      checkArr.push(`${key}=${val}`);
+    }
+  }
+  const dataCheckString = checkArr.join('\n');
+
+  // secret_key = SHA256(bot_token)
+  const secretKey = crypto.createHash('sha256').update(botToken).digest();
+
+  // calculated_hash = HMAC_SHA256(secret_key, data_check_string)
+  const calculatedHash = crypto
+    .createHmac('sha256', secretKey)
+    .update(dataCheckString)
+    .digest('hex');
+
+  const calcBuf = Buffer.from(calculatedHash, 'hex');
+  const hashBuf = Buffer.from(hash, 'hex');
+
+  if (calcBuf.length !== hashBuf.length || !crypto.timingSafeEqual(calcBuf, hashBuf)) {
+    return { valid: false, error: 'Invalid Telegram widget auth signature' };
+  }
+
+  const userId = parseInt(String(fields.id), 10);
+  if (isNaN(userId) || userId <= 0) {
+    return { valid: false, error: 'Invalid user id' };
+  }
+
+  return {
+    valid: true,
+    user: {
+      id: userId,
+      first_name: fields.first_name ? String(fields.first_name) : undefined,
+      last_name: fields.last_name ? String(fields.last_name) : undefined,
+      username: fields.username ? String(fields.username) : undefined,
+    },
+  };
+}
+
+export interface WebSessionPayload {
+  webId: string;
+  telegramId?: number | null;
+  createdAt: number;
+}
+
+/**
+ * Creates an HMAC-SHA256 signed session token for web visitors.
+ */
+export function createWebSessionToken(payload: WebSessionPayload, secret: string): string {
+  const dataStr = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const signature = crypto.createHmac('sha256', secret).update(dataStr).digest('base64url');
+  return `${dataStr}.${signature}`;
+}
+
+/**
+ * Verifies an HMAC-SHA256 signed web session token.
+ */
+export function verifyWebSessionToken(
+  token: string | undefined | null,
+  secret: string,
+  maxAgeMs: number = 30 * 24 * 60 * 60 * 1000
+): { valid: boolean; payload?: WebSessionPayload; error?: string } {
+  if (!token || typeof token !== 'string') {
+    return { valid: false, error: 'Missing token' };
+  }
+
+  const parts = token.split('.');
+  if (parts.length !== 2) {
+    return { valid: false, error: 'Malformed token structure' };
+  }
+
+  const [dataStr, signature] = parts;
+  const expectedSig = crypto.createHmac('sha256', secret).update(dataStr).digest('base64url');
+
+  const sigBuf = Buffer.from(signature);
+  const expBuf = Buffer.from(expectedSig);
+
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    return { valid: false, error: 'Invalid token signature' };
+  }
+
+  try {
+    const payloadJson = Buffer.from(dataStr, 'base64url').toString('utf8');
+    const payload: WebSessionPayload = JSON.parse(payloadJson);
+    if (!payload || !payload.webId || !payload.createdAt) {
+      return { valid: false, error: 'Invalid payload structure' };
+    }
+    if (Date.now() - payload.createdAt > maxAgeMs) {
+      return { valid: false, error: 'Web session token expired' };
+    }
+    return { valid: true, payload };
+  } catch (err: any) {
+    return { valid: false, error: `Failed to decode token payload: ${err.message}` };
+  }
+}
+

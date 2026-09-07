@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Router, Request, Response } from 'express';
 import { PredictionsService } from '../services/predictions.service';
 import { StatsService } from '../services/stats.service';
@@ -5,9 +6,20 @@ import { ReferralsRepo } from '../db/repositories/referrals.repo';
 import { UsersRepo } from '../db/repositories/users.repo';
 import { SettingsRepo } from '../db/repositories/settings.repo';
 import { AnalysisController } from '../controllers/analysis.controller';
-import { validateTelegramInitData } from '../utils/telegramAuth';
+import {
+  validateTelegramInitData,
+  validateTelegramWidgetAuth,
+  createWebSessionToken,
+  verifyWebSessionToken,
+  WebSessionPayload,
+} from '../utils/telegramAuth';
+import { ENV } from '../config/env';
 
 const router = Router();
+
+function getWebSessionSecret(): string {
+  return (ENV.BOT_TOKEN || '') + ':' + (ENV.ADMIN_SECRET || 'ptin_web_secret_salt_2026');
+}
 
 // GET /api/webapp/matches/:fixtureId/betting
 router.get('/matches/:fixtureId/betting', AnalysisController.getMatchBetting);
@@ -88,38 +100,129 @@ router.post('/auth', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/webapp/user/:telegramId (DEPRECATED: Use POST /api/webapp/auth with signed initData)
-router.get('/user/:telegramId', async (req: Request, res: Response) => {
+// POST /api/webapp/auth/web - Cryptographically signed session for standalone web visitors
+router.post('/auth/web', async (req: Request, res: Response) => {
   try {
-    res.setHeader(
-      'X-Deprecation-Warning',
-      'GET /api/webapp/user/:telegramId with raw telegramId is deprecated. Migrate to POST /api/webapp/auth with signed initData.'
-    );
+    const { sessionToken } = req.body || {};
+    const secret = getWebSessionSecret();
+    const verifiedSession = verifyWebSessionToken(sessionToken, secret);
 
-    const telegramId = parseInt(String(req.params.telegramId), 10);
-    if (isNaN(telegramId)) return res.status(400).json({ error: 'Invalid telegramId' });
+    const accessMode = SettingsRepo.get('access_mode') || 'FREE';
+    let payload: WebSessionPayload;
 
-    const firstName = String(req.query.first_name || '');
-    const username = String(req.query.username || '');
-
-    UsersRepo.touchActivity(telegramId);
-    if (firstName || username) {
-      UsersRepo.upsertFromBot(telegramId, {
-        first_name: firstName || undefined,
-        username: username || undefined,
-      });
+    if (verifiedSession.valid && verifiedSession.payload) {
+      payload = verifiedSession.payload;
+    } else {
+      payload = {
+        webId: `web_${crypto.randomBytes(12).toString('hex')}`,
+        telegramId: null,
+        createdAt: Date.now(),
+      };
     }
 
-    const user = UsersRepo.getByTelegramId(telegramId);
-    const accessMode = SettingsRepo.get('access_mode') || 'FREE';
-    const isVerified = accessMode === 'FREE' ? true : !!(user && user.is_verified);
+    let isVerified = false;
+    let userRecord = null;
+
+    if (accessMode === 'FREE') {
+      isVerified = true;
+    } else if (payload.telegramId) {
+      userRecord = UsersRepo.getByTelegramId(payload.telegramId);
+      isVerified = !!(userRecord && userRecord.is_verified);
+    }
+
+    // Refresh timestamp and sign
+    payload.createdAt = Date.now();
+    const token = createWebSessionToken(payload, secret);
 
     res.json({
+      success: true,
       verified: isVerified,
       access_mode: accessMode,
-      user: user || null,
-      deprecated: true,
-      notice: 'Please authenticate using POST /api/webapp/auth with Telegram initData',
+      sessionToken: token,
+      webId: payload.webId,
+      telegramUser: userRecord
+        ? {
+            telegram_id: userRecord.telegram_id,
+            first_name: userRecord.first_name,
+            username: userRecord.username,
+            is_verified: userRecord.is_verified,
+          }
+        : null,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/webapp/auth/telegram-widget - Verify Telegram Login Widget payload and link to web session
+router.post('/auth/telegram-widget', async (req: Request, res: Response) => {
+  try {
+    const { authData, sessionToken } = req.body || {};
+    if (!authData) {
+      return res.status(400).json({ error: 'Missing authData from Telegram Login Widget' });
+    }
+
+    const botToken = ENV.BOT_TOKEN;
+    if (!botToken) {
+      return res.status(500).json({ error: 'Server misconfiguration: BOT_TOKEN missing' });
+    }
+
+    const verification = validateTelegramWidgetAuth(authData, botToken);
+    if (!verification.valid || !verification.user) {
+      return res.status(401).json({ error: verification.error || 'Invalid Telegram auth signature' });
+    }
+
+    const tgUser = verification.user;
+    UsersRepo.touchActivity(tgUser.id);
+    UsersRepo.upsertFromBot(tgUser.id, {
+      first_name: tgUser.first_name,
+      username: tgUser.username,
+    });
+
+    const secret = getWebSessionSecret();
+    const existingSession = verifyWebSessionToken(sessionToken, secret);
+
+    const webId =
+      existingSession.valid && existingSession.payload?.webId
+        ? existingSession.payload.webId
+        : `web_${crypto.randomBytes(12).toString('hex')}`;
+
+    const userRecord = UsersRepo.getByTelegramId(tgUser.id);
+    const accessMode = SettingsRepo.get('access_mode') || 'FREE';
+    const isVerified = accessMode === 'FREE' ? true : !!(userRecord && userRecord.is_verified);
+
+    const newPayload: WebSessionPayload = {
+      webId,
+      telegramId: tgUser.id,
+      createdAt: Date.now(),
+    };
+    const newToken = createWebSessionToken(newPayload, secret);
+
+    res.json({
+      success: true,
+      verified: isVerified,
+      access_mode: accessMode,
+      sessionToken: newToken,
+      webId,
+      telegramUser: {
+        telegram_id: tgUser.id,
+        first_name: userRecord?.first_name || tgUser.first_name,
+        username: userRecord?.username || tgUser.username,
+        is_verified: isVerified ? 1 : 0,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/webapp/user/:telegramId (DISABLED: Direct unauthenticated verification queries are blocked)
+router.get('/user/:telegramId', async (req: Request, res: Response) => {
+  try {
+    return res.status(401).json({
+      verified: false,
+      error:
+        'Direct unauthenticated user queries are disabled. Use POST /api/webapp/auth with Telegram initData or POST /api/webapp/auth/web with a signed session.',
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -134,6 +237,8 @@ router.get('/config', async (req: Request, res: Response) => {
     const websiteConfig = rawConfig ? JSON.parse(rawConfig) : {};
     res.json({
       access_mode: accessMode,
+      bot_username: ENV.BOT_USERNAME || 'admdinbetbetforbot',
+      webapp_short_name: ENV.WEBAPP_SHORT_NAME || 'app',
       ...websiteConfig,
     });
   } catch (err: any) {
