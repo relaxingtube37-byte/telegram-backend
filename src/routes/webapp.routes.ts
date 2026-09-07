@@ -12,6 +12,9 @@ const router = Router();
 // GET /api/webapp/matches/:fixtureId/betting
 router.get('/matches/:fixtureId/betting', AnalysisController.getMatchBetting);
 
+// GET /api/webapp/matches/:idOrSlug/editorial (Website SEO Editorial Mode)
+router.get('/matches/:idOrSlug/editorial', AnalysisController.getMatchEditorial);
+
 // GET /api/webapp/predictions
 router.get('/predictions', async (req: Request, res: Response) => {
   try {
