@@ -13,6 +13,7 @@ Secure backend admin endpoints; protect operational web admin routes.
 - Server binds explicitly to `0.0.0.0` for containerized reverse-proxy compatibility on Render.
 - Production build is isolated via `tsconfig.build.json` (`npm run build:prod`).
 - Local dev stack: backend `:8080`, website `VITE_API_BASE=/api/web`, webapp `/api/webapp`, desktop `VITE_API_SERVER` + `VITE_ADMIN_SECRET` or Settings UI.
+- Strict deployment rule: All ongoing development, testing, and enhancements must be performed 100% OFFLINE on local workspace copies only. Absolutely NO pushes to remote git (origin/master) or triggering Render deploys while work is in progress. The live servers are actively serving users and will only be updated after all offline changes are fully verified and user gives explicit instruction.
 
 ## Progress
 - 2026-09-06: End-to-end integration hardening between State Football, Telegram Backend, and Telegram WebApp:

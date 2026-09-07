@@ -10,6 +10,8 @@ import { PlayersService } from '../services/players.service';
 import { BackupService } from '../services/backup.service';
 import { ResultSettlerService } from '../services/result-settler.service';
 import { Logger } from '../utils/logger';
+import { bot } from '../services/telegram-bot.service';
+import { ENV } from '../config/env';
 import type { Prediction, MatchStatus } from '../types';
 
 export const AdminController = {
@@ -228,6 +230,21 @@ export const AdminController = {
     }
   },
 
+  publishBatchAnnouncement: async (req: Request, res: Response) => {
+    try {
+      const { count, matches, title } = req.body;
+      const numCount = Number(count) || (Array.isArray(matches) ? matches.length : 0);
+      const messageId = await ChannelPosterService.publishBatchCountAnnouncement({
+        count: numCount,
+        matches: Array.isArray(matches) ? matches : [],
+        title,
+      });
+      res.json({ success: !!messageId, messageId, count: numCount });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   deletePrediction: async (req: Request, res: Response) => {
     try {
       const id = parseInt(String(req.params.id), 10);
@@ -267,6 +284,25 @@ export const AdminController = {
       if (!telegram_id) return res.status(400).json({ error: 'telegram_id is required' });
       UsersRepo.setManualVerified(Number(telegram_id), verified !== false);
       res.json({ success: true, telegram_id, is_verified: verified ? 1 : 0 });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  getChannelStats: async (req: Request, res: Response) => {
+    try {
+      let subscriberCount: number | null = null;
+      if (bot && ENV.CHANNEL_ID) {
+        try {
+          subscriberCount = await bot.api.getChatMemberCount(ENV.CHANNEL_ID);
+        } catch (e: any) {
+          Logger.warn(`Could not getChatMemberCount for ${ENV.CHANNEL_ID}: ${e.message}`);
+        }
+      }
+      res.json({
+        channelId: ENV.CHANNEL_ID || null,
+        subscriberCount,
+      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

@@ -57,7 +57,7 @@ export const ChannelPosterService = {
       `🎾 <b>AI MATCH ANALYSIS & PREDICTION</b>\n` +
       `🏆 <b>${escapeHtml(prediction.tournament_name || 'Tennis Tournament')}</b>${roundStr} (${surfaceEmoji})\n` +
       `────────────────────────\n` +
-      `⚔️ <b>${escapeHtml(prediction.home_name)} vs ${escapeHtml(prediction.away_name)}</b>\n\n` +
+      `⚔️ <b>${escapeHtml(prediction.home_name)}</b>${prediction.home_odds && prediction.home_odds !== 'N/A' ? ` [<code>${escapeHtml(String(prediction.home_odds))}</code>]` : ''} vs <b>${escapeHtml(prediction.away_name)}</b>${prediction.away_odds && prediction.away_odds !== 'N/A' ? ` [<code>${escapeHtml(String(prediction.away_odds))}</code>]` : ''}\n\n` +
       `🎯 <b>AI Predicted Winner:</b> <code>${escapeHtml(prediction.predicted_winner)}</code> (${prediction.win_probability || 65}% Win Prob)\n` +
       (prediction.predicted_score ? `📊 <b>Projected Score:</b> ${escapeHtml(prediction.predicted_score)}\n` : '') +
       `🔒 <b>Confidence:</b> <code>${escapeHtml(prediction.confidence || 'HIGH')}</code>\n` +
@@ -205,6 +205,55 @@ export const ChannelPosterService = {
       return res.message_id;
     } catch (err: any) {
       Logger.error('Failed to post batch summary to Telegram Channel:', err.message);
+      return null;
+    }
+  },
+
+  publishBatchCountAnnouncement: async (params: {
+    count: number;
+    matches?: Array<{ home?: string; away?: string; tourn?: string; home_name?: string; away_name?: string; tournament?: string; tournament_name?: string }>;
+    title?: string;
+  }): Promise<number | null> => {
+    const currentChannelId = ENV.CHANNEL_ID;
+    if (!bot || !currentChannelId || params.count <= 0) return null;
+
+    const targetUrl = resolveWebAppUrl();
+    const keyboard = new InlineKeyboard().url(`🚀 🎾 Open MiniApp & View All ${params.count} Matches`, targetUrl);
+
+    let matchPreviews = '';
+    if (Array.isArray(params.matches) && params.matches.length > 0) {
+      matchPreviews = '\n🏆 <b>Featured Matches Added:</b>\n' +
+        params.matches.slice(0, 5).map(m => {
+          const home = m.home || m.home_name || 'Home';
+          const away = m.away || m.away_name || 'Away';
+          const tourn = m.tourn || m.tournament || m.tournament_name || '';
+          return `• <b>${escapeHtml(home)} vs ${escapeHtml(away)}</b>${tourn ? ` <i>(${escapeHtml(tourn)})</i>` : ''}`;
+        }).join('\n');
+      
+      const remaining = params.count - Math.min(params.matches.length, 5);
+      if (remaining > 0) {
+        matchPreviews += `\n<i>... and ${remaining} more match(es)</i>`;
+      }
+      matchPreviews += '\n';
+    }
+
+    const htmlMsg =
+      `🎾 <b>NEW AI MATCH ANALYSES ADDED</b>\n` +
+      `────────────────────────\n` +
+      `⚡ <b>${params.count} new AI match analysis dossier(s) & predictions are live in the MiniApp!</b>\n` +
+      matchPreviews +
+      `────────────────────────\n` +
+      `💡 <i>Tap the button below to view 5-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>`;
+
+    try {
+      const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
+        parse_mode: 'HTML',
+        reply_markup: keyboard,
+      });
+      Logger.success(`Published batch count announcement (${params.count} matches) to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
+      return res.message_id;
+    } catch (err: any) {
+      Logger.error('Failed to post batch count announcement to Telegram Channel:', err.message);
       return null;
     }
   },

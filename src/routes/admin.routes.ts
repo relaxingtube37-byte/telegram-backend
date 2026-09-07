@@ -16,9 +16,11 @@ router.put('/predictions/:id/result', AdminController.updateResult);
 router.post('/predictions/sync-results', AdminController.syncFixtureResults);
 router.post('/predictions/sync-fixture-results', AdminController.syncFixtureResults);
 router.post('/predictions/batch-summary', AdminController.publishBatchSummary);
+router.post('/predictions/batch-announcement', AdminController.publishBatchAnnouncement);
 
 router.get('/users', AdminController.getUsers);
 router.post('/users/verify', AdminController.toggleUserVerify);
+router.get('/channel-stats', AdminController.getChannelStats);
 
 router.get('/sites', AdminController.getSites);
 router.post('/sites', AdminController.saveSite);
