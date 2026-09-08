@@ -166,6 +166,34 @@ async function main() {
   assert(adminSaveJson.business_action_settings.watch_live_enabled === false, 'watch toggled off');
   console.log('  ✅ admin business_action_settings save/load');
 
+  // 6) Safe redirect: subdomain matching for configured allowed hosts
+  ReferralsRepo.update(siteId, {
+    referral_url: 'https://subdomain.example-partner.test/reg?aff=1',
+  } as any);
+  saveBusinessActionSettings({
+    registration_referral_enabled: true,
+    watch_live_enabled: true,
+    payment_mode_placeholder_enabled: false,
+    shared_watch_live_url: '',
+    allowed_redirect_hosts: ['example-partner.test'],
+    watch_live_event_url_template: '',
+  });
+  const subRes = await fetch(`${base}/go/${siteId}/${telegramId}?action=registration`, {
+    redirect: 'manual',
+  });
+  assert(subRes.status === 302, `expected 302 for valid subdomain, got ${subRes.status}`);
+  console.log('  ✅ subdomain of whitelisted host → allowed redirect');
+
+  // 7) Unsafe schemes (javascript:) rejected
+  ReferralsRepo.update(siteId, {
+    referral_url: 'javascript:alert(1)',
+  } as any);
+  const unsafeRes = await fetch(`${base}/go/${siteId}/${telegramId}?action=registration`, {
+    redirect: 'manual',
+  });
+  assert(unsafeRes.status === 400, `expected 400 for unsafe javascript scheme, got ${unsafeRes.status}`);
+  console.log('  ✅ unsafe non-HTTP scheme → rejected');
+
   // Restore partner url for cleanliness
   ReferralsRepo.update(siteId, {
     referral_url: 'https://example-partner.test/reg?aff=1',
@@ -182,8 +210,7 @@ async function main() {
   console.log(`\n  clicks +${ReferralClicksRepo.count() - clicksBefore}, conversions +${PartnerConversionsRepo.count() - convBefore}`);
   console.log('\n✅ Phase C business-actions tests PASSED\n');
 
-  // Avoid Windows UV close assert during teardown
-  setTimeout(() => process.exit(0), 50);
+  await new Promise<void>((resolve) => server.close(() => resolve()));
 }
 
 main().catch((e) => {

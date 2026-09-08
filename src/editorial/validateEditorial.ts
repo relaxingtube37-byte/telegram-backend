@@ -10,8 +10,8 @@ export type EditorialPublishStatus =
 export const EDITORIAL_STATUS_FLOW: Record<EditorialPublishStatus, EditorialPublishStatus[]> = {
   draft: ['review', 'archived'],
   review: ['draft', 'approved', 'archived'],
-  approved: ['review', 'published', 'archived'],
-  published: ['archived', 'draft'],
+  approved: ['draft', 'review', 'published', 'archived'],
+  published: ['draft', 'review', 'archived'],
   archived: ['draft'],
 };
 

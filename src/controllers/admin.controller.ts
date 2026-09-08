@@ -88,6 +88,26 @@ export const AdminController = {
     try {
       const config = req.body;
       SettingsRepo.set('website_config', JSON.stringify(config));
+
+      // Keep access_policy layers synchronized if provided in website_config
+      if (config && typeof config === 'object') {
+        const layerUpdates: Partial<AccessPolicyLayers> = {};
+        if (typeof config.guest_can_see_summary === 'boolean') {
+          layerUpdates.guest_can_see_summary = config.guest_can_see_summary;
+        }
+        if (typeof config.guest_can_see_ai_full === 'boolean') {
+          layerUpdates.guest_can_see_ai_full = config.guest_can_see_ai_full;
+        }
+        if (config.guest_stats_level) {
+          layerUpdates.guest_stats_level = config.guest_stats_level;
+        } else if (typeof config.guest_can_see_stats === 'boolean') {
+          layerUpdates.guest_stats_level = config.guest_can_see_stats ? 'partial' : 'none';
+        }
+        if (Object.keys(layerUpdates).length > 0) {
+          saveAccessPolicyLayers(layerUpdates);
+        }
+      }
+
       res.json({ success: true, config });
     } catch (err: any) {
       res.status(500).json({ error: err.message });

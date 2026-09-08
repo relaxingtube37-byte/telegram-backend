@@ -40,8 +40,10 @@ async function main() {
   assert(canTransitionStatus('draft', 'review'), 'draft→review');
   assert(canTransitionStatus('review', 'approved'), 'review→approved');
   assert(canTransitionStatus('approved', 'published'), 'approved→published');
+  assert(canTransitionStatus('published', 'review'), 'published→review');
+  assert(canTransitionStatus('approved', 'draft'), 'approved→draft');
   assert(!canTransitionStatus('draft', 'published'), 'draft↛published');
-  console.log('  ✅ workflow transitions draft→review→approved→published');
+  console.log('  ✅ workflow transitions draft→review→approved→published (and unpublish)');
 
   const fixtureId = 99008877;
   const slug = `phase-d-player-a-vs-player-b-demo-${fixtureId}`;
@@ -169,7 +171,7 @@ async function main() {
   console.log('  ✅ SEO renderer prefers editorial metadata');
 
   console.log('\n✅ Phase D editorial tests PASSED\n');
-  setTimeout(() => process.exit(0), 50);
+  await new Promise<void>((resolve) => server.close(() => resolve()));
 }
 
 main().catch((e) => {

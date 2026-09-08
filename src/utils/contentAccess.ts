@@ -8,6 +8,7 @@ import {
 import { ENV } from '../config/env';
 import type { Prediction, WebsiteConfig } from '../types';
 import type { MatchDeepAnalyticsReport } from '../services/match-analytics.service';
+import { loadAccessPolicy, DEFAULT_ACCESS_MODE, ACCESS_MODES } from '../access-policy';
 
 export const ACCESS_MODE_FREE = 'FREE';
 export const ACCESS_MODE_REGISTRATION = 'REGISTRATION_REQUIRED';
@@ -57,10 +58,21 @@ export function parseWebsiteConfig(): WebsiteConfig {
 
 export function resolveContentFlags(config?: WebsiteConfig): ContentLayerFlags {
   const c = config || parseWebsiteConfig();
+  const policy = loadAccessPolicy();
+  const layers = policy.layers;
   return {
-    guest_can_see_summary: c.guest_can_see_summary ?? DEFAULT_CONTENT_FLAGS.guest_can_see_summary,
-    guest_can_see_stats: c.guest_can_see_stats ?? DEFAULT_CONTENT_FLAGS.guest_can_see_stats,
-    guest_can_see_ai_full: c.guest_can_see_ai_full ?? DEFAULT_CONTENT_FLAGS.guest_can_see_ai_full,
+    guest_can_see_summary:
+      typeof layers.guest_can_see_summary === 'boolean'
+        ? layers.guest_can_see_summary
+        : (c.guest_can_see_summary ?? DEFAULT_CONTENT_FLAGS.guest_can_see_summary),
+    guest_can_see_stats:
+      layers.guest_stats_level !== 'none'
+        ? true
+        : (c.guest_can_see_stats ?? DEFAULT_CONTENT_FLAGS.guest_can_see_stats),
+    guest_can_see_ai_full:
+      typeof layers.guest_can_see_ai_full === 'boolean'
+        ? layers.guest_can_see_ai_full
+        : (c.guest_can_see_ai_full ?? DEFAULT_CONTENT_FLAGS.guest_can_see_ai_full),
     guest_can_see_watch_live: c.guest_can_see_watch_live ?? DEFAULT_CONTENT_FLAGS.guest_can_see_watch_live,
     payment_gateway_enabled: c.payment_gateway_enabled ?? DEFAULT_CONTENT_FLAGS.payment_gateway_enabled,
     unlock_via_referral: c.unlock_via_referral ?? DEFAULT_CONTENT_FLAGS.unlock_via_referral,
@@ -68,16 +80,17 @@ export function resolveContentFlags(config?: WebsiteConfig): ContentLayerFlags {
 }
 
 export function normalizeAccessMode(raw?: string | null): string {
-  const mode = (raw || ACCESS_MODE_FREE).trim().toUpperCase();
+  const mode = (raw || DEFAULT_ACCESS_MODE).trim().toUpperCase();
   if (mode === ACCESS_MODE_VIP_REFERRAL) return ACCESS_MODE_REGISTRATION;
   if (
     mode === ACCESS_MODE_FREE ||
     mode === ACCESS_MODE_REGISTRATION ||
-    mode === ACCESS_MODE_DEPOSIT
+    mode === ACCESS_MODE_DEPOSIT ||
+    mode === ACCESS_MODES.GATED_LATER
   ) {
     return mode;
   }
-  return ACCESS_MODE_FREE;
+  return DEFAULT_ACCESS_MODE;
 }
 
 export function computeIsVerified(

@@ -1,10 +1,14 @@
 import { ReferralsRepo } from '../db/repositories/referrals.repo';
 import { loadBusinessActionSettings } from '../business-actions';
 
-/** Extract hostname from a URL; empty if invalid. */
+/** Extract hostname from a valid HTTP(S) URL; empty if invalid or non-HTTP scheme. */
 export function extractHostname(url: string): string {
   try {
-    return new URL(url.trim()).hostname.toLowerCase();
+    const parsed = new URL(url.trim());
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return '';
+    }
+    return parsed.hostname.toLowerCase();
   } catch {
     return '';
   }
@@ -21,7 +25,7 @@ export function buildAllowedRedirectHosts(): Set<string> {
 
   if (biz.allowed_redirect_hosts.length > 0) {
     for (const h of biz.allowed_redirect_hosts) {
-      if (h) hosts.add(h.toLowerCase());
+      if (h) hosts.add(h.toLowerCase().trim());
     }
     return hosts;
   }
@@ -47,5 +51,10 @@ export function isDestinationAllowed(destinationUrl: string): boolean {
   if (!host) return false;
   const allowed = buildAllowedRedirectHosts();
   if (allowed.size === 0) return false;
-  return allowed.has(host);
+  for (const allowedHost of allowed) {
+    if (host === allowedHost || (allowedHost.length > 3 && host.endsWith('.' + allowedHost))) {
+      return true;
+    }
+  }
+  return false;
 }

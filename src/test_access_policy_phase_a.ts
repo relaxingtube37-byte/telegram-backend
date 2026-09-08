@@ -213,6 +213,35 @@ async function main() {
     throw new Error('Restored REGISTRATION_REQUIRED must lock guests again');
   }
 
+  // --- Test 4: Default fallback & legacy alias normalization ---
+  const { normalizeAccessMode } = await import('./access-policy');
+  if (normalizeAccessMode(null) !== 'REGISTRATION_REQUIRED') {
+    throw new Error('Null access mode must default to REGISTRATION_REQUIRED');
+  }
+  if (normalizeAccessMode('') !== 'REGISTRATION_REQUIRED') {
+    throw new Error('Empty access mode must default to REGISTRATION_REQUIRED');
+  }
+  if (normalizeAccessMode('VIP_REFERRAL') !== 'REGISTRATION_REQUIRED') {
+    throw new Error('Legacy VIP_REFERRAL must normalize to REGISTRATION_REQUIRED');
+  }
+  if (normalizeAccessMode('DEPOSIT_REQUIRED') !== 'GATED_LATER') {
+    throw new Error('DEPOSIT_REQUIRED must normalize to GATED_LATER');
+  }
+
+  // Verify guest response schema contract
+  if (typeof afterRestore.status !== 'string' || typeof afterRestore.verified !== 'boolean' || typeof afterRestore.content_locked !== 'boolean') {
+    throw new Error('Deep analytics response missing contract status/verified/content_locked fields');
+  }
+  if (!afterRestore.data || typeof afterRestore.data !== 'object') {
+    throw new Error('Deep analytics response missing data object');
+  }
+  log('TEST4 default mode, legacy alias normalization & schema contract', {
+    defaultFallback: normalizeAccessMode(null),
+    vipReferralNormalized: normalizeAccessMode('VIP_REFERRAL'),
+    schemaStatus: afterRestore.status,
+    schemaLocked: afterRestore.content_locked,
+  });
+
   console.log('\n✅ Phase A access-policy tests PASSED\n');
   await new Promise<void>((resolve) => server.close(() => resolve()));
 }
