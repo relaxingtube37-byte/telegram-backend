@@ -31,12 +31,6 @@ export const corsMiddleware = cors({
     return callback(null, true);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'x-admin-secret',
-    'x-telegram-init-data',
-    'x-ptin-session',
-  ],
+  // Reflect requested headers (do not hard-limit) so session/auth headers never break browsers.
   credentials: true,
 });
