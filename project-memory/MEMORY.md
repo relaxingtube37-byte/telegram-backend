@@ -2,6 +2,7 @@
 
 ## Goals
 Secure backend admin endpoints; protect operational web admin routes.
+Product direction: deep tennis analytics site (ATP/WTA singles) controlled from State Football — not VIP picks-only portal.
 
 ## Decisions
 - `/api/web/admin/*` uses shared `requireAdminAuth` middleware (same as `/api/admin/*`).
@@ -14,8 +15,23 @@ Secure backend admin endpoints; protect operational web admin routes.
 - Production build is isolated via `tsconfig.build.json` (`npm run build:prod`).
 - Local dev stack: backend `:8080`, website `VITE_API_BASE=/api/web`, webapp `/api/webapp`, desktop `VITE_API_SERVER` + `VITE_ADMIN_SECRET` or Settings UI.
 - Strict deployment rule: All ongoing development, testing, and enhancements must be performed 100% OFFLINE on local workspace copies only. Absolutely NO pushes to remote git (origin/master) or triggering Render deploys while work is in progress. The live servers are actively serving users and will only be updated after all offline changes are fully verified and user gives explicit instruction.
+- Access modes: `FREE` | `REGISTRATION_REQUIRED` | `DEPOSIT_REQUIRED` (legacy `VIP_REFERRAL` normalized to registration).
+- Guest content layers live in `website_config`: `guest_can_see_summary|stats|ai_full|watch_live`, plus `payment_gateway_enabled` (off until wired) and `unlock_via_referral`.
+- Business CTAs (Phase C) live in separate settings key `business_action_settings` — not mixed into `access_policy`: registration_referral / watch_live / payment placeholder / shared watch URL.
+- Referral clicks store opaque `click_id` attribution; partner postbacks are idempotent via `partner_conversions.dedupe_key`.
+- Watch Live uses shared partner `/go/:siteId/:userId?action=watch_live` referral redirect — no stream capture/redistribution.
 
 ## Progress
+- 2026-09-08: Phase D editorial publishing: match editorial package + SEO metadata + draft→review→approved→published→archived workflow; admin Publishing/SEO tab; backend editorials schema/status APIs; site MatchEditorialSummary consumption; SeoRenderer prefers editorial. Verified by `test_editorial_phase_d.ts` + `phaseDChecks.ts`. A/B/C untouched in scope. No deploy.
+- 2026-09-08: Phase C business actions (referral attribution + watch live + postback idempotency): `business_action_settings` separate from access_policy; tables `referral_clicks` / `partner_conversions`; `/go` mints opaque click_id + whitelist; postback deduped; admin toggles in Referrals tab; match-page CTAs. Verified by `npx tsx src/test_business_actions_phase_c.ts`. Phase A/B untouched in scope.
+- 2026-09-08: Phase B match analysis page (telegram-webapp): MatchAnalysisPage + MatchHeader/PredictionPanel/InsightSummary/AnalyticsGrid/DeepAnalysis/LiveStatus; wired to `/api/web/matches` + deep-analytics with graceful guest lock UI. Phase A untouched.
+- 2026-09-08: Phase A access-policy (guest/member matrix):
+  - Module `src/access-policy` with `FREE | REGISTRATION_REQUIRED | GATED_LATER` (default `REGISTRATION_REQUIRED`).
+  - Live SQLite settings (`access_mode` + `access_policy` layers); server-side redact on `GET /api/web/matches` and `GET /api/web/matches/deep-analytics`.
+  - State Football Referrals tab controls mode + guest layers (summary / stats none|partial|full / AI full).
+  - Verified by `npx tsx src/test_access_policy_phase_a.ts`.
+- 2026-09-08: Deep tennis analytics business wiring:
+  - Server-side guest redaction + content layer flags; webapp deep-analytics endpoints; Watch Live referral CTA; admin toggles in State Football Website tab; dual-package publish enriched with real surface stats (no fake hold/break placeholders).
 - 2026-09-08: Match Page SEO Architecture & Raw HTML Prerendering:
   - Implemented `SeoRendererService` and `seoRoutes` serving raw HTML with route-specific `<title>`, `<meta description>`, Open Graph, Twitter Cards, canonical tags, and Schema.org JSON-LD (`SportsEvent` & `NewsArticle`).
   - Added semantic pre-rendered HTML container in `#root` and client hydration state (`window.__INITIAL_MATCH__`).

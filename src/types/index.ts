@@ -118,4 +118,17 @@ export interface WebsiteConfig {
   cta_button_url?: string;
   vip_banner_text?: string;
   vip_banner_url?: string;
+  site_name?: string;
+  /** Guest (unverified) may see short AI summary teaser */
+  guest_can_see_summary?: boolean;
+  /** Guest may see deep statistical blocks (form / surface / H2H) */
+  guest_can_see_stats?: boolean;
+  /** Guest may see full AI dossier + key factors */
+  guest_can_see_ai_full?: boolean;
+  /** Guest may see Watch Live referral CTA */
+  guest_can_see_watch_live?: boolean;
+  /** Future payment gateway unlock path (off until wired) */
+  payment_gateway_enabled?: boolean;
+  /** Partner referral remains an unlock path */
+  unlock_via_referral?: boolean;
 }

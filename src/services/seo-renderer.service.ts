@@ -80,6 +80,7 @@ export const SeoRendererService = {
 
   /**
    * Generates route-specific SEO meta tags and Schema.org JSON-LD.
+   * Prefers stored editorial SEO (Phase D) when available.
    */
   generateMetadata: (prediction: Prediction, slug: string, baseUrl = 'https://ptin-ai.com'): SeoMetadata => {
     const home = prediction.home_name || 'Player 1';
@@ -90,13 +91,24 @@ export const SeoRendererService = {
     const winProb = prediction.win_probability || 60;
     const predictedWinner = prediction.predicted_winner || home;
 
-    const title = `${matchTitle} Prediction, Odds & AI Tactical Preview | Ptin AI`;
-    const description = prediction.ai_summary
-      ? prediction.ai_summary.slice(0, 160).replace(/[\n\r]+/g, ' ').trim()
-      : `Complete tactical match analysis for ${matchTitle} at ${tournament}. Surface: ${surface}. AI Predicted Winner: ${predictedWinner} (${winProb}%). Full preview on Ptin AI.`;
+    const editorial = prediction.fixture_id
+      ? EditorialsRepo.getByFixtureId(prediction.fixture_id)
+      : EditorialsRepo.getBySlug(slug);
 
-    const canonicalUrl = `${baseUrl}/match/${slug}`;
+    let title = `${matchTitle} Analysis & Match Preview | Ptin AI`;
+    let description = prediction.ai_summary
+      ? prediction.ai_summary.slice(0, 160).replace(/[\n\r]+/g, ' ').trim()
+      : `Match analysis for ${matchTitle} at ${tournament}. Surface: ${surface}. Model lean: ${predictedWinner} (${winProb}%).`;
+
+    if (editorial?.seo_title) title = editorial.seo_title;
+    if (editorial?.seo_description) description = editorial.seo_description;
+    else if (editorial?.guest_safe_summary) description = editorial.guest_safe_summary.slice(0, 160);
+    else if (editorial?.short_summary) description = editorial.short_summary.slice(0, 160);
+
+    const resolvedSlug = editorial?.slug || slug;
+    const canonicalUrl = `${baseUrl}/match/${resolvedSlug}`;
     const defaultOgImage = `${baseUrl}/og-tennis-banner.jpg`;
+    const headline = editorial?.headline || `${matchTitle} Match Analysis`;
 
     const jsonLd = {
       '@context': 'https://schema.org',
@@ -117,9 +129,9 @@ export const SeoRendererService = {
         },
         {
           '@type': 'NewsArticle',
-          'headline': `${matchTitle} Tactical Match Analysis & AI Win Probability`,
+          'headline': headline,
           'description': description,
-          'datePublished': prediction.published_at || new Date().toISOString(),
+          'datePublished': editorial?.published_at || prediction.published_at || new Date().toISOString(),
           'mainEntityOfPage': canonicalUrl,
           'publisher': {
             '@type': 'Organization',
@@ -128,7 +140,7 @@ export const SeoRendererService = {
           },
           'author': {
             '@type': 'Organization',
-            'name': 'Ptin AI Tennis Analytics Team',
+            'name': editorial?.author_name || 'Ptin AI Tennis Analytics Team',
           },
         },
       ],
@@ -138,13 +150,13 @@ export const SeoRendererService = {
       title,
       description,
       canonicalUrl,
-      ogTitle: `${matchTitle} AI Match Preview | Ptin AI`,
+      ogTitle: title,
       ogDescription: description,
       ogUrl: canonicalUrl,
       ogType: 'article',
       ogImage: defaultOgImage,
       twitterCard: 'summary_large_image',
-      twitterTitle: `${matchTitle} Prediction & Odds`,
+      twitterTitle: title,
       twitterDescription: description,
       twitterImage: defaultOgImage,
       jsonLd,
@@ -164,7 +176,16 @@ export const SeoRendererService = {
     const surface = prediction.surface || 'Hard';
     const winProb = prediction.win_probability || 60;
     const predictedWinner = prediction.predicted_winner || home;
-    const summary = prediction.ai_summary || 'Tactical match breakdown and predictive modeling available on Ptin AI.';
+    const editorial = prediction.fixture_id
+      ? EditorialsRepo.getByFixtureId(prediction.fixture_id)
+      : null;
+    const h1 = editorial?.headline || `${home} vs ${away}`;
+    const summary =
+      editorial?.guest_safe_summary ||
+      editorial?.short_summary ||
+      editorial?.summary ||
+      prediction.ai_summary ||
+      'Match analysis and statistical preview available on Ptin AI.';
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -266,11 +287,11 @@ ${JSON.stringify(meta.jsonLd, null, 2)}
     <div id="root">
       <main class="prerender-container">
         <div class="prerender-badge">${escapeHtml(tournament)} • ${escapeHtml(surface)} ${round ? '• ' + escapeHtml(round) : ''}</div>
-        <h1 class="prerender-title">${escapeHtml(home)} vs ${escapeHtml(away)}</h1>
+        <h1 class="prerender-title">${escapeHtml(h1)}</h1>
         <div class="prerender-meta">🎾 Professional Tennis Match Analysis & Tactical Dossier</div>
         
         <div class="prerender-meter">
-          <div class="prerender-meter-text">AI Predicted Winner: ${escapeHtml(predictedWinner)} (${winProb}% Confidence)</div>
+          <div class="prerender-meter-text">Likely winner (model): ${escapeHtml(predictedWinner)} (${winProb}%)</div>
         </div>
 
         <article class="prerender-summary">

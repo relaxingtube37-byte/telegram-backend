@@ -51,8 +51,9 @@ router.get('/players/:playerId/image', WebController.getPlayerImage);
 router.get('/players/:slugOrId', WebController.getPlayerDetails);
 router.get('/h2h/:p1Id/:p2Id', WebController.getHeadToHead);
 router.get('/h2h-history', WebController.getHistoricalH2H);
-router.get('/matches/:eventId/stats', WebController.getEventStatsAndOdds);
+router.get('/matches', WebController.getMatches);
 router.get('/matches/deep-analytics', WebController.getMatchDeepAnalytics);
+router.get('/matches/:eventId/stats', WebController.getEventStatsAndOdds);
 router.get('/matches/:fixtureId/analytics', AnalyticsController.getMatchAnalytics);
 router.get('/matches/:idOrSlug/editorial', AnalysisController.getMatchEditorial);
 

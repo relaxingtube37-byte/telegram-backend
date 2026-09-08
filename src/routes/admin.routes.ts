@@ -8,6 +8,10 @@ const router = Router();
 router.use(requireAdminAuth);
 
 router.post('/analysis/ingest', AnalysisController.ingestAnalysis);
+router.get('/editorials', AnalysisController.listEditorials);
+router.get('/editorials/:fixtureId', AnalysisController.getEditorialAdmin);
+router.post('/editorials/:fixtureId/status', AnalysisController.transitionEditorialStatus);
+router.post('/editorials/validate', AnalysisController.validateEditorial);
 
 router.get('/overview', AdminController.getOverview);
 router.get('/predictions', AdminController.getPredictions);

@@ -24,6 +24,12 @@ import {
 } from '../services/localPlayerAnalysis.service';
 import { ensureMatchData } from '../services/matchEnsure.service';
 import { isEventFinishedPayload, PersistentPoolService } from '../services/persistentPool.service';
+import {
+  redactDeepAnalyticsForAccess,
+  redactMatchForAccess,
+  resolveAccessFromRequest,
+  loadAccessPolicy,
+} from '../access-policy';
 
 export const WebController = {
   getLandingData: async (req: Request, res: Response) => {
@@ -1157,9 +1163,37 @@ export const WebController = {
         cutoff
       );
 
+      const access = resolveAccessFromRequest(req);
+      const redacted = redactDeepAnalyticsForAccess(report, access);
+
       res.json({
         status: 'SUCCESS',
-        data: report,
+        verified: access.isVerified,
+        access_mode: redacted.access_mode,
+        guest_stats_level: redacted.guest_stats_level,
+        content_locked: redacted.locked,
+        data: redacted.data,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  /**
+   * Published ATP/WTA match list with server-side guest redaction (Phase A).
+   */
+  getMatches: async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(String(req.query.limit || '100'), 10);
+      const access = resolveAccessFromRequest(req);
+      const rows = PredictionsService.getAll(limit).map((m) => redactMatchForAccess(m, access));
+      const policy = loadAccessPolicy();
+      res.json({
+        status: 'SUCCESS',
+        verified: access.isVerified,
+        access_mode: access.access_mode,
+        layers: policy.layers,
+        matches: rows,
       });
     } catch (err: any) {
       res.status(500).json({ error: err.message });

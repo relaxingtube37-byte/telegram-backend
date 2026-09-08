@@ -201,7 +201,10 @@ async function run() {
   if (!predictionsRes.ok) {
     throw new Error(`Step 5 failed: GET /api/webapp/predictions returned ${predictionsRes.status}`);
   }
-  const activePredictions = await predictionsRes.json();
+  const activePredictionsRaw = await predictionsRes.json();
+  const activePredictions = Array.isArray(activePredictionsRaw)
+    ? activePredictionsRaw
+    : (activePredictionsRaw.predictions || []);
   const found = activePredictions.find((p: any) => p.fixture_id === 98765432 || p.id === predictionId);
   if (!found) {
     throw new Error('Step 5 failed: Published prediction not found in active predictions list');

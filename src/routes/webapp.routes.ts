@@ -6,6 +6,8 @@ import { ReferralsRepo } from '../db/repositories/referrals.repo';
 import { UsersRepo } from '../db/repositories/users.repo';
 import { SettingsRepo } from '../db/repositories/settings.repo';
 import { AnalysisController } from '../controllers/analysis.controller';
+import { MatchAnalyticsService } from '../services/match-analytics.service';
+import { PredictionsRepo } from '../db/repositories/predictions.repo';
 import {
   validateTelegramInitData,
   validateTelegramWidgetAuth,
@@ -14,12 +16,19 @@ import {
   WebSessionPayload,
 } from '../utils/telegramAuth';
 import { ENV } from '../config/env';
+import { loadBusinessActionSettings } from '../business-actions';
+import {
+  computeIsVerified,
+  getWebSessionSecret,
+  normalizeAccessMode,
+  redactDeepAnalytics,
+  redactPrediction,
+  resolveContentFlags,
+  resolveWebappAccess,
+  parseWebsiteConfig,
+} from '../utils/contentAccess';
 
 const router = Router();
-
-function getWebSessionSecret(): string {
-  return (ENV.BOT_TOKEN || '') + ':' + (ENV.ADMIN_SECRET || 'ptin_web_secret_salt_2026');
-}
 
 // GET /api/webapp/matches/:fixtureId/betting
 router.get('/matches/:fixtureId/betting', AnalysisController.getMatchBetting);
@@ -27,12 +36,77 @@ router.get('/matches/:fixtureId/betting', AnalysisController.getMatchBetting);
 // GET /api/webapp/matches/:idOrSlug/editorial (Website SEO Editorial Mode)
 router.get('/matches/:idOrSlug/editorial', AnalysisController.getMatchEditorial);
 
+// GET /api/webapp/matches/deep-analytics?p1=&p2=&surface=&asOfDate=
+router.get('/matches/deep-analytics', async (req: Request, res: Response) => {
+  try {
+    const { p1, p2, surface, asOfDate, matchDate } = req.query;
+    if (!p1 || !p2) {
+      return res.status(400).json({ error: 'Parameters p1 and p2 are required.' });
+    }
+    const access = resolveWebappAccess(req);
+    const report = MatchAnalyticsService.generateDeepAnalytics(
+      String(p1),
+      String(p2),
+      (surface as string) || 'Hard',
+      (asOfDate as string) || (matchDate as string) || undefined
+    );
+    const data = redactDeepAnalytics(report, access);
+    res.json({
+      status: 'SUCCESS',
+      verified: access.isVerified,
+      access_mode: access.accessMode,
+      content_layers: access.contentFlags,
+      data,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/webapp/matches/:fixtureId/analytics — deep analytics by published fixture
+router.get('/matches/:fixtureId/analytics', async (req: Request, res: Response) => {
+  try {
+    const fixtureId = Number(req.params.fixtureId);
+    if (!fixtureId) return res.status(400).json({ error: 'Invalid fixtureId' });
+
+    const prediction = PredictionsRepo.getByFixtureId(fixtureId);
+    if (!prediction) {
+      return res.status(404).json({ error: 'Match not found for fixture' });
+    }
+
+    const access = resolveWebappAccess(req);
+    const report = MatchAnalyticsService.generateDeepAnalytics(
+      prediction.home_name,
+      prediction.away_name,
+      prediction.surface || 'Hard',
+      prediction.match_date ? String(prediction.match_date).slice(0, 10) : undefined
+    );
+    const data = redactDeepAnalytics(report, access);
+    res.json({
+      status: 'SUCCESS',
+      verified: access.isVerified,
+      access_mode: access.accessMode,
+      content_layers: access.contentFlags,
+      fixture_id: fixtureId,
+      data,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/webapp/predictions
 router.get('/predictions', async (req: Request, res: Response) => {
   try {
     const limit = parseInt(String(req.query.limit || '100'), 10);
-    const predictions = PredictionsService.getAll(limit);
-    res.json(predictions);
+    const access = resolveWebappAccess(req);
+    const predictions = PredictionsService.getAll(limit).map((p) => redactPrediction(p, access));
+    res.json({
+      predictions,
+      verified: access.isVerified,
+      access_mode: access.accessMode,
+      content_layers: access.contentFlags,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -41,8 +115,14 @@ router.get('/predictions', async (req: Request, res: Response) => {
 // GET /api/webapp/stats
 router.get('/stats', async (req: Request, res: Response) => {
   try {
+    const access = resolveWebappAccess(req);
     const stats = StatsService.getSummary();
-    res.json(stats);
+    // Aggregate win-rate always public (trust signal); detailed breakdown same
+    res.json({
+      ...stats,
+      verified: access.isVerified,
+      access_mode: access.accessMode,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -80,13 +160,15 @@ router.post('/auth', async (req: Request, res: Response) => {
     });
 
     const user = UsersRepo.getByTelegramId(telegramId);
-    const accessMode = SettingsRepo.get('access_mode') || 'FREE';
-    const isVerified = accessMode === 'FREE' ? true : !!(user && user.is_verified);
+    const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
+    const isVerified = computeIsVerified(accessMode, user);
+    const contentFlags = resolveContentFlags();
 
     res.json({
       success: true,
       verified: isVerified,
       access_mode: accessMode,
+      content_layers: contentFlags,
       user: {
         telegram_id: telegramId,
         first_name: user?.first_name || first_name,
@@ -107,7 +189,7 @@ router.post('/auth/web', async (req: Request, res: Response) => {
     const secret = getWebSessionSecret();
     const verifiedSession = verifyWebSessionToken(sessionToken, secret);
 
-    const accessMode = SettingsRepo.get('access_mode') || 'FREE';
+    const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
     let payload: WebSessionPayload;
 
     if (verifiedSession.valid && verifiedSession.payload) {
@@ -127,17 +209,18 @@ router.post('/auth/web', async (req: Request, res: Response) => {
       isVerified = true;
     } else if (payload.telegramId) {
       userRecord = UsersRepo.getByTelegramId(payload.telegramId);
-      isVerified = !!(userRecord && userRecord.is_verified);
+      isVerified = computeIsVerified(accessMode, userRecord);
     }
 
-    // Refresh timestamp and sign
     payload.createdAt = Date.now();
     const token = createWebSessionToken(payload, secret);
+    const contentFlags = resolveContentFlags();
 
     res.json({
       success: true,
       verified: isVerified,
       access_mode: accessMode,
+      content_layers: contentFlags,
       sessionToken: token,
       webId: payload.webId,
       telegramUser: userRecord
@@ -188,8 +271,9 @@ router.post('/auth/telegram-widget', async (req: Request, res: Response) => {
         : `web_${crypto.randomBytes(12).toString('hex')}`;
 
     const userRecord = UsersRepo.getByTelegramId(tgUser.id);
-    const accessMode = SettingsRepo.get('access_mode') || 'FREE';
-    const isVerified = accessMode === 'FREE' ? true : !!(userRecord && userRecord.is_verified);
+    const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
+    const isVerified = computeIsVerified(accessMode, userRecord);
+    const contentFlags = resolveContentFlags();
 
     const newPayload: WebSessionPayload = {
       webId,
@@ -202,6 +286,7 @@ router.post('/auth/telegram-widget', async (req: Request, res: Response) => {
       success: true,
       verified: isVerified,
       access_mode: accessMode,
+      content_layers: contentFlags,
       sessionToken: newToken,
       webId,
       telegramUser: {
@@ -216,7 +301,7 @@ router.post('/auth/telegram-widget', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/webapp/user/:telegramId (DISABLED: Direct unauthenticated verification queries are blocked)
+// GET /api/webapp/user/:telegramId (DISABLED)
 router.get('/user/:telegramId', async (req: Request, res: Response) => {
   try {
     return res.status(401).json({
@@ -232,14 +317,24 @@ router.get('/user/:telegramId', async (req: Request, res: Response) => {
 // GET /api/webapp/config
 router.get('/config', async (req: Request, res: Response) => {
   try {
-    const accessMode = SettingsRepo.get('access_mode') || 'FREE';
-    const rawConfig = SettingsRepo.get('website_config');
-    const websiteConfig = rawConfig ? JSON.parse(rawConfig) : {};
+    const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
+    const websiteConfig = parseWebsiteConfig();
+    const contentFlags = resolveContentFlags(websiteConfig);
     res.json({
       access_mode: accessMode,
       bot_username: ENV.BOT_USERNAME || 'admdinbetbetforbot',
       webapp_short_name: ENV.WEBAPP_SHORT_NAME || 'app',
+      public_base_url: ENV.PUBLIC_BASE_URL || '',
+      content_layers: contentFlags,
       ...websiteConfig,
+      // Explicit flags win over spread duplicates
+      guest_can_see_summary: contentFlags.guest_can_see_summary,
+      guest_can_see_stats: contentFlags.guest_can_see_stats,
+      guest_can_see_ai_full: contentFlags.guest_can_see_ai_full,
+      guest_can_see_watch_live: contentFlags.guest_can_see_watch_live,
+      payment_gateway_enabled: contentFlags.payment_gateway_enabled,
+      unlock_via_referral: contentFlags.unlock_via_referral,
+      business_actions: loadBusinessActionSettings(),
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

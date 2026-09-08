@@ -237,8 +237,9 @@ async function runFullSuite() {
       const res = await fetch(`${baseUrl}/api/webapp/predictions`);
       if (res.status !== 200) throw new Error(`Status ${res.status}`);
       const json = await res.json();
-      if (!Array.isArray(json)) throw new Error('Expected array');
-      return { count: json.length };
+      const list = Array.isArray(json) ? json : (json.predictions || []);
+      if (!Array.isArray(list)) throw new Error('Expected predictions array');
+      return { count: list.length, lockedAware: json.content_layers != null };
     });
 
     await runTest('HTTP WebApp Routes', 'GET /api/webapp/stats', async () => {

@@ -35,6 +35,35 @@ export const initSchema = () => {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS referral_clicks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      click_id TEXT UNIQUE NOT NULL,
+      site_id INTEGER,
+      partner_key TEXT NOT NULL,
+      user_ref TEXT NOT NULL,
+      session_ref TEXT,
+      match_id INTEGER,
+      fixture_id INTEGER,
+      page_context TEXT,
+      action_type TEXT NOT NULL,
+      destination_url TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS partner_conversions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      partner_key TEXT NOT NULL,
+      site_id INTEGER,
+      event_type TEXT NOT NULL,
+      click_id TEXT,
+      transaction_id TEXT,
+      dedupe_key TEXT UNIQUE NOT NULL,
+      user_ref TEXT,
+      status TEXT NOT NULL,
+      raw_payload TEXT NOT NULL,
+      received_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS predictions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       fixture_id INTEGER UNIQUE,
@@ -125,6 +154,19 @@ export const initSchema = () => {
       seo_description TEXT,
       ai_assisted INTEGER DEFAULT 1,
       is_published INTEGER DEFAULT 1,
+      subtitle TEXT,
+      short_summary TEXT,
+      key_facts_json TEXT,
+      data_bullets_json TEXT,
+      tags_json TEXT,
+      seo_metadata_json TEXT,
+      share_text TEXT,
+      guest_safe_summary TEXT,
+      publish_status TEXT DEFAULT 'draft',
+      version INTEGER DEFAULT 1,
+      editor_name TEXT,
+      published_at TEXT,
+      status_history_json TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -571,7 +613,7 @@ export const initSchema = () => {
   try {
     const accSetting = db.prepare("SELECT value FROM settings WHERE key = 'access_mode'").get();
     if (!accSetting) {
-      db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('access_mode', 'FREE')").run();
+      db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('access_mode', 'REGISTRATION_REQUIRED')").run();
     }
   } catch (err: any) {
     console.warn('settings seed note:', err.message);

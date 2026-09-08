@@ -13,6 +13,17 @@ import { Logger } from '../utils/logger';
 import { bot } from '../services/telegram-bot.service';
 import { ENV } from '../config/env';
 import type { Prediction, MatchStatus } from '../types';
+import {
+  loadAccessPolicy,
+  saveAccessMode,
+  saveAccessPolicyLayers,
+  type AccessPolicyLayers,
+} from '../access-policy';
+import {
+  loadBusinessActionSettings,
+  saveBusinessActionSettings,
+  type BusinessActionSettings,
+} from '../business-actions';
 
 export const AdminController = {
 
@@ -343,7 +354,16 @@ export const AdminController = {
 
   getSettings: async (req: Request, res: Response) => {
     try {
-      res.json(SettingsRepo.getAll());
+      const all = SettingsRepo.getAll();
+      const policy = loadAccessPolicy();
+      const business = loadBusinessActionSettings();
+      res.json({
+        ...all,
+        access_mode: policy.access_mode,
+        access_policy: JSON.stringify(policy.layers),
+        access_policy_layers: policy.layers,
+        business_action_settings: business,
+      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -353,7 +373,57 @@ export const AdminController = {
     try {
       const { key, value } = req.body;
       if (!key) return res.status(400).json({ error: 'key is required' });
-      SettingsRepo.set(key, String(value));
+
+      if (key === 'access_mode') {
+        const mode = saveAccessMode(String(value));
+        return res.json({ success: true, key, value: mode, access_mode: mode });
+      }
+
+      if (key === 'access_policy') {
+        let layers: Partial<AccessPolicyLayers>;
+        if (typeof value === 'string') {
+          try {
+            layers = JSON.parse(value);
+          } catch {
+            return res.status(400).json({ error: 'access_policy must be valid JSON' });
+          }
+        } else if (value && typeof value === 'object') {
+          layers = value;
+        } else {
+          return res.status(400).json({ error: 'access_policy value required' });
+        }
+        const saved = saveAccessPolicyLayers(layers);
+        return res.json({
+          success: true,
+          key,
+          value: saved,
+          access_policy_layers: saved,
+        });
+      }
+
+      if (key === 'business_action_settings') {
+        let partial: Partial<BusinessActionSettings>;
+        if (typeof value === 'string') {
+          try {
+            partial = JSON.parse(value);
+          } catch {
+            return res.status(400).json({ error: 'business_action_settings must be valid JSON' });
+          }
+        } else if (value && typeof value === 'object') {
+          partial = value;
+        } else {
+          return res.status(400).json({ error: 'business_action_settings value required' });
+        }
+        const saved = saveBusinessActionSettings(partial);
+        return res.json({
+          success: true,
+          key,
+          value: saved,
+          business_action_settings: saved,
+        });
+      }
+
+      SettingsRepo.set(key, typeof value === 'string' ? value : JSON.stringify(value));
       res.json({ success: true, key, value });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
