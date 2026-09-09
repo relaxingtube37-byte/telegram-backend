@@ -139,12 +139,18 @@ export function saveAccessMode(mode: string): AccessMode {
 
 export function computeIsVerified(
   accessMode: AccessMode,
-  user: { is_verified?: number; has_deposited?: number; auth_provider?: string; email?: string } | null | undefined
+  user: { is_verified?: number; has_deposited?: number; auth_provider?: string; email?: string; telegram_id?: number } | null | undefined
 ): boolean {
   if (accessMode === ACCESS_MODES.FREE) return true;
   if (!user) return false;
-  // In REGISTRATION_REQUIRED: verified registration or Google registered user gets access
-  return !!(user.is_verified || user.auth_provider === 'google' || user.email);
+  // In REGISTRATION_REQUIRED: verified registration, Google or Telegram registered user gets access
+  return !!(
+    user.is_verified ||
+    user.auth_provider === 'google' ||
+    user.auth_provider === 'telegram' ||
+    user.email ||
+    (user.telegram_id && user.telegram_id > 0)
+  );
 }
 
 function extractSessionToken(req: Request): string | undefined {

@@ -95,7 +95,7 @@ export function normalizeAccessMode(raw?: string | null): string {
 
 export function computeIsVerified(
   accessMode: string,
-  user: { is_verified?: number; has_deposited?: number; auth_provider?: string; email?: string } | null | undefined
+  user: { is_verified?: number; has_deposited?: number; auth_provider?: string; email?: string; telegram_id?: number } | null | undefined
 ): boolean {
   const mode = normalizeAccessMode(accessMode);
   if (mode === ACCESS_MODE_FREE) return true;
@@ -103,7 +103,13 @@ export function computeIsVerified(
   if (mode === ACCESS_MODE_DEPOSIT) {
     return !!(user.has_deposited || user.is_verified);
   }
-  return !!(user.is_verified || user.auth_provider === 'google' || user.email);
+  return !!(
+    user.is_verified ||
+    user.auth_provider === 'google' ||
+    user.auth_provider === 'telegram' ||
+    user.email ||
+    (user.telegram_id && user.telegram_id > 0)
+  );
 }
 
 function extractBearerOrHeaderToken(req: Request): string | undefined {

@@ -193,4 +193,19 @@ export const runMigrations = () => {
   } catch (e: any) {
     Logger.warn('Google users verification backfill migration:', e.message);
   }
+
+  // Backfill existing Telegram users to verified member status in REGISTRATION_REQUIRED mode
+  try {
+    const now = new Date().toISOString();
+    db.prepare(`
+      UPDATE users 
+      SET is_verified = 1, 
+          verify_status = CASE WHEN verify_status = 'verified' THEN 'verified' ELSE 'telegram_verified' END,
+          auth_provider = CASE WHEN auth_provider IS NULL OR auth_provider = '' THEN 'telegram' ELSE auth_provider END,
+          verified_at = COALESCE(verified_at, ?)
+      WHERE (auth_provider = 'telegram' OR (telegram_id IS NOT NULL AND telegram_id > 0)) AND is_verified = 0
+    `).run(now);
+  } catch (e: any) {
+    Logger.warn('Telegram users verification backfill migration:', e.message);
+  }
 };

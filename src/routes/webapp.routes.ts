@@ -165,18 +165,73 @@ router.post('/auth', async (req: Request, res: Response) => {
     const isVerified = computeIsVerified(accessMode, user);
     const contentFlags = resolveContentFlags();
 
+    const secret = getWebSessionSecret();
+    const sessionPayload: WebSessionPayload = {
+      webId: `tg_${telegramId}`,
+      telegramId,
+      createdAt: Date.now(),
+    };
+    const sessionToken = createWebSessionToken(sessionPayload, secret);
+
     res.json({
       success: true,
       verified: isVerified,
       access_mode: accessMode,
       content_layers: contentFlags,
+      sessionToken,
       user: {
         telegram_id: telegramId,
         first_name: user?.first_name || first_name,
         username: user?.username || username,
         is_verified: isVerified ? 1 : 0,
+        auth_provider: 'telegram',
         registered_site_id: user?.registered_site_id,
       },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/webapp/referral/complete - Explicit user activation/registration completion
+router.post('/referral/complete', async (req: Request, res: Response) => {
+  try {
+    const { telegramId, siteId, sessionToken } = req.body || {};
+    let effectiveId = telegramId ? Number(telegramId) : null;
+
+    if (!effectiveId && sessionToken) {
+      const secret = getWebSessionSecret();
+      const verified = verifyWebSessionToken(sessionToken, secret);
+      if (verified.valid && verified.payload?.telegramId) {
+        effectiveId = verified.payload.telegramId;
+      }
+    }
+
+    const initDataHeader = req.headers['x-telegram-init-data'];
+    if (!effectiveId && typeof initDataHeader === 'string') {
+      const session = validateTelegramInitData(initDataHeader);
+      if (session.valid && session.user?.id) {
+        effectiveId = session.user.id;
+      }
+    }
+
+    if (effectiveId && effectiveId > 0) {
+      UsersRepo.setTelegramVerified(effectiveId, siteId ? Number(siteId) : undefined);
+    }
+
+    const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
+    const contentFlags = resolveContentFlags();
+    const secret = getWebSessionSecret();
+    const newToken = effectiveId
+      ? createWebSessionToken({ webId: `tg_${effectiveId}`, telegramId: effectiveId, createdAt: Date.now() }, secret)
+      : sessionToken;
+
+    res.json({
+      success: true,
+      verified: true,
+      access_mode: accessMode,
+      content_layers: contentFlags,
+      sessionToken: newToken,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

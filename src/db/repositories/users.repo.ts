@@ -115,20 +115,24 @@ export const UsersRepo = {
 
   upsertFromBot: (telegramId: number, profile: { first_name?: string; username?: string }): void => {
     const now = new Date().toISOString();
-    const existing = db.prepare('SELECT id FROM users WHERE telegram_id = ?').get(telegramId);
+    const existing = db.prepare('SELECT id, is_verified, verify_status, auth_provider FROM users WHERE telegram_id = ?').get(telegramId) as any;
     if (!existing) {
       db.prepare(`
-        INSERT INTO users (telegram_id, first_name, username, is_verified, created_at, last_active_at)
-        VALUES (?, ?, ?, 0, ?, ?)
-      `).run(telegramId, profile.first_name || null, profile.username || null, now, now);
+        INSERT INTO users (telegram_id, first_name, username, is_verified, verify_status, auth_provider, verified_at, created_at, last_active_at)
+        VALUES (?, ?, ?, 1, 'telegram_verified', 'telegram', ?, ?, ?)
+      `).run(telegramId, profile.first_name || null, profile.username || null, now, now, now);
     } else {
       db.prepare(`
         UPDATE users SET 
           first_name = COALESCE(?, first_name),
           username = COALESCE(?, username),
+          is_verified = 1,
+          verify_status = CASE WHEN verify_status = 'verified' THEN 'verified' ELSE 'telegram_verified' END,
+          auth_provider = CASE WHEN auth_provider IS NULL OR auth_provider = '' THEN 'telegram' ELSE auth_provider END,
+          verified_at = COALESCE(verified_at, ?),
           last_active_at = ?
         WHERE telegram_id = ?
-      `).run(profile.first_name || null, profile.username || null, now, telegramId);
+      `).run(profile.first_name || null, profile.username || null, now, now, telegramId);
     }
   },
 
@@ -183,5 +187,27 @@ export const UsersRepo = {
   setDeposited: (telegramId: number): void => {
     UsersRepo.setVerified(telegramId, undefined, 'deposit');
     db.prepare('UPDATE users SET has_deposited = 1 WHERE telegram_id = ?').run(telegramId);
+  },
+
+  setTelegramVerified: (telegramId: number, siteId?: number): void => {
+    const now = new Date().toISOString();
+    const existing = db.prepare('SELECT id FROM users WHERE telegram_id = ?').get(telegramId);
+    if (existing) {
+      db.prepare(`
+        UPDATE users SET 
+          is_verified = 1,
+          verify_status = 'verified',
+          verify_source = 'webapp_activation',
+          verified_at = COALESCE(verified_at, ?),
+          registered_site_id = COALESCE(?, registered_site_id),
+          last_active_at = ?
+        WHERE telegram_id = ?
+      `).run(now, siteId || null, now, telegramId);
+    } else {
+      db.prepare(`
+        INSERT INTO users (telegram_id, is_verified, verify_status, verify_source, registered_site_id, verified_at, created_at, last_active_at)
+        VALUES (?, 1, 'verified', 'webapp_activation', ?, ?, ?, ?)
+      `).run(telegramId, siteId || null, now, now, now);
+    }
   },
 };
