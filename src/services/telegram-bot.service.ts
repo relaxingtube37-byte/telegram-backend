@@ -27,16 +27,29 @@ export const resolveWebAppUrl = (): string => {
     }
     return url;
   }
-  const username = getResolvedBotUsername();
-  const shortName = (ENV.WEBAPP_SHORT_NAME || 'app').trim();
-  return `https://t.me/${username}/${shortName}`;
+  return 'https://www.ptin-ai.com';
 };
 
 if (bot) {
-  bot.api.getMe().then((me) => {
+  bot.api.getMe().then(async (me) => {
     if (me?.username) {
       setResolvedBotUsername(me.username);
       Logger.info(`Verified Telegram bot username: @${me.username}`);
+    }
+    try {
+      const webAppUrl = resolveWebAppUrl();
+      if (webAppUrl && (webAppUrl.startsWith('http://') || webAppUrl.startsWith('https://')) && !webAppUrl.includes('t.me/')) {
+        await bot.api.setChatMenuButton({
+          menu_button: {
+            type: 'web_app',
+            text: '🚀 Tennis AI',
+            web_app: { url: webAppUrl },
+          },
+        });
+        Logger.info(`Configured persistent Telegram WebApp menu button -> ${webAppUrl}`);
+      }
+    } catch (e: any) {
+      Logger.warn(`Menu button configuration warning: ${e.message}`);
     }
   }).catch(() => {});
 
@@ -49,11 +62,16 @@ if (bot) {
 
     const firstName = ctx.from?.first_name || 'Champion';
     const targetUrl = resolveWebAppUrl();
+    const isDirectWeb = targetUrl.startsWith('http://') || targetUrl.startsWith('https://');
+    const isTelegramShortLink = targetUrl.includes('t.me/');
 
-    const keyboard = new InlineKeyboard()
-      .url('🚀 🎾 Open Tennis AI Predictions', targetUrl)
-      .row()
-      .url('📢 Join Official VIP Channel', `https://t.me/${ENV.CHANNEL_ID.replace('@', '')}`);
+    const keyboard = new InlineKeyboard();
+    if (isDirectWeb && !isTelegramShortLink) {
+      keyboard.webApp('🚀 🎾 Open Tennis AI Predictions', targetUrl);
+    } else {
+      keyboard.url('🚀 🎾 Open Tennis AI Predictions', targetUrl);
+    }
+    keyboard.row().url('📢 Join Official VIP Channel', `https://t.me/${ENV.CHANNEL_ID.replace('@', '')}`);
 
     const welcomeMsg = 
       `👋 <b>Welcome to State Football — Tennis AI Studio, ${firstName}!</b>
