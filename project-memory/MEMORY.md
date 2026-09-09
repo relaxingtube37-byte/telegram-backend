@@ -27,6 +27,12 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - State Football admin UsersTab displays auth source badge (Google vs Telegram) and email alongside Telegram usernames.
 
 ## Progress
+- 2026-09-09: Lightweight Player WebP Headshots & Instant Avatar Resolution:
+  - Backend: Added `/api/webapp/players/:nameOrId/image` serving Sharp-compressed WebP headshots (~1.9KB, 80px) with 14-day in-memory and 30-day browser immutable cache.
+  - Seeding: Added compile-time top 300 ATP & WTA player seed (`seedPlayers.ts`), automatically populated into SQLite via idempotent `INSERT OR IGNORE` migrations on server boot.
+  - Fuzzy Resolution: Enhanced name matching (`ORDER BY COALESCE(ranking, 999) ASC`) supporting initials, abbreviations (`Q. Zheng`, `E. Rybakina`), and RapidAPI search fallback.
+  - Frontend (`telegram-webapp`): Created `playerDirectory.ts` and updated `playerImage.ts` to resolve player names and URLs directly to numeric IDs on the client, guaranteeing instant 200 OK delivery.
+  - Verified with live HTTP checks: `Q. Zheng` (257784), `E. Rybakina` (186312), `K. Khachanov` (90080), and `A. Blockx` (390214) all returning 200 OK `image/webp`.
 - 2026-09-09: Trust-Enhanced User Profile Menu & Account Logout:
   - Header: Integrated interactive user profile capsule displaying avatar (Google picture / Telegram avatar / initials) with online status dot, user display name, and verified badge (`PRO MEMBER ✓` or `STEP 2 PENDING`).
   - Trust Signals Dropdown: Clicking the profile capsule opens a glass dropdown featuring full user details, dedicated tracking ID (`#10492`), 256-Bit SSL encryption badge, official 1WIN partnership sync status, and unlocked AI perks checklist.
