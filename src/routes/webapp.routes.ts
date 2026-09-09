@@ -310,7 +310,11 @@ router.post('/auth/google', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing idToken in request body' });
     }
 
-    const expectedClientId = process.env.GOOGLE_CLIENT_ID || '';
+    const expectedClientId =
+      process.env.GOOGLE_CLIENT_ID ||
+      SettingsRepo.get('GOOGLE_CLIENT_ID') ||
+      SettingsRepo.get('google_client_id') ||
+      '';
     const verification = await verifyGoogleIdToken(idToken, expectedClientId);
     if (!verification.valid || !verification.user) {
       return res.status(401).json({ error: verification.error || 'Invalid Google ID token' });

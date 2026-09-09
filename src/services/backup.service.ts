@@ -237,16 +237,32 @@ export class BackupService {
     let tablesToRestore: Record<string, any[]> = {};
     if (payload.tables && typeof payload.tables === 'object') {
       tablesToRestore = payload.tables;
+    } else if (payload.web && payload.web.client_id) {
+      // Google Cloud Console OAuth Credentials JSON
+      tablesToRestore.settings = [
+        { key: 'GOOGLE_CLIENT_ID', value: String(payload.web.client_id) },
+        { key: 'google_client_id', value: String(payload.web.client_id) },
+        ...(payload.web.client_secret ? [
+          { key: 'GOOGLE_CLIENT_SECRET', value: String(payload.web.client_secret) },
+          { key: 'google_client_secret', value: String(payload.web.client_secret) },
+        ] : []),
+      ];
     } else {
-      // Legacy fallback format
+      // Legacy fallback format & alternate aliases
       if (Array.isArray(payload.predictions)) tablesToRestore.predictions = payload.predictions;
       if (Array.isArray(payload.users)) tablesToRestore.users = payload.users;
       if (Array.isArray(payload.referral_sites)) tablesToRestore.referral_sites = payload.referral_sites;
       if (Array.isArray(payload.referralSites)) tablesToRestore.referral_sites = payload.referralSites;
+      if (Array.isArray(payload.referrals)) tablesToRestore.referral_sites = payload.referrals;
+      if (Array.isArray(payload.sites)) tablesToRestore.referral_sites = payload.sites;
+      if (Array.isArray(payload.games)) tablesToRestore.predictions = payload.games;
       if (Array.isArray(payload.settings)) tablesToRestore.settings = payload.settings;
       if (Array.isArray(payload.channel_posts)) tablesToRestore.channel_posts = payload.channel_posts;
       if (Array.isArray(payload.players)) tablesToRestore.players = payload.players;
       if (Array.isArray(payload.match_editorials)) tablesToRestore.match_editorials = payload.match_editorials;
+      if (payload.settings && typeof payload.settings === 'object' && !Array.isArray(payload.settings)) {
+        tablesToRestore.settings = Object.entries(payload.settings).map(([k, v]) => ({ key: k, value: String(v) }));
+      }
     }
 
     const tableNames = Object.keys(tablesToRestore);
