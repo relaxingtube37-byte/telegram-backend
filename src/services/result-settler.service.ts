@@ -91,8 +91,8 @@ export class ResultSettlerService {
             statusDesc.includes('walkover');
 
           if (!isFinished) {
-            // Update to LIVE with triplet scores (sets, points, games) if match is in progress
-            if (statusType === 'inprogress') {
+            // Check 1: In Progress / LIVE with genuine triplet scores
+            if (statusType === 'inprogress' || statusDesc.includes('in progress') || statusDesc.includes('live')) {
               const hSets = ev.homeScore?.display ?? ev.homeScore?.current ?? 0;
               const aSets = ev.awayScore?.display ?? ev.awayScore?.current ?? 0;
               const hPoints = ev.homeScore?.point ?? '0';
@@ -110,6 +110,43 @@ export class ResultSettlerService {
               const liveScoreStr = `${hSets}-${aSets}   ${hPoints}-${aPoints}    ${hGames}-${aGames}`;
               PredictionsService.updateResultByFixtureId(fixtureId, 'LIVE', liveScoreStr);
               Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is LIVE: ${liveScoreStr}`);
+            }
+            // Check 2: Interrupted / Suspended / Rain Delay
+            else if (
+              statusType === 'interrupted' ||
+              statusDesc.includes('interrupted') ||
+              statusDesc.includes('suspended') ||
+              statusDesc.includes('delay') ||
+              statusDesc.includes('rain')
+            ) {
+              if (pred.status !== 'INTERRUPTED') {
+                PredictionsService.updateResultByFixtureId(fixtureId, 'INTERRUPTED', pred.result_score || 'PAUSED');
+                Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is INTERRUPTED`);
+              }
+            }
+            // Check 3: Canceled / Postponed / Abandoned
+            else if (
+              statusType === 'canceled' ||
+              statusType === 'cancelled' ||
+              statusDesc.includes('cancel') ||
+              statusDesc.includes('postpon') ||
+              statusDesc.includes('abandoned')
+            ) {
+              if (pred.status !== 'VOID') {
+                PredictionsService.updateResultByFixtureId(fixtureId, 'VOID', 'VOID');
+                Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is VOID`);
+              }
+            }
+            // Check 4: Not Started / Upcoming
+            else if (
+              statusType === 'notstarted' ||
+              statusDesc.includes('not started') ||
+              Number(ev.status?.code ?? -1) === 0
+            ) {
+              if (pred.status !== 'UPCOMING' || pred.result_score) {
+                PredictionsService.updateResultByFixtureId(fixtureId, 'UPCOMING', undefined);
+                Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is NOT STARTED -> reverted to UPCOMING`);
+              }
             }
             continue;
           }

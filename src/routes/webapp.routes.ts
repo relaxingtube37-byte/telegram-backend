@@ -107,6 +107,17 @@ router.get('/predictions', async (req: Request, res: Response) => {
     const access = resolveWebappAccess(req);
     const rawList = PredictionsService.getAll(limit);
     const predictions = rawList.map((p) => {
+      // Guard against false LIVE matches that have not actually started
+      if (
+        p.status === 'LIVE' &&
+        (!p.result_score ||
+          p.result_score.trim() === '0-0   0-0    0-0' ||
+          p.result_score.trim() === '0-0' ||
+          p.result_score.trim() === '0:0')
+      ) {
+        p.status = 'UPCOMING';
+        p.result_score = undefined;
+      }
       const red = redactPrediction(p, access);
       if (!red.home_image && red.home_name) {
         red.home_image = `/api/webapp/players/${encodeURIComponent(red.home_id || red.home_name)}/image?size=80`;

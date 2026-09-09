@@ -5,6 +5,7 @@ export const MATCH_STATUSES = {
   LOST: 'LOST',
   VOID: 'VOID',
   INTERRUPTED: 'INTERRUPTED',
+  POSTPONED: 'POSTPONED',
 } as const;
 
 export type MatchStatus = typeof MATCH_STATUSES[keyof typeof MATCH_STATUSES];

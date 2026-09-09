@@ -241,4 +241,23 @@ export const runMigrations = () => {
   } catch (e: any) {
     Logger.warn('Telegram users verification backfill migration:', e.message);
   }
+
+  // Normalize premature or fake LIVE predictions back to UPCOMING
+  try {
+    const res = db.prepare(`
+      UPDATE predictions
+      SET status = 'UPCOMING', result_score = NULL
+      WHERE status = 'LIVE' AND (
+        result_score IS NULL OR
+        result_score = '' OR
+        result_score = '0-0' OR
+        result_score = '0-0   0-0    0-0'
+      )
+    `).run();
+    if (res.changes > 0) {
+      Logger.info(`[Migrations] Normalized ${res.changes} premature LIVE prediction(s) back to UPCOMING.`);
+    }
+  } catch (e: any) {
+    Logger.warn('Premature LIVE predictions cleanup migration:', e.message);
+  }
 };

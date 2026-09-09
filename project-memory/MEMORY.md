@@ -27,6 +27,16 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - State Football admin UsersTab displays auth source badge (Google vs Telegram) and email alongside Telegram usernames.
 
 ## Progress
+- 2026-09-10: Strict & Accurate Match Status Settlement (UPCOMING, LIVE, INTERRUPTED, VOID, WON/LOST):
+  - Fixed premature LIVE display for unstarted matches: added database migration resetting any unstarted/dummy `0-0` LIVE predictions back to `UPCOMING` with empty score.
+  - Upgraded `ResultSettlerService` to handle all RapidAPI status categories: `notstarted` -> revert to `UPCOMING`, `inprogress` -> `LIVE` with real-time triplet, `interrupted`/`suspended`/`delay` -> `INTERRUPTED` (PAUSED badge), `canceled`/`postponed` -> `VOID`, and `finished` -> strict set score settlement.
+  - Added on-the-fly sanitization in `webapp.routes.ts` `/api/webapp/predictions` and client-side future match timestamp validation.
+- 2026-09-10: Dedicated Vertical Results Column for Live Triplets & Finished Sets:
+  - Added dedicated Results column (`Result / Score`) to match rows and tournament legend header in `telegram-webapp`.
+  - Live matches stack 3 vertical rows: Sets score (`SET`), Game points (`PTS`), and Current set games (`GMS`) (e.g. `0-0`, `30-30`, `5-2`).
+  - Finished matches strictly display sets count only (e.g. `2-0`, `1-2`, `3-2`, `1-3`), omitting verbose set point breakdowns.
+  - Match details Center Nexus Arena upgraded to stack live metrics vertically.
+  - Verified live on `https://www.ptin-ai.com/` with browser subagent visual screenshots.
 - 2026-09-09: Lightweight Player WebP Headshots & Instant Avatar Resolution:
   - Backend: Added `/api/webapp/players/:nameOrId/image` serving Sharp-compressed WebP headshots (~1.9KB, 80px) with 14-day in-memory and 30-day browser immutable cache.
   - Seeding: Added compile-time top 300 ATP & WTA player seed (`seedPlayers.ts`), automatically populated into SQLite via idempotent `INSERT OR IGNORE` migrations on server boot.
