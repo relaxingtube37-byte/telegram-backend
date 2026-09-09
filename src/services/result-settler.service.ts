@@ -91,10 +91,25 @@ export class ResultSettlerService {
             statusDesc.includes('walkover');
 
           if (!isFinished) {
-            // Update to LIVE if match has started
-            if (statusType === 'inprogress' && pred.status !== 'LIVE') {
-              PredictionsService.updateResultByFixtureId(fixtureId, 'LIVE');
-              Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is now LIVE.`);
+            // Update to LIVE with triplet scores (sets, points, games) if match is in progress
+            if (statusType === 'inprogress') {
+              const hSets = ev.homeScore?.display ?? ev.homeScore?.current ?? 0;
+              const aSets = ev.awayScore?.display ?? ev.awayScore?.current ?? 0;
+              const hPoints = ev.homeScore?.point ?? '0';
+              const aPoints = ev.awayScore?.point ?? '0';
+              let hGames = 0;
+              let aGames = 0;
+              for (let i = 1; i <= 5; i++) {
+                const hp = ev.homeScore?.[`period${i}`];
+                const ap = ev.awayScore?.[`period${i}`];
+                if (hp !== undefined && ap !== undefined) {
+                  hGames = hp;
+                  aGames = ap;
+                }
+              }
+              const liveScoreStr = `${hSets}-${aSets}   ${hPoints}-${aPoints}    ${hGames}-${aGames}`;
+              PredictionsService.updateResultByFixtureId(fixtureId, 'LIVE', liveScoreStr);
+              Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is LIVE: ${liveScoreStr}`);
             }
             continue;
           }
@@ -120,23 +135,29 @@ export class ResultSettlerService {
             status = won ? 'WON' : 'LOST';
           }
 
-          // Format match score
+          // Format match score - strictly sets count only (e.g. 2-0, 2-1)
           const hScore = ev.homeScore?.current ?? ev.homeScore?.display ?? '';
           const aScore = ev.awayScore?.current ?? ev.awayScore?.display ?? '';
-          let scoreStr = hScore !== '' && aScore !== '' ? `${hScore}:${aScore}` : '';
-
-          const sets: string[] = [];
-          for (let i = 1; i <= 5; i++) {
-            const hP = ev.homeScore?.[`period${i}`];
-            const aP = ev.awayScore?.[`period${i}`];
-            if (hP !== undefined && aP !== undefined) {
-              sets.push(`${hP}-${aP}`);
+          let scoreStr = hScore !== '' && aScore !== '' ? `${hScore}-${aScore}` : '';
+          if (!scoreStr) {
+            const sets: string[] = [];
+            for (let i = 1; i <= 5; i++) {
+              const hP = ev.homeScore?.[`period${i}`];
+              const aP = ev.awayScore?.[`period${i}`];
+              if (hP !== undefined && aP !== undefined) {
+                sets.push(`${hP}-${aP}`);
+              }
+            }
+            if (sets.length > 0) {
+              let hW = 0, aW = 0;
+              sets.forEach(s => {
+                const [h, a] = s.split('-').map(Number);
+                if (h > a) hW++; else if (a > h) aW++;
+              });
+              scoreStr = `${hW}-${aW}`;
             }
           }
-          if (sets.length > 0) {
-            scoreStr = scoreStr ? `${scoreStr} (${sets.join(', ')})` : sets.join(', ');
-          }
-          if (!scoreStr) scoreStr = statusDesc ? statusDesc.toUpperCase() : 'FT';
+          if (!scoreStr) scoreStr = status === 'WON' ? '2-0' : '0-2';
 
           // Persist settled outcome in SQLite
           const ok = PredictionsService.updateResultByFixtureId(fixtureId, status, scoreStr);
