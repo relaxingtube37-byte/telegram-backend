@@ -173,6 +173,8 @@ export class ResultSettlerService {
           }
 
           // Format match score - strictly sets count only (e.g. 2-0, 2-1)
+          // For walkover/retirement: label the score accordingly
+          const isWalkover = statusDesc.includes('walkover') || statusDesc.includes('retirement') || statusDesc.includes('retired');
           const hScore = ev.homeScore?.current ?? ev.homeScore?.display ?? '';
           const aScore = ev.awayScore?.current ?? ev.awayScore?.display ?? '';
           let scoreStr = hScore !== '' && aScore !== '' ? `${hScore}-${aScore}` : '';
@@ -194,7 +196,11 @@ export class ResultSettlerService {
               scoreStr = `${hW}-${aW}`;
             }
           }
-          if (!scoreStr) scoreStr = status === 'WON' ? '2-0' : '0-2';
+          // Walkover / retirement: if no score recoverable, use descriptive label
+          if (!scoreStr && isWalkover) {
+            scoreStr = statusDesc.includes('walkover') ? 'W/O' : 'RET';
+          }
+          // Leave scoreStr empty if truly unknown — don't fabricate 2-0 or 0-2
 
           // Persist settled outcome in SQLite
           const ok = PredictionsService.updateResultByFixtureId(fixtureId, status, scoreStr);
