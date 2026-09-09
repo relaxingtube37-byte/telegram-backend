@@ -139,12 +139,12 @@ export function saveAccessMode(mode: string): AccessMode {
 
 export function computeIsVerified(
   accessMode: AccessMode,
-  user: { is_verified?: number; has_deposited?: number } | null | undefined
+  user: { is_verified?: number; has_deposited?: number; auth_provider?: string; email?: string } | null | undefined
 ): boolean {
   if (accessMode === ACCESS_MODES.FREE) return true;
   if (!user) return false;
-  // GATED_LATER currently behaves like registration until payment gateway is wired
-  return !!user.is_verified;
+  // In REGISTRATION_REQUIRED: verified registration or Google registered user gets access
+  return !!(user.is_verified || user.auth_provider === 'google' || user.email);
 }
 
 function extractSessionToken(req: Request): string | undefined {

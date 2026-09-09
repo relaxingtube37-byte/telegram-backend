@@ -179,4 +179,18 @@ export const runMigrations = () => {
   } catch (e: any) {
     Logger.warn('Phase D publish_status backfill:', e.message);
   }
+
+  // Backfill existing Google OAuth / email users to verified member status
+  try {
+    const now = new Date().toISOString();
+    db.prepare(`
+      UPDATE users 
+      SET is_verified = 1, 
+          verify_status = CASE WHEN verify_status = 'verified' THEN 'verified' ELSE 'google_verified' END,
+          verified_at = COALESCE(verified_at, ?)
+      WHERE (auth_provider = 'google' OR email IS NOT NULL) AND is_verified = 0
+    `).run(now);
+  } catch (e: any) {
+    Logger.warn('Google users verification backfill migration:', e.message);
+  }
 };
