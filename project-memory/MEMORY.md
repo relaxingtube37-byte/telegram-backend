@@ -27,6 +27,11 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - State Football admin UsersTab displays auth source badge (Google vs Telegram) and email alongside Telegram usernames.
 
 ## Progress
+- 2026-09-09: Streamlined 1-Click Registration & Instant Unlock UX:
+  - Simplified `ReferralModal.tsx` from 700 lines of multi-step wizard to a clean, focused 1-screen modal. Eliminated multi-step steppers, duplicate buttons ("Download App", "Direct Unlock", "Proceed to Step 2"), and clutter.
+  - Modal now has 1 clear primary action: "Register on 1WIN & Unlock Predictions" (+500% Bonus) which immediately unlocks the app and opens the partner link in 1 click.
+  - Simplified `SignUpStrip.tsx` to a single glowing CTA: "Unlock Predictions (+500% Bonus)", removing distracting secondary guides and complex badge text.
+  - Verified with clean build and pushed to `origin/master`.
 - 2026-09-09: Telegram Mini App Instant Unlock & Synchronous User Detection:
   - WebApp: Updated `App.tsx` to detect `Telegram.WebApp.initDataUnsafe.user` synchronously on initial render, preventing unauthenticated fallback states in Telegram WebView.
   - Resilience: Client-side unlock logic now permanently overrides predictions with `content_locked = false` upon partner click or verified token, immune to background network latency or stale server responses.
