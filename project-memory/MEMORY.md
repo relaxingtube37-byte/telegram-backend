@@ -27,6 +27,18 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - State Football admin UsersTab displays auth source badge (Google vs Telegram) and email alongside Telegram usernames.
 
 ## Progress
+- 2026-09-09: Telegram Mini App Instant Unlock & Synchronous User Detection:
+  - WebApp: Updated `App.tsx` to detect `Telegram.WebApp.initDataUnsafe.user` synchronously on initial render, preventing unauthenticated fallback states in Telegram WebView.
+  - Resilience: Client-side unlock logic now permanently overrides predictions with `content_locked = false` upon partner click or verified token, immune to background network latency or stale server responses.
+  - CTAs Wired: Added `onVerified` handler to `SignUpStrip`, `MatchBusinessActions`, `SideBanner`, and `ReferralModal`. Clicking "Activate 1WIN" or match registration immediately unlocks tactical predictions and sets `ptin_web_verified` in `localStorage`.
+  - Referral Modal: Configured `ReferralModal` to open Step 2 directly when inside Telegram, skipping unusable Google Sign-In prompts.
+  - Verified with clean production build (`tsc -b && vite build`) and pushed to `origin/master`.
+- 2026-09-09: Telegram Mini App Full Unlocking & Verification Flow:
+  - Backend: Updated `computeIsVerified` in `contentAccess.ts` and `resolveAccess.ts` to recognize authenticated Telegram users (`auth_provider === 'telegram'` or valid `telegram_id`) as verified under `REGISTRATION_REQUIRED`.
+  - Database: Updated `UsersRepo.upsertFromBot` to mark Telegram users `is_verified = 1`, `verify_status = 'telegram_verified'`, `auth_provider = 'telegram'`. Added automatic SQLite backfill migration for existing Telegram users. Added `setTelegramVerified` helper.
+  - Auth Routes: Updated `POST /api/webapp/auth` to issue cryptographically signed session tokens upon Telegram HMAC validation (`sessionToken`) and return `verified: true`. Added explicit `POST /api/webapp/referral/complete` endpoint.
+  - WebApp: Updated `App.tsx` to store session tokens and preserve verification status on launch. Updated `ReferralModal.tsx` to call `/referral/complete` on Step 2 partner clicks or direct complete action.
+  - Verified by `test_telegram_miniapp_unlock.ts`, security suite (21/21), clean builds and git master push across backend and webapp.
 - 2026-09-09: Google Sign-In, Dual-Auth & Professional Gating Presentation:
   - Backend: Added `googleAuth.ts`, `POST /api/webapp/auth/google`, `UsersRepo.upsertFromGoogle`, `test_google_auth.ts` (all passed).
   - Schema: Enriched `users` table with `email`, `auth_provider`, `google_id`, `avatar_url` via safe migrations.
