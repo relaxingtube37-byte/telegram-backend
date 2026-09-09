@@ -27,6 +27,11 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - State Football admin UsersTab displays auth source badge (Google vs Telegram) and email alongside Telegram usernames.
 
 ## Progress
+- 2026-09-09: Trust-Enhanced User Profile Menu & Account Logout:
+  - Header: Integrated interactive user profile capsule displaying avatar (Google picture / Telegram avatar / initials) with online status dot, user display name, and verified badge (`PRO MEMBER ✓` or `STEP 2 PENDING`).
+  - Trust Signals Dropdown: Clicking the profile capsule opens a glass dropdown featuring full user details, dedicated tracking ID (`#10492`), 256-Bit SSL encryption badge, official 1WIN partnership sync status, and unlocked AI perks checklist.
+  - Logout Action: Added `handleLogout` clearing `localStorage` (`ptin_web_session`, `ptin_web_verified`, `ptin_partner_activated`, `ptin_telegram_user`, `ptin_web_uid`), resetting state, and reloading guest data.
+  - Verified with clean build and pushed to `origin/master`.
 - 2026-09-09: Elegant, Simplified 2-Step Registration & Activation Flow:
   - Preserved the required 2-step business model (Step 1: Account Connection via Google/Telegram ➔ Step 2: 1WIN Partner Activation).
   - Redesigned `ReferralModal.tsx` with a clean, minimal 2-step stepper:
