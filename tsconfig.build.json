@@ -13,6 +13,7 @@
     "src/editorial/**/*",
     "src/config/**/*",
     "src/controllers/**/*",
+    "src/data/**/*",
     "src/dataPool/**/*",
     "src/db/**/*",
     "src/engine/**/*",

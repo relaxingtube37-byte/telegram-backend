@@ -10,7 +10,7 @@ dist/
 .env.production
 
 # Database & Data
-data/
+/data/
 *.db
 *.sqlite
 *.sqlite-*

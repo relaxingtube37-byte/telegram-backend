@@ -1,5 +1,6 @@
 import { db } from './connection';
 import { Logger } from '../utils/logger';
+import { SEED_PLAYERS } from '../data/seedPlayers';
 
 export const runMigrations = () => {
     try {
@@ -53,6 +54,37 @@ export const runMigrations = () => {
         );
       `);
     } catch {}
+
+    // Seed top 300 ATP/WTA players into SQLite database (INSERT OR IGNORE is idempotent and takes <5ms)
+    try {
+      if (Array.isArray(SEED_PLAYERS) && SEED_PLAYERS.length > 0) {
+        const insertStmt = db.prepare(`
+          INSERT OR IGNORE INTO players (
+            player_id, slug, full_name, short_name, country_code, country_name,
+            ranking, gender, playstyle, is_featured, is_published, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, datetime('now'), datetime('now'))
+        `);
+        const insertMany = db.transaction((items: readonly any[]) => {
+          for (const p of items) {
+            insertStmt.run(
+              p.player_id,
+              p.slug,
+              p.full_name,
+              p.short_name || null,
+              p.country_code || null,
+              p.country_name || null,
+              p.ranking || null,
+              p.gender || 'M',
+              p.playstyle || null
+            );
+          }
+        });
+        insertMany(SEED_PLAYERS);
+        Logger.info(`[Migrations] Ensured top ATP/WTA seed players in database.`);
+      }
+    } catch (err: any) {
+      Logger.warn('[Migrations] Player seed check:', err.message);
+    }
 
   const migrations = [
     "ALTER TABLE users ADD COLUMN username TEXT;",

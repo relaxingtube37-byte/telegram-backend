@@ -660,32 +660,67 @@ export const WebController = {
       let resolvedId = rawParam;
       if (isNaN(Number(resolvedId))) {
         const decoded = decodeURIComponent(rawParam).trim();
-        const parts = decoded.split(/\s+/).filter(Boolean);
+        const clean = decoded.replace(/[.,]/g, ' ').trim();
+        const parts = clean.split(/\s+/).filter(Boolean);
         let found: { player_id: number } | undefined;
 
         if (parts.length > 1) {
-          const first = parts[0].replace('.', '');
-          const lastName = parts[parts.length - 1];
+          const p1 = parts[0].toLowerCase();
+          const p2 = parts[parts.length - 1].toLowerCase();
           found = db.prepare(`
             SELECT player_id FROM players 
-            WHERE (full_name LIKE ? AND full_name LIKE ?)
-               OR slug LIKE ?
-               OR full_name LIKE ?
+            WHERE (lower(full_name) LIKE ? AND lower(full_name) LIKE ?)
+               OR (lower(full_name) LIKE ? AND lower(full_name) LIKE ?)
+               OR lower(slug) LIKE ?
+               OR lower(full_name) LIKE ?
+            ORDER BY COALESCE(ranking, 999) ASC
             LIMIT 1
-          `).get(`${first}%`, `%${lastName}%`, `%${lastName.toLowerCase()}%`, `%${decoded}%`) as { player_id: number } | undefined;
-        } else {
+          `).get(
+            `${p1}%`, `%${p2}%`,
+            `${p2}%`, `%${p1}%`,
+            `%${clean.toLowerCase()}%`,
+            `%${clean.toLowerCase()}%`
+          ) as { player_id: number } | undefined;
+        } else if (parts.length === 1) {
           found = db.prepare(`
             SELECT player_id FROM players 
-            WHERE slug = ? 
-               OR full_name LIKE ? 
-               OR slug LIKE ?
+            WHERE lower(slug) LIKE ? 
+               OR lower(full_name) LIKE ? 
+            ORDER BY COALESCE(ranking, 999) ASC
             LIMIT 1
-          `).get(decoded.toLowerCase(), `%${decoded}%`, `%${decoded.toLowerCase()}%`) as { player_id: number } | undefined;
+          `).get(`%${clean.toLowerCase()}%`, `%${clean.toLowerCase()}%`) as { player_id: number } | undefined;
         }
 
         if (found && found.player_id) {
           resolvedId = String(found.player_id);
+        } else {
+          // If not in database, search via RapidAPI Tennis API
+          try {
+            let searchRes = await BackendTennisApi.searchPlayers(decoded);
+            let matched = searchRes && Array.isArray(searchRes.results)
+              ? searchRes.results.find((r: any) => r.entity && r.entity.id && !r.entity.name?.includes(' - '))
+              : null;
+
+            if (!matched && parts.length > 1) {
+              const lastName = parts[parts.length - 1];
+              searchRes = await BackendTennisApi.searchPlayers(lastName);
+              if (searchRes && Array.isArray(searchRes.results)) {
+                matched = searchRes.results.find((r: any) => {
+                  if (!r.entity || !r.entity.id || r.entity.name?.includes(' - ')) return false;
+                  return (r.entity.name || '').toLowerCase().includes(lastName.toLowerCase());
+                });
+              }
+            }
+
+            if (matched && matched.entity?.id) {
+              resolvedId = String(matched.entity.id);
+            }
+          } catch {}
         }
+      }
+
+      if (isNaN(Number(resolvedId))) {
+        return res.status(404).send('Player not found');
       }
 
       const cacheKey = `player_webp_${resolvedId}_${targetSize}`;
@@ -702,7 +737,7 @@ export const WebController = {
 
       const buffer = await BackendTennisApi.getPlayerImage(resolvedId);
       if (!buffer || buffer.length === 0) {
-        BackendDataPoolStore.set(cacheKey, 'NOT_FOUND', 24 * 60 * 60 * 1000);
+        BackendDataPoolStore.set(cacheKey, 'NOT_FOUND', 60 * 60 * 1000);
         return res.status(404).send('Image unavailable');
       }
 
