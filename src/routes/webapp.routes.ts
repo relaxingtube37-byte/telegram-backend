@@ -6,6 +6,7 @@ import { ReferralsRepo } from '../db/repositories/referrals.repo';
 import { UsersRepo } from '../db/repositories/users.repo';
 import { SettingsRepo } from '../db/repositories/settings.repo';
 import { AnalysisController } from '../controllers/analysis.controller';
+import { WebController } from '../controllers/web.controller';
 import { MatchAnalyticsService } from '../services/match-analytics.service';
 import { PredictionsRepo } from '../db/repositories/predictions.repo';
 import {
@@ -30,6 +31,9 @@ import {
 } from '../utils/contentAccess';
 
 const router = Router();
+
+// GET /api/webapp/players/:playerId/image (Lightweight cached WebP player avatars)
+router.get('/players/:playerId/image', WebController.getPlayerImage);
 
 // GET /api/webapp/matches/:fixtureId/betting
 router.get('/matches/:fixtureId/betting', AnalysisController.getMatchBetting);
@@ -101,7 +105,17 @@ router.get('/predictions', async (req: Request, res: Response) => {
   try {
     const limit = parseInt(String(req.query.limit || '100'), 10);
     const access = resolveWebappAccess(req);
-    const predictions = PredictionsService.getAll(limit).map((p) => redactPrediction(p, access));
+    const rawList = PredictionsService.getAll(limit);
+    const predictions = rawList.map((p) => {
+      const red = redactPrediction(p, access);
+      if (!red.home_image && red.home_name) {
+        red.home_image = `/api/webapp/players/${encodeURIComponent(red.home_id || red.home_name)}/image?size=80`;
+      }
+      if (!red.away_image && red.away_name) {
+        red.away_image = `/api/webapp/players/${encodeURIComponent(red.away_id || red.away_name)}/image?size=80`;
+      }
+      return red;
+    });
     res.json({
       predictions,
       verified: access.isVerified,

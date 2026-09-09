@@ -649,9 +649,46 @@ export const WebController = {
 
   getPlayerImage: async (req: Request, res: Response) => {
     try {
-      const playerId = String(req.params.playerId);
-      const targetSize = Math.min(Math.max(parseInt(String(req.query.size || req.query.w || '96'), 10) || 96, 32), 512);
-      const cacheKey = `player_webp_${playerId}_${targetSize}`;
+      const rawParam = String(req.params.playerId || '').trim();
+      if (!rawParam) {
+        return res.status(404).send('Player parameter required');
+      }
+
+      const targetSize = Math.min(Math.max(parseInt(String(req.query.size || req.query.w || '80'), 10) || 80, 24), 512);
+
+      // Resolve numeric RapidAPI player_id
+      let resolvedId = rawParam;
+      if (isNaN(Number(resolvedId))) {
+        const decoded = decodeURIComponent(rawParam).trim();
+        const parts = decoded.split(/\s+/).filter(Boolean);
+        let found: { player_id: number } | undefined;
+
+        if (parts.length > 1) {
+          const first = parts[0].replace('.', '');
+          const lastName = parts[parts.length - 1];
+          found = db.prepare(`
+            SELECT player_id FROM players 
+            WHERE (full_name LIKE ? AND full_name LIKE ?)
+               OR slug LIKE ?
+               OR full_name LIKE ?
+            LIMIT 1
+          `).get(`${first}%`, `%${lastName}%`, `%${lastName.toLowerCase()}%`, `%${decoded}%`) as { player_id: number } | undefined;
+        } else {
+          found = db.prepare(`
+            SELECT player_id FROM players 
+            WHERE slug = ? 
+               OR full_name LIKE ? 
+               OR slug LIKE ?
+            LIMIT 1
+          `).get(decoded.toLowerCase(), `%${decoded}%`, `%${decoded.toLowerCase()}%`) as { player_id: number } | undefined;
+        }
+
+        if (found && found.player_id) {
+          resolvedId = String(found.player_id);
+        }
+      }
+
+      const cacheKey = `player_webp_${resolvedId}_${targetSize}`;
       
       const cachedBuf = BackendDataPoolStore.get<string>(cacheKey);
       if (cachedBuf) {
@@ -663,7 +700,7 @@ export const WebController = {
         return res.send(Buffer.from(cachedBuf, 'base64'));
       }
 
-      const buffer = await BackendTennisApi.getPlayerImage(playerId);
+      const buffer = await BackendTennisApi.getPlayerImage(resolvedId);
       if (!buffer || buffer.length === 0) {
         BackendDataPoolStore.set(cacheKey, 'NOT_FOUND', 24 * 60 * 60 * 1000);
         return res.status(404).send('Image unavailable');
@@ -677,7 +714,7 @@ export const WebController = {
             position: 'top',
             withoutEnlargement: false,
           })
-          .webp({ quality: 85, effort: 4 })
+          .webp({ quality: 80, effort: 3 })
           .toBuffer();
       } catch {
         optimizedWebP = buffer;
