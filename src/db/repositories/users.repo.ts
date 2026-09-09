@@ -10,6 +10,73 @@ export const UsersRepo = {
     return db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(telegramId);
   },
 
+  getByGoogleId: (googleId: string): any => {
+    return db.prepare('SELECT * FROM users WHERE google_id = ?').get(googleId);
+  },
+
+  getByEmail: (email: string): any => {
+    return db.prepare('SELECT * FROM users WHERE LOWER(email) = LOWER(?)').get(email);
+  },
+
+  upsertFromGoogle: (profile: {
+    googleId: string;
+    email: string;
+    name?: string;
+    picture?: string;
+    syntheticId: number;
+  }): any => {
+    const now = new Date().toISOString();
+    let existing = db.prepare('SELECT * FROM users WHERE google_id = ?').get(profile.googleId) as any;
+    if (!existing && profile.email) {
+      existing = db.prepare('SELECT * FROM users WHERE LOWER(email) = LOWER(?)').get(profile.email) as any;
+    }
+
+    if (existing) {
+      db.prepare(`
+        UPDATE users SET
+          email = COALESCE(?, email),
+          first_name = COALESCE(?, first_name),
+          avatar_url = COALESCE(?, avatar_url),
+          google_id = COALESCE(?, google_id),
+          auth_provider = CASE WHEN auth_provider IS NULL OR auth_provider = '' THEN 'google' ELSE auth_provider END,
+          last_active_at = ?
+        WHERE id = ?
+      `).run(
+        profile.email,
+        profile.name || null,
+        profile.picture || null,
+        profile.googleId,
+        now,
+        existing.id
+      );
+      return db.prepare('SELECT * FROM users WHERE id = ?').get(existing.id);
+    } else {
+      const info = db.prepare(`
+        INSERT INTO users (
+          telegram_id,
+          first_name,
+          email,
+          auth_provider,
+          google_id,
+          avatar_url,
+          is_verified,
+          created_at,
+          last_active_at
+        )
+        VALUES (?, ?, ?, 'google', ?, ?, 0, ?, ?)
+      `).run(
+        profile.syntheticId,
+        profile.name || null,
+        profile.email,
+        profile.googleId,
+        profile.picture || null,
+        now,
+        now
+      );
+      return db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
+    }
+  },
+
   getLatestUnverified: (siteId?: number): any => {
     if (siteId) {
       const user = db.prepare(`

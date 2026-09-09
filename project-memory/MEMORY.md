@@ -20,8 +20,19 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - Business CTAs (Phase C) live in separate settings key `business_action_settings` — not mixed into `access_policy`: registration_referral / watch_live / payment placeholder / shared watch URL.
 - Referral clicks store opaque `click_id` attribution; partner postbacks are idempotent via `partner_conversions.dedupe_key`.
 - Watch Live uses shared partner `/go/:siteId/:userId?action=watch_live` referral redirect — no stream capture/redistribution.
+- Google Sign-In & One Tap authentication integrated (`POST /api/webapp/auth/google`) with deterministic safe numeric user ID generation for SQLite backward-compatibility.
+- Users schema enriched with `email`, `auth_provider`, `google_id`, `avatar_url`.
+- "VIP" terminology eliminated across all components in favor of professional "Member Access" and "Full Tactical Dossier".
+- Gating UI upgraded to soft-blur gradient overlay on deep predictive dossiers with 1-click Google and Telegram connect.
+- State Football admin UsersTab displays auth source badge (Google vs Telegram) and email alongside Telegram usernames.
 
 ## Progress
+- 2026-09-09: Google Sign-In, Dual-Auth & Professional Gating Presentation:
+  - Backend: Added `googleAuth.ts`, `POST /api/webapp/auth/google`, `UsersRepo.upsertFromGoogle`, `test_google_auth.ts` (all passed).
+  - Schema: Enriched `users` table with `email`, `auth_provider`, `google_id`, `avatar_url` via safe migrations.
+  - WebApp: Integrated Google Identity Services (`gsi/client`) + `useGoogleAuth` hook; eliminated all "VIP" tacky jargon and button spam; replaced lock boxes with soft-blur gradient overlay in `MatchDeepAnalysis.tsx`; updated `ReferralModal.tsx` with dual Google/Telegram 1-click connect.
+  - State Football: Enriched `TelegramUserRecord` with Google fields; updated `UsersTab.tsx` with Google vs Telegram badges and email identifiers.
+  - Verified 100% test pass (26/26 backend, 21/21 security, Google auth suite) and clean production builds on all 3 projects. Zero deployments performed.
 - 2026-09-08: Final Polish, Consistency & QA Audit across all 4 phases (A, B, C, D):
   - Phase A: Unified `contentAccess.ts` defaults with `access-policy` (`REGISTRATION_REQUIRED`), linked `saveWebsiteConfig` to live `access_policy` layers in `admin.controller.ts`, verified default mode fallback, legacy alias normalization, and schema stability in `test_access_policy_phase_a.ts`.
   - Phase B: Refined winner lean logic in `MatchPredictionPanel.tsx` (preventing false winner pill on home player when predicted_winner is empty), styled fallback error state with `btn-secondary` in `MatchAnalysisPage.tsx`, reused shared `buildAuthHeaders` with Telegram `initData` support in `MatchEditorialSummary.tsx`, expanded `phaseBChecks.ts` (edge cases & lean heuristics).

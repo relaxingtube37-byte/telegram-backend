@@ -15,6 +15,10 @@ export const initSchema = () => {
       has_deposited INTEGER DEFAULT 0,
       pending_site_id INTEGER,
       screenshot_file_id TEXT,
+      email TEXT,
+      auth_provider TEXT DEFAULT 'telegram',
+      google_id TEXT,
+      avatar_url TEXT,
       created_at TEXT NOT NULL,
       last_active_at TEXT
     );

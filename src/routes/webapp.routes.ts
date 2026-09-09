@@ -15,6 +15,7 @@ import {
   verifyWebSessionToken,
   WebSessionPayload,
 } from '../utils/telegramAuth';
+import { verifyGoogleIdToken, generateNumericIdForGoogleUser } from '../utils/googleAuth';
 import { ENV } from '../config/env';
 import { loadBusinessActionSettings } from '../business-actions';
 import {
@@ -293,6 +294,73 @@ router.post('/auth/telegram-widget', async (req: Request, res: Response) => {
         telegram_id: tgUser.id,
         first_name: userRecord?.first_name || tgUser.first_name,
         username: userRecord?.username || tgUser.username,
+        is_verified: isVerified ? 1 : 0,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/webapp/auth/google - Verify Google ID Token (Google One Tap / Sign-In) and link to web session
+router.post('/auth/google', async (req: Request, res: Response) => {
+  try {
+    const { idToken, sessionToken } = req.body || {};
+    if (!idToken) {
+      return res.status(400).json({ error: 'Missing idToken in request body' });
+    }
+
+    const expectedClientId = process.env.GOOGLE_CLIENT_ID || '';
+    const verification = await verifyGoogleIdToken(idToken, expectedClientId);
+    if (!verification.valid || !verification.user) {
+      return res.status(401).json({ error: verification.error || 'Invalid Google ID token' });
+    }
+
+    const gUser = verification.user;
+    const syntheticId = generateNumericIdForGoogleUser(gUser.googleId || gUser.email);
+
+    const userRecord = UsersRepo.upsertFromGoogle({
+      googleId: gUser.googleId,
+      email: gUser.email,
+      name: gUser.name,
+      picture: gUser.picture,
+      syntheticId,
+    });
+
+    const secret = getWebSessionSecret();
+    const existingSession = verifyWebSessionToken(sessionToken, secret);
+
+    const webId =
+      existingSession.valid && existingSession.payload?.webId
+        ? existingSession.payload.webId
+        : `web_${crypto.randomBytes(12).toString('hex')}`;
+
+    const effectiveUserId = userRecord.telegram_id || syntheticId;
+    const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
+    const isVerified = computeIsVerified(accessMode, userRecord);
+    const contentFlags = resolveContentFlags();
+
+    const newPayload: WebSessionPayload = {
+      webId,
+      telegramId: effectiveUserId,
+      createdAt: Date.now(),
+    };
+    const newToken = createWebSessionToken(newPayload, secret);
+
+    res.json({
+      success: true,
+      verified: isVerified,
+      access_mode: accessMode,
+      content_layers: contentFlags,
+      sessionToken: newToken,
+      webId,
+      user: {
+        id: userRecord.id,
+        telegram_id: effectiveUserId,
+        email: userRecord.email || gUser.email,
+        first_name: userRecord.first_name || gUser.name,
+        avatar_url: userRecord.avatar_url || gUser.picture,
+        auth_provider: 'google',
         is_verified: isVerified ? 1 : 0,
       },
     });

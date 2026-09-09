@@ -47,6 +47,12 @@ export interface TelegramUser {
   has_deposited?: number;
   pending_site_id?: number;
   screenshot_file_id?: string;
+  email?: string;
+  auth_provider?: 'telegram' | 'google';
+  google_id?: string;
+  avatar_url?: string;
+  first_name?: string;
+  username?: string;
   created_at?: string;
   last_active_at?: string;
 }
