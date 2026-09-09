@@ -118,11 +118,12 @@ export const runMigrations = () => {
     }
   }
 
-  // Ensure default access_mode setting exists
+  // Ensure access_mode setting defaults to REGISTRATION_REQUIRED for proper gating
   try {
-    const existing = db.prepare("SELECT value FROM settings WHERE key = 'access_mode'").get();
-    if (!existing) {
-      db.prepare("INSERT INTO settings (key, value) VALUES ('access_mode', 'REGISTRATION_REQUIRED')").run();
+    const existing = db.prepare("SELECT value FROM settings WHERE key = 'access_mode'").get() as { value: string } | undefined;
+    if (!existing || existing.value === 'FREE') {
+      db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('access_mode', 'REGISTRATION_REQUIRED')").run();
+      Logger.info('[Migrations] Enforced access_mode to REGISTRATION_REQUIRED');
     }
   } catch (e: any) {
     Logger.warn('Settings migration check:', e.message);
