@@ -39,7 +39,7 @@ This document provides field-by-field transformation rules, data types, sanitiza
 | `entry_status` | `VARCHAR(10) NULL`| `winner_entry`, `loser_entry` | Qualification/wildcard status (`'Q'`, `'WC'`, `'LL'`, `'PR'`, `'SE'`). Sanitized uppercase. |
 | `pre_match_rank` | `INTEGER NULL` | `winner_rank`, `loser_rank` | ATP/WTA ranking prior to match commencement ($1 \le rank \le 5000$). Otherwise `NULL`. |
 | `pre_match_rank_points`| `INTEGER NULL` | `winner_rank_points`, `loser_rank_points` | ATP/WTA ranking points prior to match commencement ($\ge 0$). Otherwise `NULL`. |
-| `is_winner` | `BOOLEAN NULL` | Outcome decoupling | Strictly `NULL` in the participant table to eliminate lookahead leakage. |
+| `is_winner` | `BOOLEAN NULL` | Outcome decoupling & zero lookahead | Strictly `NULL` in the participant table by architectural contract to eliminate predictive lookahead leakage. Legacy consumers requiring `is_winner` access it via compatibility views (`public.player_matches_validated`), which compute `(p.player_id = r.winner_player_id)` dynamically. |
 | `created_at` | `TIMESTAMPTZ` | Deterministic timestamp | Timestamp of participant record creation. |
 
 ---

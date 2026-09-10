@@ -1,39 +1,59 @@
 # Phase 5: Matches & Outcomes Pipeline Specification
 
-## 1. Executive Overview
+## 1. Executive Overview & Official Milestone Status
 
 This specification establishes the architectural, mathematical, and data integrity standards for **Phase 5: Matches & Outcomes Pipeline** within the tennis AI modeling and sports state platform.
 
-The Phase 5 pipeline ingests match fixtures, assigns deterministic identities, enforces symmetric participant pairing (zero lookahead bias), decouples pre-match fixtures from post-match outcomes, maintains rich cross-source provenance, and reconciles incoming records against the operational baseline view (`canonical_matches_operational`).
+### Official Ingestion & Parity Verdict
+- **Phase 5 Dry-Run Status:** **CONDITIONAL PASS** (Internal integrity, entity deduplication, and quality gates 10/10 PASS).
+- **Identity & Edition Foreign-Key Resolution:** **PASS** (100% of admitted fixtures resolve to verified Phase 4 editions; 0 orphans).
+- **Participant Symmetry & Lookahead Decoupling:** **PASS** (151,384 symmetric entrants across 75,692 matches, exactly 2:1 ratio, 0 self-matches).
+- **Outcome Separation & Membership:** **PASS** (75,690 settled outcomes isolated to `matches.match_results`).
+- **Provenance Preservation:** **PASS** (81,554 source match links and 75,698 field-level records).
+- **Deterministic Reproducibility:** **PASS** (Bit-for-bit identical hashes across multiple dry-run executions).
+- **SQLite Immutability:** **PASS** (Zero mutation, 0 bytes delta on source SQLite databases).
+- **Full Operational Baseline Parity:** **NOT YET PROVEN** (48.83% of baseline excluded under fail-closed quarantine policy; formal baseline exception policy required).
+- **PostgreSQL Ingestion:** **NO-GO** (Draft artifacts strictly offline in scratch).
+- **Production Cutover:** **NO-GO** (Cutover strictly prohibited until Phase 10 live parity).
 
 ---
 
 ## 2. Architectural Invariants & Guarantees
 
-### 2.1 Schema Layering & Entity Separation
+### 2.1 Schema Layering & Zero Lookahead Bias Contract
 The pipeline strictly adheres to the canonical PostgreSQL 16 schema defined in `db/postgres-schema-v1.sql`:
-1. **`matches.matches` (Core Fixture Lifecycle):**
+
+1. **`matches.matches` (Core Pre-Match Lifecycle):**
    - Represents the pre-match fixture scheduled within a specific tournament edition.
    - Contains temporal timestamps (`scheduled_start_utc`, `actual_start_utc`), round nomenclature, match format (`best_of` 3 or 5), surface, indoor status, and execution state (`status`).
    - Completely independent of the match winner or score.
-2. **`matches.match_participants` (Symmetric Participant Layer):**
+
+2. **`matches.match_participants` (Symmetric Entrant Layer):**
    - Exactly two participant records per match (`side = 1` and `side = 2`).
    - Symmetrical ordering invariant: Player with the lexicographically smaller UUID is assigned to `side = 1`, and the larger UUID to `side = 2` ($p_1 < p_2$).
-   - **Zero Lookahead Bias:** The `is_winner` flag is kept strictly decoupled / `NULL` in the participant layer to eliminate predictive leakage in training and inference pipelines.
+   - **Zero Lookahead Bias Contract:**
+     $$\text{matches.match\_participants.is\_winner} = \mathbf{NULL} \quad \text{by contract}$$
+     $$\text{Winner identity} = \mathbf{matches.match\_results} \quad \text{only}$$
    - Pre-match telemetry (seed, entry status, pre-match ATP/WTA ranking, and ranking points) is captured cleanly per participant.
+   - **Compatibility Layer Guarantee:** For legacy consumers or endpoints expecting an `is_winner` boolean on participant rows, compatibility views (`public.player_matches_validated`, etc.) dynamically compute:
+     $$\text{is\_winner} = (\text{p.player\_id} == \text{r.winner\_player\_id})$$
+     via `LEFT JOIN matches.match_results r ON r.match_id = p.match_id`. No winner state is ever materialized in the base participant table.
+
 3. **`matches.match_results` (Settled Outcome Layer):**
    - Exclusively models final match outcomes: `winner_player_id`, `loser_player_id`, `score_string`, `duration_minutes`, and `is_retirement_or_wo`.
    - Invariant: `winner_player_id` and `loser_player_id` must strictly belong to the two participants of the referenced match.
    - Invariant: Matches that are `SCHEDULED`, `IN_PROGRESS`, `CANCELLED`, or unsettled remain in `matches.matches` and **never** enter `matches.match_results`.
+
 4. **`provenance.source_match_links` & `provenance.field_provenance`:**
    - Multi-source cross-linking: Records from modern consensus, legacy canonical, and historical archives are unified to a single canonical `match_id`.
    - Every contributing source ID (e.g. `canonical_matches_v2` ID, `canonical_matches` ID, Sackmann `historical_matches` ID, RapidAPI `rapid_event_id`) is permanently retained with confidence scores.
+
 5. **`conflicts.jsonl` (Review Queue):**
    - Discrepant outcomes (differing winners, incompatible scores, or conflicting calendar instances) are routed to a structured review queue rather than being silently merged or overwritten.
 
 ---
 
-## 3. Deterministic Identity & Fingerprinting
+## 3. Deterministic Identity & Natural Fingerprinting
 
 ### 3.1 Namespace & UUIDv5 Derivation
 All primary identifiers are generated using RFC 4122 UUIDv5 hashing with a fixed namespace to ensure 100% deterministic reproducibility across multiple runs:
@@ -52,7 +72,7 @@ This guarantees that a player cannot be paired against themselves ($p_1 \ne p_2$
 
 ---
 
-## 4. Source Precedence Hierarchy
+## 4. Source Precedence Hierarchy & Deduplication
 
 To prevent arbitrary data overwrite and preserve high-fidelity telemetry, incoming sources are processed in a strict four-tier hierarchy:
 
@@ -60,7 +80,7 @@ To prevent arbitrary data overwrite and preserve high-fidelity telemetry, incomi
 | :---: | :--- | :--- | :--- |
 | **Tier 1** | `canonical_matches_v2` | Primary Modern Authority | Establishes the definitive fixture and outcome. Highest priority for all attributes. |
 | **Tier 2** | `canonical_matches` | Legacy Canonical Pool | Extends coverage across historical seasons. Enriches metadata (ranks, seeds, durations, timestamps). Merges into Tier 1 when fingerprint matches and outcomes align. |
-| **Tier 3** | `historical_matches` | Historical Fallback | Sackmann archive baseline (fully mapped via `source_a_historical_match_id`). Preserves foundational stats and archive IDs. |
+| **Tier 3** | `historical_matches` | Historical Fallback | Sackmann archive baseline (100% mapped via `source_a_historical_match_id`). Preserves foundational stats and archive IDs. |
 | **Tier 4** | `canonical_matches_operational` | Read-Only Comparison Baseline | Evaluated purely as a diagnostic benchmark (147,937 rows) to measure coverage gaps, non-singles exclusions, and unresolved candidate counts. Never mutates canonical tables. |
 
 ---
@@ -73,7 +93,7 @@ If a candidate match matches an existing fixture's natural fingerprint but exhib
 2. `SCORE_CONTRADICTION`: Significant score conflict between sources.
 3. `DATE_DISPARITY`: Match dates diverge by more than 7 days, indicating a distinct tournament instance or rescheduled fixture.
 
-### 5.2 Quarantine Taxonomy
+### 5.2 Quarantine Taxonomy (Mutually Exclusive)
 Candidates failing quality criteria are diverted to `quarantine.jsonl`:
 - `UNRESOLVED_EDITION`: Tournament name or canonical ID cannot be resolved to a valid Phase 4 `edition_id` (e.g. 25,209 "Unknown Tournament" records).
 - `UNRESOLVED_PLAYER_1` / `UNRESOLVED_PLAYER_2` / `UNRESOLVED_BOTH_PLAYERS`: Competitor names not present in the frozen Phase 3 canonical player registry.
@@ -96,7 +116,7 @@ Candidates failing quality criteria are diverted to `quarantine.jsonl`:
 | **G5** | Pre-Match / Outcome Decoupling | Unsettled matches remain in `matches` and are excluded from `match_results`. |
 | **G6** | Score & Status Consistency | Status (`FINISHED`, `RETIRED`, `WALKOVER`) coheres with `score_string` and retirement flags. |
 | **G7** | Cross-Source Provenance | 100% of deduplicated matches maintain links to their original source IDs in `source_match_links`. |
-| **G8** | Strict Conflict & Quarantine Isolation | Conflicting outcomes logged to `conflicts.jsonl`; unmapped rows isolated to `quarantine.jsonl`. |
+| **G8** | Conflict & Quarantine Isolation | Conflicting outcomes logged to `conflicts.jsonl`; unmapped rows isolated to `quarantine.jsonl`. |
 | **G9** | Bitwise Deterministic Reproducibility | Multiple execution runs yield identical counts, UUIDs, fingerprints, and manifest SHA-256 hashes. |
 | **G10** | Zero Database & Runtime Mutation | SQLite file sizes and hashes invariant (0 bytes delta); 0 PostgreSQL queries; 0 edits to `src/` or `server/`. |
 
