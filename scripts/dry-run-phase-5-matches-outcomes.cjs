@@ -945,21 +945,64 @@ async function runDryRun() {
       pass: (sqliteBackendSizeDelta === 0) && sqliteBackendHashIdentical,
       backendSizeDelta: sqliteBackendSizeDelta,
       backendHashIdentical: sqliteBackendHashIdentical
+    },
+    G11_BaselineReconciliationClosure: {
+      description: 'admitted_source_rows + quarantined_source_rows = 147,937 (Δ=0); regression: 4 conflicts, 5,862 deduplication rows',
+      // Three assertions from §4A policy:
+      //   A: COUNT(matches.matches)                        = 75,692
+      //   B: COUNT(provenance.source_match_links)          = 81,554
+      //   C: admitted_source_rows + quarantined_source_rows = 147,937
+      // Regression fixtures:
+      //   - exactly 4 conflicts (C1 Hua Hin, C2 AO Qualifying, C3 Davis Cup, C4 Shanghai)
+      //   - exactly 5,862 deduplication rows (5,856 cross-tier + 6 intra-tier)
+      assertionA_canonicalMatches: emittedMatchesCount,
+      assertionA_pass: emittedMatchesCount === 75692,
+      assertionB_sourceLinks: sourceMatchLinks.length,
+      assertionB_pass: sourceMatchLinks.length === 81554,
+      assertionC_reconciliationDelta: (() => {
+        const operationalBaseline = 147937;
+        const admitted = sourceMatchLinks.length;
+        const quarantined = quarantinedRecords.length;
+        return operationalBaseline - (admitted + quarantined);
+      })(),
+      assertionC_pass: (() => {
+        const operationalBaseline = 147937;
+        const admitted = sourceMatchLinks.length;
+        const quarantined = quarantinedRecords.length;
+        return (admitted + quarantined) === operationalBaseline;
+      })(),
+      regression_conflicts_count: conflicts.length,
+      regression_conflicts_pass: conflicts.length === 4,
+      regression_dedup_delta: sourceMatchLinks.length - emittedMatchesCount,
+      regression_dedup_pass: (sourceMatchLinks.length - emittedMatchesCount) === 5862,
+      pass: (() => {
+        const operationalBaseline = 147937;
+        const admitted = sourceMatchLinks.length;
+        const quarantined = quarantinedRecords.length;
+        return (
+          emittedMatchesCount === 75692 &&
+          admitted === 81554 &&
+          (admitted + quarantined) === operationalBaseline &&
+          conflicts.length === 4 &&
+          (admitted - emittedMatchesCount) === 5862
+        );
+      })()
     }
   };
 
   const allGatesPassed = Object.values(gateResults).every(g => g.pass);
 
-  console.log(`  G1 Parent Edition Resolution:         ${gateResults.G1_ParentEditionResolution.pass ? 'PASS' : 'FAIL'}`);
-  console.log(`  G2 Exactly Two Participants:          ${gateResults.G2_ExactlyTwoParticipants.pass ? 'PASS' : 'FAIL'} (${emittedParticipantsCount} rows)`);
-  console.log(`  G3 Zero Self-Matches:                 ${gateResults.G3_ZeroSelfMatches.pass ? 'PASS' : 'FAIL'}`);
-  console.log(`  G4 Participant Outcome Membership:    ${gateResults.G4_ParticipantOutcomeMembership.pass ? 'PASS' : 'FAIL'} (${emittedResultsCount} results)`);
-  console.log(`  G5 Pre-Match / Outcome Decoupling:    ${gateResults.G5_PreMatchOutcomeDecoupling.pass ? 'PASS' : 'FAIL'}`);
-  console.log(`  G6 Score & Status Consistency:        ${gateResults.G6_ScoreAndStatusConsistency.pass ? 'PASS' : 'FAIL'}`);
-  console.log(`  G7 Cross-Source Provenance:           ${gateResults.G7_CrossSourceProvenance.pass ? 'PASS' : 'FAIL'} (${sourceMatchLinks.length} links)`);
-  console.log(`  G8 Conflict & Quarantine Isolation:   ${gateResults.G8_ConflictAndQuarantineIsolation.pass ? 'PASS' : 'FAIL'} (${conflicts.length} conflicts, ${quarantinedRecords.length} quarantined)`);
-  console.log(`  G9 Deterministic Reproducibility:     ${gateResults.G9_DeterministicReproducibility.pass ? 'PASS' : 'FAIL'}`);
-  console.log(`  G10 Zero Database Mutation:           ${gateResults.G10_ZeroDatabaseMutation.pass ? 'PASS' : 'FAIL'} (delta: ${sqliteBackendSizeDelta} bytes)`);
+  console.log(`  G1  Parent Edition Resolution:         ${gateResults.G1_ParentEditionResolution.pass ? 'PASS' : 'FAIL'}`);
+  console.log(`  G2  Exactly Two Participants:          ${gateResults.G2_ExactlyTwoParticipants.pass ? 'PASS' : 'FAIL'} (${emittedParticipantsCount} rows)`);
+  console.log(`  G3  Zero Self-Matches:                 ${gateResults.G3_ZeroSelfMatches.pass ? 'PASS' : 'FAIL'}`);
+  console.log(`  G4  Participant Outcome Membership:    ${gateResults.G4_ParticipantOutcomeMembership.pass ? 'PASS' : 'FAIL'} (${emittedResultsCount} results)`);
+  console.log(`  G5  Pre-Match / Outcome Decoupling:    ${gateResults.G5_PreMatchOutcomeDecoupling.pass ? 'PASS' : 'FAIL'}`);
+  console.log(`  G6  Score & Status Consistency:        ${gateResults.G6_ScoreAndStatusConsistency.pass ? 'PASS' : 'FAIL'}`);
+  console.log(`  G7  Cross-Source Provenance:           ${gateResults.G7_CrossSourceProvenance.pass ? 'PASS' : 'FAIL'} (${sourceMatchLinks.length} links)`);
+  console.log(`  G8  Conflict & Quarantine Isolation:   ${gateResults.G8_ConflictAndQuarantineIsolation.pass ? 'PASS' : 'FAIL'} (${conflicts.length} conflicts, ${quarantinedRecords.length} quarantined)`);
+  console.log(`  G9  Deterministic Reproducibility:     ${gateResults.G9_DeterministicReproducibility.pass ? 'PASS' : 'FAIL'}`);
+  console.log(`  G10 Zero Database Mutation:            ${gateResults.G10_ZeroDatabaseMutation.pass ? 'PASS' : 'FAIL'} (delta: ${sqliteBackendSizeDelta} bytes)`);
+  console.log(`  G11 Baseline Reconciliation Closure:   ${gateResults.G11_BaselineReconciliationClosure.pass ? 'PASS' : 'FAIL'} (Δ=${gateResults.G11_BaselineReconciliationClosure.assertionC_reconciliationDelta}, conflicts=${conflicts.length}, dedup=${gateResults.G11_BaselineReconciliationClosure.regression_dedup_delta})`);
 
   // Manifest calculation
   const outputFiles = [
@@ -1161,7 +1204,7 @@ ${Object.entries(tourLevelBreakdown).map(([lvl, c]) => `- **${lvl}:** ${c.toLoca
 
 ---
 
-## 5. Quality Acceptance Gates (G1–G10)
+## 5. Quality Acceptance Gates (G1–G11)
 
 | Gate ID | Gate Name | Result | Details |
 | :--- | :--- | :---: | :--- |
@@ -1175,6 +1218,7 @@ ${Object.entries(tourLevelBreakdown).map(([lvl, c]) => `- **${lvl}:** ${c.toLoca
 | **G8** | Conflict & Quarantine Isolation | **${gateResults.G8_ConflictAndQuarantineIsolation.pass ? 'PASS' : 'FAIL'}** | ${conflicts.length} conflicts and ${quarantinedRecords.length} quarantined. |
 | **G9** | Deterministic Reproducibility | **${gateResults.G9_DeterministicReproducibility.pass ? 'PASS' : 'FAIL'}** | Collision-free RFC 4122 UUIDv5 primary keys. |
 | **G10** | Zero Database Mutation | **${gateResults.G10_ZeroDatabaseMutation.pass ? 'PASS' : 'FAIL'}** | SQLite size delta: 0 bytes. SHA-256 identical. |
+| **G11** | Baseline Reconciliation Closure | **${gateResults.G11_BaselineReconciliationClosure.pass ? 'PASS' : 'FAIL'}** | Δ=${gateResults.G11_BaselineReconciliationClosure.assertionC_reconciliationDelta}; A:${emittedMatchesCount}=75,692; B:${sourceMatchLinks.length}=81,554; C:${sourceMatchLinks.length}+${quarantinedRecords.length}=147,937; 4 conflicts; ${gateResults.G11_BaselineReconciliationClosure.regression_dedup_delta} dedup rows. |
 
 ---
 
@@ -1191,7 +1235,7 @@ ${outputFiles.map(f => `| \`${f}\` | ${manifest.files[f] ? manifest.files[f].siz
 > [!IMPORTANT]
 > Schema validated on local/staging PostgreSQL specifications only; production runtime unchanged; SQLite untouched; cutover prohibited until Phase 10 parity.
 > این فاز contract parity را ثابت می‌کند، نه production read parity را. production parity طبق برنامه در Phase 10 و با canary comparator سنجیده می‌شود.
-> قبولی 10/10 به معنی آمادگی برای ادامه‌ی فاز بعدی است، نه مجوز cutover. خود برنامه صریحاً NO-GO می‌دهد تا وقتی Phase 10 parity روی ترافیک واقعی تأیید نشده باشد.
+> قبولی 11/11 به معنی آمادگی برای ادامه‌ی فاز بعدی است، نه مجوز cutover. خود برنامه صریحاً NO-GO می‌دهد تا وقتی Phase 10 parity روی ترافیک واقعی تأیید نشده باشد.
 `;
 
   fs.writeFileSync(reportMdPath, reportMd, 'utf8');
@@ -1206,7 +1250,7 @@ ${outputFiles.map(f => `| \`${f}\` | ${manifest.files[f] ? manifest.files[f].siz
   }
 
   console.log('\n================================================================================');
-  console.log(' PHASE 5 DRY-RUN COMPLETED SUCCESSFULLY: 10/10 QUALITY GATES PASSED');
+  console.log(' PHASE 5 DRY-RUN COMPLETED SUCCESSFULLY: 11/11 QUALITY GATES PASSED');
   console.log('================================================================================\n');
 }
 

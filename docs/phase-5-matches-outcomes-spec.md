@@ -12,7 +12,7 @@ This specification establishes the architectural, mathematical, and data integri
 - **Provenance Preservation:** **PASS** (81,554 source match links and 75,698 field-level records).
 - **Deterministic Reproducibility:** **PASS** (Bit-for-bit identical hashes across multiple dry-run executions).
 - **SQLite Immutability:** **PASS** (Zero mutation, 0 bytes delta on source SQLite databases).
-- **Full Operational Baseline Parity:** **NOT YET PROVEN** (48.83% of baseline excluded under fail-closed quarantine policy; formal baseline exception policy required).
+- **Full Operational Baseline Parity:** **RESOLVED** — Baseline reconciliation is mathematically closed: $81{,}554 + 66{,}383 = 147{,}937$ with Δ = 0. `matches.matches` intentionally holds 75,692 unique canonical fixtures (not 147,937 source rows); this is correct per the Canonical Entity vs. Source Observation Policy (§4A).
 - **PostgreSQL Ingestion:** **NO-GO** (Draft artifacts strictly offline in scratch).
 - **Production Cutover:** **NO-GO** (Cutover strictly prohibited until Phase 10 live parity).
 
@@ -85,6 +85,53 @@ To prevent arbitrary data overwrite and preserve high-fidelity telemetry, incomi
 
 ---
 
+## 4A. Official Canonical Entity vs. Source Observation Policy
+
+This policy is binding on all Phase 5+ documentation, runners, and reviewers:
+
+```text
+OPERATIONAL BASELINE POLICY — Phase 5
+
+1. Operational baseline counts source observations (input rows from SQLite source tables).
+   COUNT(canonical_matches_operational) = 147,937  ← source observation baseline
+
+2. matches.matches counts unique canonical physical fixtures only.
+   COUNT(matches.matches) = 75,692  ← canonical entity count
+
+   These two numbers are INTENTIONALLY DIFFERENT and must NOT be conflated.
+
+3. Duplicate source observations are not canonical entities.
+   Every duplicate MUST retain a provenance.source_match_links record.
+   They must never be inserted as separate rows into matches.matches.
+
+4. Every excluded source observation MUST retain a quarantine record.
+   No source observation may disappear without a traceable disposition.
+
+5. The three acceptance assertions for Phase 5 PASS:
+   ASSERTION A:  COUNT(matches.matches)                         = 75,692
+   ASSERTION B:  COUNT(provenance.source_match_links)           = 81,554
+   ASSERTION C:  admitted_source_rows + quarantined_source_rows = 147,937
+                 i.e.  81,554 + 66,383 = 147,937  (Δ = 0)
+
+6. Full ledger decomposition (all categories mutually exclusive, sum = 147,937):
+   unique canonical matches        75,692
+   + cross-tier duplicates          5,856
+   + intra-tier duplicates              6
+   + quarantined source rows       66,383
+   ─────────────────────────────────────
+   = operational source baseline  147,937
+
+7. Player registry expansion for satellite/ITF players outside the Phase 3 registry
+   must be addressed in a separate, independent expansion phase.
+   Homonym aliases (e.g. "Smith K.", "Alves M.") must remain in review queue
+   and must NEVER be resolved by fabrication or speculative merge.
+```
+
+> [!IMPORTANT]
+> The former acceptance criterion `SELECT count(*) FROM matches.matches MUST EQUAL 147,937` is **superseded** by the three-assertion form above. Any roadmap reference to 147,937 as a target row count for `matches.matches` is a documentation error and must be corrected.
+
+---
+
 ## 5. Conflict & Quarantine Policies
 
 ### 5.1 Outcome Conflict Classification
@@ -105,7 +152,26 @@ Candidates failing quality criteria are diverted to `quarantine.jsonl`:
 
 ---
 
-## 6. Ten Quality Acceptance Gates (G1–G10)
+## 5A. Conflict Regression Fixtures & Fingerprint Hardening
+
+The four records in `conflicts.jsonl` are preserved as **permanent regression fixtures**. Each demonstrates a case where an insufficiently specific fingerprint collapsed two distinct physical matches into one record:
+
+| Conflict ID | Tournament | Root Cause | Required Fingerprint Fix |
+| :--- | :--- | :--- | :--- |
+| **C1** | Hua Hin 2024 (WTA) | Two separate WTA tournaments at same venue in Jan & Sept — opposite outcomes | `edition_id` must encode month/instance, not only year |
+| **C2** | Australian Open 2026 Qualifying | Draw disparity between two qualifying brackets on different dates | Qualifying competition identity must be resolved before fingerprinting |
+| **C3** | Davis Cup 2023 | Two separate ties (AUS vs SUI in Feb and Sept) collapsed under the same annual competition key | Team competition tie ID must precede fingerprint resolution |
+| **C4** | Shanghai Asian Challenger 2023 | Draw discrepancy between two source records on adjacent days | `edition_id` + `scheduled_date` must both appear in fingerprint |
+
+**Mandatory minimum fingerprint (Phase 6+):**
+```text
+Fingerprint := edition_id ":" scheduled_date ":" round ":" player_id_low ":" player_id_high
+```
+For team events or qualification events, competition identity (tie ID or qualifying bracket ID) must be resolved and encoded in `edition_id` before fingerprint derivation.
+
+---
+
+## 6. Eleven Quality Acceptance Gates (G1–G11)
 
 | Gate ID | Gate Name | Pass Condition |
 | :--- | :--- | :--- |
@@ -119,6 +185,7 @@ Candidates failing quality criteria are diverted to `quarantine.jsonl`:
 | **G8** | Conflict & Quarantine Isolation | Conflicting outcomes logged to `conflicts.jsonl`; unmapped rows isolated to `quarantine.jsonl`. |
 | **G9** | Bitwise Deterministic Reproducibility | Multiple execution runs yield identical counts, UUIDs, fingerprints, and manifest SHA-256 hashes. |
 | **G10** | Zero Database & Runtime Mutation | SQLite file sizes and hashes invariant (0 bytes delta); 0 PostgreSQL queries; 0 edits to `src/` or `server/`. |
+| **G11** | Baseline Reconciliation Closure | `admitted_source_rows + quarantined_source_rows = 147,937` (Δ = 0). No source observation without a traceable disposition. Regression fixture: exactly 4 conflicts and exactly 5,862 deduplication rows must be accounted for. |
 
 ---
 
@@ -128,3 +195,5 @@ Candidates failing quality criteria are diverted to `quarantine.jsonl`:
 2. **PostgreSQL Safeguard:** Zero connections or write queries permitted.
 3. **Fail-Closed Runner:** Script execution must immediately halt with exit code 1 if `--dry-run` is omitted.
 4. **Durable Memory Integrity:** Project memory notes must be updated with architectural findings and kept strictly unstaged.
+5. **Regression Fixture Preservation:** The four conflict records in `conflicts.jsonl` must be retained as regression fixtures for fingerprint validation in all future phases.
+

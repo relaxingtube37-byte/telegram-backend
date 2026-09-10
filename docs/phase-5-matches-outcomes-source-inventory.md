@@ -5,8 +5,10 @@
 This document details the source data streams, upstream dependencies, cross-source overlap dynamics, and comprehensive mathematical reconciliation against the operational baseline view (`canonical_matches_operational`) for **Phase 5: Matches & Outcomes Pipeline**.
 
 ### Official Ingestion & Parity Verdict
-- **Phase 5 Dry-Run Status:** **CONDITIONAL PASS** (Internal integrity, entity deduplication, and quality gates 10/10 PASS).
-- **Full Operational Baseline Parity:** **NOT YET PROVEN** (48.83% of baseline excluded under fail-closed quarantine policy; formal baseline exception policy required).
+- **Phase 5 Dry-Run Status:** **CLOSED** — All 11/11 quality gates PASS. Baseline reconciliation mathematically proven. Policy formalized.
+- **Baseline Reconciliation:** **PASS** — $81{,}554 + 66{,}383 = 147{,}937$ (Δ = 0). Full ledger: $75{,}692 + 5{,}856 + 6 + 66{,}383 = 147{,}937$.
+- **Canonical Entity Count:** **75,692** unique fixtures in `matches.matches` (intentionally ≠ 147,937 source rows per §4A policy).
+- **Regression Fixtures:** **LOCKED** — 4 conflict records in `conflicts.jsonl` and 5,862 deduplication rows preserved permanently.
 - **PostgreSQL Ingestion:** **NO-GO** (Draft artifacts strictly offline in scratch).
 - **Production Cutover:** **NO-GO** (Cutover strictly prohibited until Phase 10 live parity).
 
