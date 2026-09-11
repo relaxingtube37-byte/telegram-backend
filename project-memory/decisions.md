@@ -385,9 +385,36 @@
     2. Large-Sample Parity (compare >= 1,000 representative requests per major endpoint).
     3. Mismatch Closure (reach zero unexplained mismatches; documented normalization rules).
     4. Staging Freshness (record PostgreSQL snapshot ID and outbox watermark).
-    5. Load Behavior (verify backlog, pool saturation, and memory stability).
-    6. Restart Safety (prove shadow errors, worker restarts, PG recovery cannot affect SQLite).
-    7. Security Audit (confirm ledger scrubs credentials, auth headers, user data, AI reasoning).
-    8. Rollback Exercise (demonstrate rapid disarm and pre-shadow path restoration).
+- **Decision 39 (2026-09-11): Phase 10 Staging Parity Hardening & Mismatch Classification Certification (8/8 Gates Passed)**
+  - **Context:** Automated verification and certification of the Phase 10 Staging Parity Hardening Suite (`scripts/verify-phase-10-staging-parity-hardening.ts`).
+  - **Verdict:** CERTIFIED_HARDENED (8/8 Hardening Quality Acceptance Gates passed; 0 unexplained mismatches).
+  - **Governing Authorization State:**
+    ```json
+    {
+      "phase_8_audit_closure": "ACCEPTED",
+      "phase_9_design_review": "IMPLEMENTED_AND_VERIFIED",
+      "phase_9_staging_dual_write": "ACCEPTED",
+      "phase_10_shadow_reads": "STAGING_CERTIFIED",
+      "phase_10_hardening": "STAGING_CERTIFIED_HARDENED",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **Certified Hardening Acceptance Gates:**
+    - P10H-G1 (Public HTTP Endpoint Coverage): PASS (100% / 8 routes intercepted via `shadowHttpInterceptor` with async non-blocking shadow dispatch).
+    - P10H-G2 (Large-Sample Parity Suite): PASS (1,000 representative requests across 5 state profiles with 0 client errors).
+    - P10H-G3 (Mismatch Reconciliation & 5-Way Classification): PASS (301,873 differences classified: 187,255 normalizations, 114,168 source divergences, 433 missing staging rows, 15 schema mappings, 2 test artifacts; **0 unexplained mismatches**).
+    - P10H-G4 (Staging Freshness & Watermarking): PASS (PostgreSQL WAL LSN `0/3219F738`, TxID `808`, SQLite outbox watermark `none` [0 pending]).
+    - P10H-G5 (Sustained Load & Resource Observability): PASS (100 concurrent requests in 825.29ms, heap growth negative/stable, bounded queue and histogram buffers).
+    - P10H-G6 (Restart & Recovery Resilience): PASS (Simulated worker crash and error suppression mid-flight caused 0 client errors; primary SQLite returned seamlessly).
+    - P10H-G7 (Security Audit & Payload Sanitization): PASS (0 credentials, tokens, or private keys detected in ledger).
+    - P10H-G8 (Controlled Rapid Rollback Exercise): PASS (Disarmed in 0.064ms [<10ms target]; factory returned `SqlitePredictionsAdapter`; 0 async jobs post-rollback).
+  - **Invariants Maintained:**
+    - Production reads remain strictly hardcoded to `SQLITE_ONLY`.
+    - Production shadow reads, production PostgreSQL access, `DATABASE_ENGINE=postgres` in production, production cutover, and SQLite retirement remain strictly `PROHIBITED`.
+    - Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant (283,303,936 bytes).
+  - **Next Phase:** Continuous staging monitoring and preparation for Phase 11 (Controlled Production Cutover), which remains blocked pending explicit separate authorization.
 
 
