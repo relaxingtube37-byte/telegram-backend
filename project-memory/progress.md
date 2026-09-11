@@ -269,6 +269,13 @@
   - **Operational State Maintained:**
     - `production_reads: SQLITE_ONLY`, `dual_write: NOT_YET_AUTHORIZED`, `shadow_read: NOT_YET_AUTHORIZED`, `production_cutover: PROHIBITED`.
 
+- [x] **Disparity Root-Cause Audit & 154 US Open Matches Synchronized (`scripts/sync-154-us-open-matches.cjs`):**
+  - Forensic audit identified that the 154-row discrepancy in `gold_matches_validated` was entirely composed of authentic US Open 2026 matches (Sep 2–10, 2026) captured on desktop post-dating backend's Sep 1 cutoff.
+  - Executed atomic single-transaction synchronization with physical pre-write backup (`data/backups/database.sqlite.bak_pre_us_open_sync_*`).
+  - Restricted strictly to the 55 canonical Backend columns, omitting the 19 Markov enrichment columns from desktop.
+  - Verified exact 100% parity: Desktop = 58,131 rows, Backend = 58,131 rows (0 duplicate keys).
+  - Regression verified: 26/26 full backend diagnostic tests passed; Phase 8 entry gate re-audited 6/6 PASS; Desktop DB file immutability verified ($\Delta = 0\text{ bytes}$).
+
 ## In Progress / Upcoming
 - [ ] Connect Staging PostgreSQL Disposable Cluster (Port 54350) to shadow comparator harness.
 - [ ] Resolve or record formal status for 45 qualification tournament matches in Phase 4.

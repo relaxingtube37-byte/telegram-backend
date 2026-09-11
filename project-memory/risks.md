@@ -11,9 +11,9 @@
 4. **Unexported Render Production State (RISK-1):**
    - *Risk:* Live Render database has not been independently dumped as a read-only export. Live user accounts, recent predictions, and referrals may diverge from local SQLite.
    - *Mitigation:* Mandatory read-only production dump prior to Phase 11 cutover.
-5. **Gold Matches Validated Disparity (RISK-2):**
-   - *Risk:* Desktop dataset contains 58,131 rows vs Backend contains 57,977 rows (154-row discrepancy).
-   - *Mitigation:* Root-cause differential analysis required before shadow parity baseline can be certified.
+5. **Gold Matches Validated Disparity (RISK-2) — [RESOLVED]:**
+   - *Root Cause:* Traced to 154 authentic 2026 US Open matches (Sep 2–10, 2026) captured on desktop post-dating backend's Sep 1 cutoff.
+   - *Resolution:* Synchronized all 154 rows into backend `database.sqlite` via atomic single-transaction with physical pre-write backup (`scripts/sync-154-us-open-matches.cjs`), mapping strictly to 55 canonical columns. Desktop and backend now achieve exact 100% parity at 58,131 rows with 0 duplicate keys and 26/26 regression tests passing.
 6. **Backtest View Disparity (RISK-3):**
    - *Risk:* Desktop backtest view contains 46,076 rows vs Backend contains 38,566 rows (7,510-row discrepancy).
    - *Mitigation:* Resolve filtering/aggregation criteria between desktop and backend backtest pipelines prior to historical shadow comparisons.
