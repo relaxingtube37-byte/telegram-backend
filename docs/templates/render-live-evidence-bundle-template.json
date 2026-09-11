@@ -73,15 +73,24 @@
     "p95_latency_ms": 0.0,
     "p99_latency_ms": 0.0,
     "max_latency_ms": 0.0,
+    "cancelled_in_flight_tasks_count": 0,
+    "post_disarm_errors_count": 0,
     "target_budget_ms": 10.0,
     "benchmark_verdict": "PENDING"
   },
 
+  "bundle_integrity_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+
   "human_sign_off": {
-    "lead_engineer_name": "",
-    "security_auditor_name": "",
-    "signed_at_utc": "",
+    "signature_status": "UNSIGNED",
+    "environment": "production_render",
+    "snapshot_id": "SNAPSHOT-RENDER-YYYYMMDD-HHMMSS",
     "authorizing_commit_sha": "",
+    "execution_tool_version": "Node.js v20.x, sqlite3 v3.45.x, Linux x86_64",
+    "bundle_content_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "lead_engineer_name": null,
+    "security_auditor_name": null,
+    "signed_at_utc": null,
     "declaration": "I hereby certify that the live Render state has been backed up, cryptographically verified, and audited with zero unexplained divergence. Production reads remain SQLite-only until a separate, explicit canary activation directive is issued."
   }
 }

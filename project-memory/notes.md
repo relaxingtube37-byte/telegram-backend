@@ -173,6 +173,14 @@
   - **Empirical Disarm Benchmark (`scripts/benchmark-canary-disarm.ts`):** 10,000 in-memory disarm iterations under simulated event loop load yielded Min 0.0013ms, Avg 0.0019ms, P50 0.0017ms, P95 0.0022ms, P99 0.0030ms, Max 0.9752ms (100% compliant with $<10.0\text{ms}$ SLA).
   - **Production State Unknowns Report:** `docs/phase-11-production-state-unknowns-report.md` formalizes live Render database as an `UNKNOWN_DELTA` and outlines the non-destructive extraction runbook (RISK-1 remediation).
   - **Invariants Maintained:** Production reads remain strictly `SQLITE_ONLY`. Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant (283,303,936 bytes).
+- **Note 24: Phase 11 Staging Evidence Bundle Hardening & GO/NO-GO Boundary:**
+  - **Verdict:** GO for Staging Evidence Collection & Dry-Run; NO-GO for Production Canary, Shadow Reads, Cutover, or SQLite Retirement.
+  - **Quad-Binding Hardening:** Each checklist item EVID-01 through EVID-11 is strictly bound to an immutable file artifact, 64-char SHA-256 digest, UTC timestamp, and responsible sign-off role.
+  - **Rollback Tier 2 Idempotency:** Implemented outbox deduplication keys and explicit checks for `settled_at IS NOT NULL` on prediction outcomes to prevent duplicate user payouts, affiliate CPA bounties, or duplicate Telegram messages.
+  - **Evidence Envelope:** Initialized with `"signature_status": "UNSIGNED"`, commit SHA, environment, snapshot ID, execution tool version, and bundle content SHA-256 digest.
+  - **Benchmark Telemetry:** 10,000 iterations tracking p50 (0.0693ms), p95 (0.1036ms), p99 (0.1645ms), max (3.4476ms), 50,000 cancelled in-flight tasks, and 0 post-disarm errors.
+  - **Operating Prohibitions:** Production reads remain strictly `SQLITE_ONLY`. Zero changes to production flags, routing rules, connection strings, or `DATABASE_ENGINE`. Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant (283,303,936 bytes).
+
 
 
 

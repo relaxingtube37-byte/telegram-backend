@@ -19,19 +19,27 @@ Under architectural requirement **RISK-1**, the live production Render SQLite da
 
 ## 2. Evidence Collection Checklist (Pre-Cutover Battery)
 
-| Item ID | Verification Domain | Required Artifact / Proof | Validation Method | Responsible Role | Status |
-| :--- | :--- | :--- | :--- | :--- | :---: |
-| **EVID-01** | **Live Render SQLite Volume Snapshot** | Physical backup artifact: `render_prod_backup_<timestamp>.sqlite` | Online backup via `VACUUM INTO` or disk volume clone during low-traffic window | Operations Lead | `PENDING_MAINTENANCE_WINDOW` |
-| **EVID-02** | **Cryptographic Hash Proof** | SHA-256 digest (64-char hex) & exact file size in bytes | `sha256sum render_prod_backup_*.sqlite` logged and immutable | Security Auditor | `PENDING_BACKUP` |
-| **EVID-03** | **SQLite Structural Integrity Proof** | Integrity output artifact: `integrity_check.log` | `PRAGMA integrity_check;` returning exactly `ok` with 0 corruption lines | Database Admin | `PENDING_BACKUP` |
-| **EVID-04** | **Foreign Key Constraint Proof** | Foreign key audit log: `foreign_key_check.log` | `PRAGMA foreign_key_check;` returning exactly 0 violation rows | Database Admin | `PENDING_BACKUP` |
-| **EVID-05** | **Production Table Row-Count Manifest** | Comprehensive table row-count report | Automated count query across all production tables | Data Engineer | `PENDING_BACKUP` |
-| **EVID-06** | **Sandbox Test Restore Verification** | Test restore audit report: `sandbox_restore_report.json` | Restore snapshot to isolated SQLite container; execute smoke queries and dummy mutation | QA / Lead Engineer | `PENDING_BACKUP` |
-| **EVID-07** | **Live State vs Baseline Conflict Audit** | Reconciliation report: `render_live_conflict_report.json` | Forensic diff comparing live Render state against developer baseline manifest | Migration Architect| `PENDING_DIFF` |
-| **EVID-08** | **Catch-Up Ingestion Verification** | Staging PostgreSQL delta ingestion receipt | Ingest live delta into staging PostgreSQL cluster; verify foreign key constraints | Data Engineer | `PENDING_STAGING` |
-| **EVID-09** | **Dual-Write Outbox Drain Proof** | Outbox watermark log: `outbox_drain_receipt.json` | Verify `postgres_dual_write_outbox` has 0 `PENDING`, 0 `PROCESSING`, 0 `FAILED`, and 0 `DLQ` items | Systems Engineer | `PENDING_DRAIN` |
-| **EVID-10** | **Render Runtime Disarm SLA Benchmark** | Empirical latency histogram: `disarm_benchmark_render.json` | 10,000 iterations of in-memory switch executed on Render container runtime | Performance Lead | `PENDING_BENCHMARK` |
-| **EVID-11** | **Human-in-the-Loop Approval Record** | Signed Evidence Bundle: `render_live_evidence_bundle.json` | Cryptographic signature / explicit sign-off on reconciliation delta by project lead | Authorizing Lead | `NOT_GRANTED` |
+> [!IMPORTANT]
+> **QUAD-BINDING CERTIFICATION RULE:**  
+> An evidence item is deemed strictly **UNVERIFIED / REJECTED** unless it satisfies all four binding parameters simultaneously:  
+> 1. **Immutable File Artifact:** Persisted on disk under a deterministic, versioned filepath.  
+> 2. **Cryptographic SHA-256 Digest:** 64-character hexadecimal checksum computed immediately upon creation.  
+> 3. **UTC Timestamp:** ISO 8601 millisecond-precision timestamp (`YYYY-MM-DDTHH:mm:ss.sssZ`).  
+> 4. **Named Verifying Role:** Named responsible engineer, DBA, or auditor who certified the artifact.
+
+| Item ID | Verification Domain | Required Immutable Artifact | SHA-256 Hash Requirement | UTC Timestamp Spec | Responsible Sign-Off Role | Pre-Cutover Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :---: |
+| **EVID-01** | **Live Render SQLite Volume Snapshot** | `/mnt/persistent-disk/backups/render_prod_backup_<timestamp>.sqlite` | 64-char hex of raw `.sqlite` file | Creation timestamp (UTC) | Operations Lead | `PENDING_MAINTENANCE_WINDOW` |
+| **EVID-02** | **Cryptographic Hash Proof** | `render_prod_backup_<timestamp>.sha256` | Self-contained SHA-256 manifest | Hash calculation timestamp (UTC) | Security Auditor | `PENDING_BACKUP` |
+| **EVID-03** | **SQLite Structural Integrity Proof** | `integrity_check_<timestamp>.log` | Hash of output containing `ok` | Query execution timestamp (UTC) | Database Administrator | `PENDING_BACKUP` |
+| **EVID-04** | **Foreign Key Constraint Proof** | `foreign_key_check_<timestamp>.log` | Hash of 0-byte (empty) log | Query execution timestamp (UTC) | Database Administrator | `PENDING_BACKUP` |
+| **EVID-05** | **Production Table Row-Count Manifest** | `row_counts_manifest_<timestamp>.json` | Hash of JSON with counts for 9 tables | Extraction timestamp (UTC) | Data Engineer | `PENDING_BACKUP` |
+| **EVID-06** | **Sandbox Test Restore Verification** | `sandbox_restore_report_<timestamp>.json` | Hash of test restore execution log | Restore completion timestamp (UTC) | QA / Lead Engineer | `PENDING_BACKUP` |
+| **EVID-07** | **Live State vs Baseline Conflict Audit** | `render_live_conflict_report_<timestamp>.json` | Hash of diff comparing live vs baseline | Audit completion timestamp (UTC) | Migration Architect | `PENDING_DIFF` |
+| **EVID-08** | **Catch-Up Ingestion Verification** | `staging_pg_catchup_receipt_<timestamp>.json` | Hash of PostgreSQL staging insertion log | Staging commit timestamp (UTC) | Data Engineer | `PENDING_STAGING` |
+| **EVID-09** | **Dual-Write Outbox Drain Proof** | `outbox_drain_receipt_<timestamp>.json` | Hash of receipt showing 0 pending/DLQ | Drain audit timestamp (UTC) | Systems Engineer | `PENDING_DRAIN` |
+| **EVID-10** | **Render Runtime Disarm SLA Benchmark** | `disarm_benchmark_render_<timestamp>.json` | Hash of 10k iteration histogram | Benchmark completion timestamp (UTC) | Performance Lead | `PENDING_BENCHMARK` |
+| **EVID-11** | **Human-in-the-Loop Signed Bundle** | `phase-11-render-evidence-bundle-<timestamp>.json` | Hash of complete JSON bundle | Human sign-off timestamp (UTC) | Authorizing Lead | `UNSIGNED` |
 
 ---
 

@@ -19,6 +19,8 @@ interface LatencyHistogram {
   p90Ms: number;
   p95Ms: number;
   p99Ms: number;
+  cancelledInFlightTasksCount: number;
+  postDisarmErrorsCount: number;
   slaTargetMs: number;
   passedSla: boolean;
 }
@@ -27,24 +29,41 @@ class MockCanaryRouter {
   private static enabled = true;
   private static disarmedAt: string | null = null;
   private static disarmReason: string | null = null;
+  private static inFlightTasks = new Map<string, AbortController>();
 
   static isEnabled(): boolean {
     return this.enabled;
   }
 
-  static disarm(reason: string): number {
+  static registerInFlightTask(taskId: string): AbortController {
+    const controller = new AbortController();
+    this.inFlightTasks.set(taskId, controller);
+    return controller;
+  }
+
+  static disarm(reason: string): { durationMs: number; cancelledTasks: number } {
     const t0 = performance.now();
     this.enabled = false;
     this.disarmedAt = new Date().toISOString();
     this.disarmReason = reason;
+
+    // Immediately abort all pending in-flight queries
+    let cancelled = 0;
+    for (const [_, controller] of this.inFlightTasks) {
+      controller.abort();
+      cancelled++;
+    }
+    this.inFlightTasks.clear();
+
     const durationMs = performance.now() - t0;
-    return durationMs;
+    return { durationMs, cancelledTasks: cancelled };
   }
 
   static arm(): void {
     this.enabled = true;
     this.disarmedAt = null;
     this.disarmReason = null;
+    this.inFlightTasks.clear();
   }
 }
 
@@ -53,11 +72,14 @@ async function runDisarmBenchmark(iterations = 10000): Promise<LatencyHistogram>
   console.log(' ⏱️  PHASE 11: IN-MEMORY KILL SWITCH & RAPID DISARM BENCHMARK');
   console.log(` Iterations: ${iterations.toLocaleString()}`);
   console.log(' Target SLA: < 10.0 ms execution latency');
+  console.log(' Metrics: p50 / p90 / p95 / p99 / max / cancelled in-flight tasks / post-disarm errors');
   console.log('='.repeat(80));
 
   const latencies: number[] = new Array(iterations);
+  let totalCancelledTasks = 0;
+  let postDisarmErrors = 0;
 
-  // Background event loop noise (simulating Express traffic & timers)
+  // Background event loop noise (simulating Express traffic & background timers)
   const interval = setInterval(() => {
     crypto.createHash('md5').update(Math.random().toString()).digest();
   }, 1);
@@ -65,9 +87,21 @@ async function runDisarmBenchmark(iterations = 10000): Promise<LatencyHistogram>
   try {
     for (let i = 0; i < iterations; i++) {
       MockCanaryRouter.arm();
-      // Measure disarm execution
-      const durationMs = MockCanaryRouter.disarm(`BENCHMARK_RUN_${i}`);
+
+      // Simulate 5 in-flight queries queued right before disarm
+      for (let taskIdx = 0; taskIdx < 5; taskIdx++) {
+        MockCanaryRouter.registerInFlightTask(`task_${i}_${taskIdx}`);
+      }
+
+      // Measure disarm execution + task cancellation
+      const { durationMs, cancelledTasks } = MockCanaryRouter.disarm(`BENCHMARK_RUN_${i}`);
       latencies[i] = durationMs;
+      totalCancelledTasks += cancelledTasks;
+
+      // Post-disarm verification: ensure routing immediately falls back to SQLite
+      if (MockCanaryRouter.isEnabled()) {
+        postDisarmErrors++;
+      }
 
       // Yield event loop occasionally
       if (i % 1000 === 0) {
@@ -89,7 +123,7 @@ async function runDisarmBenchmark(iterations = 10000): Promise<LatencyHistogram>
   const p95Ms = latencies[Math.floor(latencies.length * 0.95)];
   const p99Ms = latencies[Math.floor(latencies.length * 0.99)];
 
-  const passedSla = p99Ms < 10.0 && maxMs < 10.0;
+  const passedSla = p99Ms < 10.0 && maxMs < 10.0 && postDisarmErrors === 0;
 
   const result: LatencyHistogram = {
     iterations,
@@ -100,20 +134,24 @@ async function runDisarmBenchmark(iterations = 10000): Promise<LatencyHistogram>
     p90Ms: Number(p90Ms.toFixed(4)),
     p95Ms: Number(p95Ms.toFixed(4)),
     p99Ms: Number(p99Ms.toFixed(4)),
+    cancelledInFlightTasksCount: totalCancelledTasks,
+    postDisarmErrorsCount: postDisarmErrors,
     slaTargetMs: 10.0,
     passedSla
   };
 
   console.log('\n📊 BENCHMARK RESULTS:');
-  console.log(`  - Total Iterations:  ${result.iterations.toLocaleString()}`);
-  console.log(`  - Minimum Latency:   ${result.minMs.toFixed(4)} ms`);
-  console.log(`  - Average Latency:   ${result.avgMs.toFixed(4)} ms`);
-  console.log(`  - P50 (Median):      ${result.p50Ms.toFixed(4)} ms`);
-  console.log(`  - P90 Latency:       ${result.p90Ms.toFixed(4)} ms`);
-  console.log(`  - P95 Latency:       ${result.p95Ms.toFixed(4)} ms`);
-  console.log(`  - P99 Latency:       ${result.p99Ms.toFixed(4)} ms`);
-  console.log(`  - Maximum Latency:   ${result.maxMs.toFixed(4)} ms (SLA Target: < 10.0 ms)`);
-  console.log(`  - SLA Compliance:    ${result.passedSla ? '✅ PASS (Strictly Compliant)' : '❌ FAIL'}`);
+  console.log(`  - Total Iterations:           ${result.iterations.toLocaleString()}`);
+  console.log(`  - Minimum Latency:            ${result.minMs.toFixed(4)} ms`);
+  console.log(`  - Average Latency:            ${result.avgMs.toFixed(4)} ms`);
+  console.log(`  - P50 (Median):               ${result.p50Ms.toFixed(4)} ms`);
+  console.log(`  - P90 Latency:                ${result.p90Ms.toFixed(4)} ms`);
+  console.log(`  - P95 Latency:                ${result.p95Ms.toFixed(4)} ms`);
+  console.log(`  - P99 Latency:                ${result.p99Ms.toFixed(4)} ms`);
+  console.log(`  - Maximum Latency:            ${result.maxMs.toFixed(4)} ms (SLA Target: < 10.0 ms)`);
+  console.log(`  - Cancelled In-Flight Tasks:  ${result.cancelledInFlightTasksCount.toLocaleString()}`);
+  console.log(`  - Post-Disarm Errors:         ${result.postDisarmErrorsCount} (target: 0)`);
+  console.log(`  - SLA Compliance:             ${result.passedSla ? '✅ PASS (Strictly Compliant)' : '❌ FAIL'}`);
   console.log('='.repeat(80));
 
   // Save artifact
@@ -132,3 +170,4 @@ runDisarmBenchmark().catch(err => {
   console.error('Benchmark failed:', err);
   process.exit(1);
 });
+

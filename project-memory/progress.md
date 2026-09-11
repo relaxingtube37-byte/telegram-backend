@@ -440,11 +440,13 @@
   - Pre-Cutover Authorization Status: `NOT_GRANTED`.
   - Production Canary Status: `PROHIBITED`.
   - Staging Artifacts & Runbooks Produced:
-    - Pre-Cutover Evidence Checklist: `docs/phase-11-pre-cutover-evidence-checklist.md` (EVID-01 to EVID-11).
-    - Dry-Run Rollback Runbook: `docs/phase-11-rollback-runbook.md` (Tier 1 soft disarm & Tier 2 hard restore).
-    - Human Sign-Off Evidence Bundle Template: `docs/templates/render-live-evidence-bundle-template.json`.
-    - Empirical Disarm SLA Benchmark: `scripts/benchmark-canary-disarm.ts` (10,000 iterations: Avg 0.0019ms, P99 0.0030ms, Max 0.9752ms; strictly compliant with $<10.0\text{ms}$ SLA).
+    - Pre-Cutover Evidence Checklist: `docs/phase-11-pre-cutover-evidence-checklist.md` (EVID-01 to EVID-11 with Quad-Binding rule: artifact, SHA-256, UTC timestamp, responsible role).
+    - Dry-Run Rollback Runbook: `docs/phase-11-rollback-runbook.md` (Tier 1 soft disarm & Tier 2 hard restore with idempotent replay and duplicate settlement prevention).
+    - Human Sign-Off Evidence Bundle Template: `docs/templates/render-live-evidence-bundle-template.json` (Enriched schema with commit, environment, snapshot ID, execution tool version, bundle SHA-256, and UNSIGNED default status).
+    - Empirical Disarm SLA Benchmark: `scripts/benchmark-canary-disarm.ts` (10,000 iterations under concurrent event loop load: Avg 0.0778ms, P50 0.0693ms, P95 0.1036ms, P99 0.1645ms, Max 3.4476ms, 50,000 in-flight tasks cancelled, 0 post-disarm errors; strictly compliant with $<10.0\text{ms}$ SLA).
     - Production Unknowns Forensic Report: `docs/phase-11-production-state-unknowns-report.md` (Auditing live Render `UNKNOWN_DELTA` and RISK-1 remediation).
+  - Current Phase Directive: GO for Staging Evidence Collection & Dry-Run; NO-GO for Production Canary, Production Shadow Reads, Cutover, or SQLite Retirement.
+
 
 
 

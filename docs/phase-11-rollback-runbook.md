@@ -134,13 +134,28 @@ done
    sqlite3 /mnt/persistent-disk/data/database.sqlite "PRAGMA foreign_key_check;"
    ```
 
-#### Step 3: Reconcile Dual-Write Outbox Mutations
-1. Extract any mutations that were recorded in the outbox during the canary window:
+#### Step 3: Reconcile Dual-Write Outbox Mutations & Guard Against Duplicate Settlement
+1. Extract mutations recorded in the outbox during the active canary window:
    ```bash
    sqlite3 /mnt/persistent-disk/data/database.sqlite \
-     "SELECT event_id, aggregate_type, aggregate_id, operation, created_at FROM postgres_dual_write_outbox WHERE created_at >= '<canary_start_time>' ORDER BY created_at ASC;"
+     "SELECT event_id, aggregate_type, aggregate_id, operation, payload, created_at FROM postgres_dual_write_outbox WHERE created_at >= '<canary_start_time>' ORDER BY created_at ASC;"
    ```
-2. Replay or reconcile user signups and affiliate clicks to ensure zero customer transaction loss.
+2. **Idempotent Replay Protocol:**
+   - All mutations must be replayed using strict idempotency keys (`event_id`):
+     ```sql
+     INSERT INTO canonical_table (id, ...) VALUES (...) ON CONFLICT (id) DO UPDATE ...;
+     ```
+   - Transactions already present in the restored backup are automatically deduplicated via `event_id` tracking.
+3. **Duplicate Settlement Prevention Guard (Critical):**
+   - For prediction settlement events (`aggregate_type = 'prediction'`, `operation = 'SETTLE'`):
+     - Check whether the prediction is already marked with a terminal status (`WON`, `LOST`, `VOID`) and `settled_at IS NOT NULL` in the restored SQLite store.
+     - **NEVER** re-dispatch Telegram settlement announcements or re-calculate user referral conversion bounties for previously settled predictions.
+   - Verification query:
+     ```bash
+     sqlite3 /mnt/persistent-disk/data/database.sqlite \
+       "SELECT COUNT(*) FROM (SELECT aggregate_id FROM postgres_dual_write_outbox WHERE operation = 'SETTLE' GROUP BY aggregate_id HAVING COUNT(*) > 1);"
+     # Expected: 0 duplicate settlement events
+     ```
 
 #### Step 4: Lock Configuration & Restart Service
 1. In Render Dashboard, ensure the following environment variables are locked:

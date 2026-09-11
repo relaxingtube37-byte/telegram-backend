@@ -472,7 +472,28 @@
     3. **Human Sign-Off Evidence Bundle Template (`docs/templates/render-live-evidence-bundle-template.json`):** Strict JSON schema defining the required evidence payload and explicit human sign-off declaration.
     4. **Empirical Disarm SLA Benchmark (`scripts/benchmark-canary-disarm.ts`):** 10,000 iterations under concurrent event-loop load in staging runtime yielding P50 0.0015ms, P99 0.0025ms, Max 1.1407ms (100% compliant with $<10.0\text{ms}$ SLA).
     5. **Production State Unknowns Forensic Report (`docs/phase-11-production-state-unknowns-report.md`):** Complete inventory of live Render vs local database asymmetry (RISK-1), classifying live state as `UNKNOWN_DELTA` and enforcing directional sync strictly Render Live $\to$ Staging PostgreSQL.
-  - **Operational Prohibitions Reaffirmed:** Zero routing changes, zero production PostgreSQL connections, zero modifications to `DATABASE_ENGINE`, and zero cutover permitted until the live evidence bundle is extracted, evaluated, and explicitly approved.
+- **Decision 43 (2026-09-11): Phase 11 Staging Evidence Bundle Hardening, Rollback Replay Idempotency & Governance Authorization (GO for Evidence Collection / NO-GO for Canary)**
+  - **Context:** Formal user audit of commit `7fafef2` staging deliverables with explicit authorization for staging evidence collection & dry-runs, alongside strict reinforcement of the zero-production-impact boundary.
+  - **Verdict:** AUTHORIZED_FOR_STAGING_EVIDENCE_COLLECTION (GO for Staging Evidence Collection & Dry-Run; NO-GO for Production Canary, Shadow Reads, Cutover, or SQLite Retirement).
+  - **Binding Governance State Matrix:**
+    ```json
+    {
+      "phase_11_design_review": "DRAFTED_FOR_REVIEW",
+      "phase_11_pre_cutover_authorization": "NOT_GRANTED",
+      "phase_11_production_canary": "PROHIBITED",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **Key Hardening Refinements Implemented:**
+    1. **Quad-Binding Evidence Rule (`docs/phase-11-pre-cutover-evidence-checklist.md`):** Mandated that each item EVID-01 through EVID-11 is strictly invalid unless simultaneously bound to an immutable file artifact, 64-character SHA-256 digest, ISO 8601 UTC timestamp, and named verifying role.
+    2. **Idempotent Outbox Replay & Settlement Duplicate Guard (`docs/phase-11-rollback-runbook.md`):** Fortified Tier 2 rollback runbook with explicit deduplication keys on outbox replay and hard settlement verification (`settled_at IS NOT NULL` check) to prevent double-crediting balances, duplicate telegram announcements, or double-counting referral conversion bounties.
+    3. **Enriched Human Sign-Off Envelope (`docs/templates/render-live-evidence-bundle-template.json`):** Bound the sign-off schema to commit SHA, target environment (`production_render`), snapshot ID, execution tool version, entire bundle SHA-256 digest, and initialized with mandatory `"signature_status": "UNSIGNED"`.
+    4. **Comprehensive Disarm Benchmark Telemetry (`scripts/benchmark-canary-disarm.ts`):** 10,000 iterations under concurrent event loop load tracking full distribution: Min 0.0388ms, Avg 0.0778ms, P50 0.0693ms, P90 0.0914ms, P95 0.1036ms, P99 0.1645ms, Max 3.4476ms; 50,000 in-flight tasks cleanly cancelled; 0 post-disarm errors.
+    5. **Strict Operating Constraints:** Zero local data written to Render Production; zero changes to production flags, routing rules, connection strings, or `DATABASE_ENGINE`; `tennis_gold.sqlite` (283,303,936 bytes) and operational SQLite 100% untouched.
+
 
 
 
