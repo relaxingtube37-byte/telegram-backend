@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "bundle_id": "BUNDLE-PHASE-11-RENDER-YYYYMMDD-HHMMSS",
+  "generated_at_utc": "2026-09-11T00:00:00.000Z",
+  "governance_status": "DRAFTED_FOR_REVIEW",
+  "pre_cutover_authorization": "NOT_GRANTED",
+  "production_reads_source": "SQLITE_ONLY",
+  "production_canary_status": "PROHIBITED",
+  
+  "backup_artifact": {
+    "file_path": "/mnt/persistent-disk/backups/render_prod_backup_YYYYMMDD_HHMMSS.sqlite",
+    "snapshot_timestamp_utc": "2026-09-11T00:00:00.000Z",
+    "file_size_bytes": 0,
+    "sha256_checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+    "backup_method": "VACUUM_INTO_NON_BLOCKING"
+  },
+
+  "pragmas_verification": {
+    "integrity_check": "ok",
+    "foreign_key_check_violations_count": 0,
+    "quick_check": "ok",
+    "verification_timestamp_utc": "2026-09-11T00:00:00.000Z"
+  },
+
+  "table_row_counts": {
+    "users": 0,
+    "referral_sites": 0,
+    "referral_clicks": 0,
+    "partner_conversions": 0,
+    "predictions": 0,
+    "settings": 0,
+    "historical_matches": 0,
+    "top_players_cache": 0,
+    "postgres_dual_write_outbox": 0
+  },
+
+  "test_restore_verification": {
+    "sandbox_target": "isolated_test_container_sqlite",
+    "restored_at_utc": "2026-09-11T00:00:00.000Z",
+    "smoke_queries_status": "PASS",
+    "test_transaction_mutation_status": "PASS",
+    "data_consistency_verified": true,
+    "restored_row_count_exact_match": true
+  },
+
+  "live_vs_baseline_conflict_audit": {
+    "local_baseline_manifest_version": "v1.0.0",
+    "total_live_records_audited": 0,
+    "breakdown_by_category": {
+      "NEW_LIVE_ENTITY": 0,
+      "STATUS_DIVERGENCE": 0,
+      "SCHEMA_MAPPING_DEFECT": 0,
+      "UNKNOWN_SCHEMA_DELTA": 0
+    },
+    "unexplained_mismatches_count": 0,
+    "conflict_reconciliation_signed_off": false
+  },
+
+  "dual_write_outbox_state": {
+    "total_events": 0,
+    "pending_count": 0,
+    "processing_count": 0,
+    "failed_count": 0,
+    "dlq_count": 0,
+    "max_event_id": "00000000-0000-0000-0000-000000000000",
+    "replication_lag_seconds": 0.0
+  },
+
+  "render_runtime_disarm_benchmark": {
+    "target_runtime": "render_production_container",
+    "iterations": 10000,
+    "p50_latency_ms": 0.0,
+    "p95_latency_ms": 0.0,
+    "p99_latency_ms": 0.0,
+    "max_latency_ms": 0.0,
+    "target_budget_ms": 10.0,
+    "benchmark_verdict": "PENDING"
+  },
+
+  "human_sign_off": {
+    "lead_engineer_name": "",
+    "security_auditor_name": "",
+    "signed_at_utc": "",
+    "authorizing_commit_sha": "",
+    "declaration": "I hereby certify that the live Render state has been backed up, cryptographically verified, and audited with zero unexplained divergence. Production reads remain SQLite-only until a separate, explicit canary activation directive is issued."
+  }
+}

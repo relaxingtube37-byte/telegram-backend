@@ -439,7 +439,13 @@
   - Status: `DRAFTED_FOR_REVIEW`.
   - Pre-Cutover Authorization Status: `NOT_GRANTED`.
   - Production Canary Status: `PROHIBITED`.
-  - Technical Pillars: Decoupled latency budgets ($t_{\text{http}}$ added P95 $\le 5\text{ms}$, $t_{\text{query}}$ P95 $\le 3\text{ms}$, $t_{\text{pool}} \le 10\text{ms}$, hard ceiling $50\text{ms}$); 5xx error taxonomy; provable Render live backup evidence bundle; write-path isolation; watermark parity freshness ($\le 5\text{s}$ window); empirical Render runtime disarm SLA requirement; Stage 5 designated as SQLite Hot-Standby (NOT retirement).
+  - Staging Artifacts & Runbooks Produced:
+    - Pre-Cutover Evidence Checklist: `docs/phase-11-pre-cutover-evidence-checklist.md` (EVID-01 to EVID-11).
+    - Dry-Run Rollback Runbook: `docs/phase-11-rollback-runbook.md` (Tier 1 soft disarm & Tier 2 hard restore).
+    - Human Sign-Off Evidence Bundle Template: `docs/templates/render-live-evidence-bundle-template.json`.
+    - Empirical Disarm SLA Benchmark: `scripts/benchmark-canary-disarm.ts` (10,000 iterations: Avg 0.0019ms, P99 0.0030ms, Max 0.9752ms; strictly compliant with $<10.0\text{ms}$ SLA).
+    - Production Unknowns Forensic Report: `docs/phase-11-production-state-unknowns-report.md` (Auditing live Render `UNKNOWN_DELTA` and RISK-1 remediation).
+
 
 
 

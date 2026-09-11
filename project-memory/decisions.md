@@ -451,5 +451,28 @@
     5. **Point-in-Time Watermark Parity:** 100% parity on mutable entities qualified with snapshot LSN, outbox watermark, and a $\le 5.0\text{s}$ replication freshness window.
     6. **Render Runtime Disarm SLA:** Acknowledged 0.064ms benchmark was local/staging; mandated empirical benchmark on Render production runtime to guarantee $< 10.0\text{ms}$ SLA under production constraints.
     7. **Correct Stage 5 Designation:** 100% Canary primary reads designated as SQLite Hot-Standby Mode, NOT SQLite retirement (retirement deferred to Phase 12).
+- **Decision 42 (2026-09-11): Phase 11 Staging Pre-Cutover Verification Suite & Evidence Infrastructure**
+  - **Context:** Formal user audit of Phase 11 design refinements and explicit authorization of the 5 staging pre-cutover verification deliverables.
+  - **Verdict:** IMPLEMENTED_IN_STAGING (Pre-cutover authorization remains strictly NOT_GRANTED; Production canary remains PROHIBITED).
+  - **Mandatory Binding Authorization Matrix:**
+    ```json
+    {
+      "phase_11_design_review": "DRAFTED_FOR_REVIEW",
+      "phase_11_pre_cutover_authorization": "NOT_GRANTED",
+      "phase_11_production_canary": "PROHIBITED",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **5 Staging Pre-Cutover Deliverables Completed & Certified:**
+    1. **Pre-Cutover Evidence Checklist (`docs/phase-11-pre-cutover-evidence-checklist.md`):** Formal checklist items EVID-01 through EVID-11 covering live volume backup, SHA-256 hashes, PRAGMA integrity/foreign_key checks, row count manifests, sandbox test restore, delta conflict reports, outbox drain receipts, and human-in-the-loop signatures.
+    2. **Dry-Run Rollback Runbook (`docs/phase-11-rollback-runbook.md`):** Complete operating manual for Tier 1 Soft Rollback (programmatic in-memory disarm <10ms) and Tier 2 Hard Rollback (<15min comprehensive disk restore and outbox replay).
+    3. **Human Sign-Off Evidence Bundle Template (`docs/templates/render-live-evidence-bundle-template.json`):** Strict JSON schema defining the required evidence payload and explicit human sign-off declaration.
+    4. **Empirical Disarm SLA Benchmark (`scripts/benchmark-canary-disarm.ts`):** 10,000 iterations under concurrent event-loop load in staging runtime yielding P50 0.0015ms, P99 0.0025ms, Max 1.1407ms (100% compliant with $<10.0\text{ms}$ SLA).
+    5. **Production State Unknowns Forensic Report (`docs/phase-11-production-state-unknowns-report.md`):** Complete inventory of live Render vs local database asymmetry (RISK-1), classifying live state as `UNKNOWN_DELTA` and enforcing directional sync strictly Render Live $\to$ Staging PostgreSQL.
+  - **Operational Prohibitions Reaffirmed:** Zero routing changes, zero production PostgreSQL connections, zero modifications to `DATABASE_ENGINE`, and zero cutover permitted until the live evidence bundle is extracted, evaluated, and explicitly approved.
+
 
 

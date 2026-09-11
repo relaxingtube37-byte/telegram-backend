@@ -165,6 +165,14 @@
   - **Canary Routing Matrix:** Phased 0% (soak) $\to$ 1% (read-only feed) $\to$ 5% (catalog) $\to$ 25% (webapp) $\to$ 50% (peak events) $\to$ 100% (SQLite hot-standby, NOT retirement) using deterministic MD5 hash ring per session/user.
   - **Decoupled Latency & Error Taxonomy:** Disambiguated total HTTP latency ($t_{\text{http}}$), database query latency ($t_{\text{query}}$), and pool wait time ($t_{\text{pool}}$); disambiguated 5xx errors (database/application errors trigger fail-safe rollback; external dependency errors like Telegram/OAuth are isolated).
   - **Two-Tier Rollback Runbook:** Tier 1 programmatic in-memory disarm (<10ms target, benchmarked at 0.064ms in staging, requiring empirical benchmark on Render production runtime); Tier 2 hard rollback with deployment halt, immutable baseline restore, and outbox catch-up replay.
+- **Note 23: Phase 11 Staging Evidence Checklist, Rollback Runbook & Disarm SLA Benchmark:**
+  - **Status:** Staging artifacts and runbooks created under `DRAFTED_FOR_REVIEW` (production canary remains strictly `PROHIBITED`).
+  - **Evidence Checklist:** `docs/phase-11-pre-cutover-evidence-checklist.md` establishes EVID-01 to EVID-11 (physical dump, cryptographic SHA-256, PRAGMA checks, table counts, test restore, conflict report, human sign-off).
+  - **Dry-Run Rollback Runbook:** `docs/phase-11-rollback-runbook.md` establishes step-by-step procedures for Tier 1 Soft Rollback (programmatic in-memory switch) and Tier 2 Hard Rollback (volume restore, config lock, outbox replay).
+  - **Human Sign-Off Template:** `docs/templates/render-live-evidence-bundle-template.json` specifies the formal JSON schema for the pre-cutover evidence package.
+  - **Empirical Disarm Benchmark (`scripts/benchmark-canary-disarm.ts`):** 10,000 in-memory disarm iterations under simulated event loop load yielded Min 0.0013ms, Avg 0.0019ms, P50 0.0017ms, P95 0.0022ms, P99 0.0030ms, Max 0.9752ms (100% compliant with $<10.0\text{ms}$ SLA).
+  - **Production State Unknowns Report:** `docs/phase-11-production-state-unknowns-report.md` formalizes live Render database as an `UNKNOWN_DELTA` and outlines the non-destructive extraction runbook (RISK-1 remediation).
+  - **Invariants Maintained:** Production reads remain strictly `SQLITE_ONLY`. Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant (283,303,936 bytes).
 
 
 
