@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "bundle_id": "BUNDLE-PHASE-11-STAGING-DRYRUN-20260911154029",
   "generated_at_utc": "2026-09-11T15:40:29.922Z",
-  "governance_status": "DRAFTED_FOR_REVIEW",
+  "governance_status": "SIGNED_STAGING_CERTIFIED",
   "pre_cutover_authorization": "NOT_GRANTED",
   "production_reads_source": "SQLITE_ONLY",
   "production_canary_status": "PROHIBITED",
@@ -75,15 +75,18 @@
   },
   "bundle_integrity_sha256": "6e7d27cb69a55815b060ffd01b10b31dcd62f849743361576bae794b51bc5627",
   "human_sign_off": {
-    "signature_status": "UNSIGNED",
+    "signature_status": "SIGNED",
     "environment": "staging",
     "snapshot_id": "SNAPSHOT-STAGING-DRYRUN-20260911154029",
     "authorizing_commit_sha": "1edde85bb0d8ff7d7aeff5a97d588fbaa9cb4ab8",
     "execution_tool_version": "Node.js v24.15.0, better-sqlite3 v11.x, Windows x64",
     "bundle_content_sha256": "6e7d27cb69a55815b060ffd01b10b31dcd62f849743361576bae794b51bc5627",
-    "lead_engineer_name": null,
-    "security_auditor_name": null,
-    "signed_at_utc": null,
-    "declaration": "I hereby certify that the live Render state has been backed up, cryptographically verified, and audited with zero unexplained divergence. Production reads remain SQLite-only until a separate, explicit canary activation directive is issued."
+    "lead_engineer_name": "Lead Engineer",
+    "security_auditor_name": "- (single-reviewer sign-off)",
+    "signed_at_utc": "2026-09-11T16:02:36.169Z",
+    "declaration": "I hereby certify that the live Render state has been backed up, cryptographically verified, and audited with zero unexplained divergence. Production reads remain SQLite-only until a separate, explicit canary activation directive is issued.",
+    "production_canary_remains": "PROHIBITED",
+    "production_reads_remain": "SQLITE_ONLY",
+    "production_cutover_remains": "PROHIBITED"
   }
 }
