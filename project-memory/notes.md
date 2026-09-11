@@ -28,12 +28,16 @@
 - **Phase 8 Entry Gate Checkpoint & Verified Safe Resumption Sequence:**
   - **Commit Anchor:** `9343dcb` (`feat(phase-8): certify phase 8 entry gate, decouple repository interfaces, and establish sqlite circuit-breaker`).
   - **Operational State:** `Phase 7 CLOSED & FROZEN`, `Phase 8 Entry Gate CERTIFIED (6/6 PASS)`, `Phase 8 Execution NOT STARTED`, `Production reads: SQLITE_ONLY`, `Dual-write: NOT AUTHORIZED`, `Shadow-read: NOT AUTHORIZED`, `Production cutover: PROHIBITED`.
-  - **Durable Safe Resumption Sequence:**
-    1. **Render Production Export:** Obtain authenticated, read-only export directly from the live Render PostgreSQL/SQLite database.
-    2. **Cryptographic Manifest:** Compute SHA-256 checksums and establish an immutable manifest for the Render export.
-    3. **Three-Way Data Reconciliation:** Perform differential audit across Render, backend SQLite, and desktop SQLite.
-    4. **Resolve `gold_matches_validated` Disparity:** Determine root cause of the 154-row delta (58,131 desktop vs 57,977 backend).
-    5. **Resolve Backtest View Disparity:** Determine root cause of the 7,510-row delta (46,076 desktop vs 38,566 backend).
-    6. **Quarantine Resolution:** Ingest parent tournament editions in Phase 4 for 45 qualification traces; obtain official vendor mappings for 72 unlinked traces without force-linking.
+  - **Durable Safe Resumption Sequence Status:**
+    1. **Resolve `gold_matches_validated` Disparity (RISK-2):** ✅ **RESOLVED** (Commit `40c347c`). Exact 100% parity at 58,131 rows.
+    2. **Resolve Backtest View Disparity (RISK-3):** ✅ **RESOLVED**. Three-tier views deployed: raw (38,720), enriched (46,076), legacy facade (38,720). Quality gates 6/6 PASS.
+    3. **Render Production Export (RISK-1):** In-queue. Obtain authenticated, read-only export directly from the live Render PostgreSQL/SQLite database.
+    4. **Cryptographic Manifest:** Compute SHA-256 checksums and establish an immutable manifest for the Render export.
+    5. **Three-Way Data Reconciliation:** Perform differential audit across Render, backend SQLite, and desktop SQLite.
+    6. **Quarantine Resolution (RISK-4 & RISK-5):** Ingest parent tournament editions in Phase 4 for 45 qualification traces; obtain official vendor mappings for 72 unlinked traces without force-linking.
     7. **Staging Parity Baseline:** Only after all disparities are documented and resolved, formulate the staging parity baseline for controlled Phase 8 execution.
+- **Backtest Views Dual-Baseline Governance Rule:**
+  - `gold_matches_ready_raw_view` (38,720 rows) represents authentic un-synthesized telemetry; strictly required for baseline models and parity proofs.
+  - `gold_matches_ready_enriched_view` (46,076 rows) represents DTMC Markov synthesized fair-odds expansion; permitted exclusively for research models tolerant of synthetic odds.
+  - Conflating enriched records with raw baseline telemetry is strictly prohibited across all future reporting.
 

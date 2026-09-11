@@ -14,9 +14,9 @@
 5. **Gold Matches Validated Disparity (RISK-2) — [RESOLVED]:**
    - *Root Cause:* Traced to 154 authentic 2026 US Open matches (Sep 2–10, 2026) captured on desktop post-dating backend's Sep 1 cutoff.
    - *Resolution:* Synchronized all 154 rows into backend `database.sqlite` via atomic single-transaction with physical pre-write backup (`scripts/sync-154-us-open-matches.cjs`), mapping strictly to 55 canonical columns. Desktop and backend now achieve exact 100% parity at 58,131 rows with 0 duplicate keys and 26/26 regression tests passing.
-6. **Backtest View Disparity (RISK-3):**
-   - *Risk:* Desktop backtest view contains 46,076 rows vs Backend contains 38,566 rows (7,510-row discrepancy).
-   - *Mitigation:* Resolve filtering/aggregation criteria between desktop and backend backtest pipelines prior to historical shadow comparisons.
+6. **Backtest View Disparity (RISK-3) — [RESOLVED]:**
+   - *Root Cause:* Traced to Desktop having executed an offline model enrichment pass (`scripts/enrichGoldOddsAndExpandPool.ts`) synthesizing DTMC Markov fair odds for 7,356 matches missing PBP/history/surface/stats and forcing `final_status = 'READY'`. Backend strictly quarantined these under raw rules (`MISSING_PBP`: 3,359, `MISSING_HISTORY`: 1,891, `MISSING_STATS_AND_PBP`: 1,656, `INVALID_SURFACE`: 441, `MISSING_STATS`: 9).
+   - *Resolution:* Implemented three-tier backtest view architecture with zero base table mutation: (1) `gold_matches_ready_raw_view` (38,720 rows - authentic baseline), (2) `gold_matches_ready_enriched_view` (46,076 rows - exact parity with Desktop via immutable auxiliary ledger `gold_matches_enriched_admissions`), and (3) `gold_matches_ready_view` (38,720 rows - legacy facade protecting 100% existing consumers). Certified 6/6 quality gates (`scripts/verify-backtest-views-parity.cjs`) and 26/26 backend regression tests.
 7. **Quarantined Qualification Parent Matches (RISK-4):**
    - *Risk:* 45 authentic traces remain quarantined in `provenance.review_queue` awaiting Phase 4 tournament edition links.
    - *Mitigation:* Ingest parent tournament editions in Phase 4 before admitting candidate runs to prevent FK violations.

@@ -274,7 +274,21 @@
   - Executed atomic single-transaction synchronization with physical pre-write backup (`data/backups/database.sqlite.bak_pre_us_open_sync_*`).
   - Restricted strictly to the 55 canonical Backend columns, omitting the 19 Markov enrichment columns from desktop.
   - Verified exact 100% parity: Desktop = 58,131 rows, Backend = 58,131 rows (0 duplicate keys).
-  - Regression verified: 26/26 full backend diagnostic tests passed; Phase 8 entry gate re-audited 6/6 PASS; Desktop DB file immutability verified ($\Delta = 0\text{ bytes}$).
+- [x] **Differentiated Backtest Views Architecture & Admission Governance Certified (`docs/backtest-views-specification-and-admission-rules.md`, `scripts/deploy-backtest-views.cjs`, `scripts/verify-backtest-views-parity.cjs`):**
+  - **Divergence Root Cause:** Identified that Desktop's 46,076 rows vs Backend's 38,720 rows (7,356 delta) stemmed from DTMC Markov model-fair odds synthesis overriding raw gatekeeper rejections (`MISSING_PBP`: 3,359, `MISSING_HISTORY`: 1,891, `MISSING_STATS_AND_PBP`: 1,656, `INVALID_SURFACE`: 441, `MISSING_STATS`: 9).
+  - **Zero-Mutation Three-Tier Architecture:**
+    - `gold_matches_ready_raw_view`: **38,720 rows** (strict raw authentic baseline, 0 synthesized odds).
+    - `gold_matches_ready_enriched_view`: **46,076 rows** (exact bitwise ID parity with Desktop, uniting raw ready matches with immutable ledger table `gold_matches_enriched_admissions` containing 7,356 IDs).
+    - `gold_matches_ready_view`: **38,720 rows** (legacy facade view pointing to raw view, preserving 100% existing consumer compatibility).
+  - **Quality Gates Certified (6/6 PASS):**
+    - `BV-G1_raw_view_count`: ✅ PASS (38,720)
+    - `BV-G2_enriched_view_parity`: ✅ PASS (46,076; 0 FP, 0 FN vs Desktop)
+    - `BV-G3_legacy_facade_integrity`: ✅ PASS (38,720)
+    - `BV-G4_zero_table_mutation`: ✅ PASS (58,131)
+    - `BV-G5_desktop_immutability`: ✅ PASS (283,303,936 bytes, $\Delta = 0$)
+    - `BV-G6_reason_ledger_accounting`: ✅ PASS (7,356 records reconciled across 5 reason codes).
+  - **Zero Consumer Regression:** All 26/26 backend diagnostic tests passed; Phase 8 entry gate re-certified 6/6 PASS.
+  - **Data Governance Invariant:** Enriched Markov data is formally segregated from authentic raw telemetry; all future baselines and audits must declare raw vs enriched evaluation.
 
 ## In Progress / Upcoming
 - [ ] Connect Staging PostgreSQL Disposable Cluster (Port 54350) to shadow comparator harness.
