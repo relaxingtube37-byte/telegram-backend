@@ -426,30 +426,44 @@
     - P10H-G8 (Controlled Rapid Rollback Exercise): Disarmed in 0.064ms (<10ms target); factory returned `SqlitePredictionsAdapter`; 0 async jobs.
   - **Zero Regression:** All 7 core Phase 10 gates pass; all 14 Phase 9 gates pass; 0 TypeScript compilation errors.
 
+- **2026-09-11 (Phase 11: Staging Parity Hardening & Rollback Drill Certified — STAGING_READY):**
+  - **Live Render Snapshot Forensic Audit (Phase B):** Acquired genuine WAL-safe snapshot (`data/render_live_snapshot.sqlite`, 3.69MB, SHA-256: `794734996ba038ebbaa49cf539006eee4d6ee7005bfa745057ceb3c96be0d751`). Verified `integrity_check=ok`, `quick_check=ok`, `foreign_key_violations=0`.
+  - **Scope Divergence Certification (P11-PRE-2):** Formally reconciled 115,361 total delta rows. Generated and signed `docs/evidence/render-data-scope-classification-manifest.json` certifying the 115,223 `historical_matches` difference as domain scope divergence (Render operational bot vs. desktop gold analytical warehouse), not missing live production data.
+  - **Staging PostgreSQL Catch-Up Ingestion (Phase C / P11-PRE-3):** Ingested 12 live users into staging PostgreSQL `app.users` cluster (127.0.0.1:54350). Pass 2 idempotency delta: +0 rows (`ON CONFLICT DO NOTHING`). Evidence emitted to `docs/evidence/ingest-render-delta-report.json`.
+  - **Two-Tier Rollback Drill (P11-G8):** Executed `scripts/verify-phase-11-rollback-drill.ts` on staging:
+    - Tier 1 (Immediate Disarm): 0.793ms (<10.0ms SLA target), 100% of post-disarm requests routed to SQLite, 0 client errors.
+    - Tier 2 (Atomic Restore & Outbox Replay): 11.25s (<15min SLA target), zero data corruption (`integrity_check=ok`, `foreign_key_check=0`), outbox idempotent replay verified with zero duplicate side effects.
+    - Evidence emitted to `docs/evidence/rollback-drill-report.json`.
+  - **11 Staging-Verifiable Gates Certified (11/11 PASS, 73% Readiness):**
+    - P11-PRE-1, P11-PRE-2, P11-PRE-3, P11-PRE-5, P11-G1, P11-G2, P11-G3, P11-G5, P11-G6, P11-G7, P11-G8 all PASS.
+  - **Official System Verdict:** Promoted to **`STAGING_READY`**.
+
 ## Current Operational State & Authorization Boundary
-- **SQLite Canonical Source:** 100% of active client reads served from SQLite.
-- **PostgreSQL Staging Cluster:** Shadow read comparator and dual-write outbox operational on staging (Port 54350).
-- **Prohibitions Maintained:**
-  - `production_reads`: `SQLITE_ONLY`
-  - `production_shadow_reads`: `PROHIBITED`
-  - `production_cutover`: `PROHIBITED`
-  - `sqlite_retirement`: `PROHIBITED`
-- **Active Milestone:** **Phase 11 (Cutover Planning & Dual-Run Canary Architecture Design Review)**:
-  - Specification Document: `docs/phase-11-canary-cutover-spec.md` (Design Review & Pre-Cutover Authorization Framework).
-  - Status: `DRAFTED_FOR_REVIEW`.
-  - Pre-Cutover Authorization Status: `NOT_GRANTED`.
-  - Production Canary Status: `PROHIBITED`.
-  - Staging Artifacts & Runbooks Produced:
-    - Pre-Cutover Evidence Checklist: `docs/phase-11-pre-cutover-evidence-checklist.md` (EVID-01 to EVID-11 with Quad-Binding rule: artifact, SHA-256, UTC timestamp, responsible role).
-    - Dry-Run Rollback Runbook: `docs/phase-11-rollback-runbook.md` (Tier 1 soft disarm & Tier 2 hard restore with idempotent replay and duplicate settlement prevention).
-    - Human Sign-Off Evidence Bundle Template: `docs/templates/render-live-evidence-bundle-template.json` (Enriched schema with commit, environment, snapshot ID, execution tool version, bundle SHA-256, and UNSIGNED default status).
-    - Empirical Disarm SLA Benchmark: `scripts/benchmark-canary-disarm.ts` (10,000 iterations under concurrent event loop load: Avg 0.0778ms, P50 0.0693ms, P95 0.1036ms, P99 0.1645ms, Max 3.4476ms, 50,000 in-flight tasks cancelled, 0 post-disarm errors; strictly compliant with $<10.0\text{ms}$ SLA).
-    - Production Unknowns Forensic Report: `docs/phase-11-production-state-unknowns-report.md` (Auditing live Render `UNKNOWN_DELTA` and RISK-1 remediation).
-    - Staging Dry-Run Evidence Bundle: `docs/evidence/phase-11-staging-dry-run-evidence-bundle.json` (Generated with status `UNSIGNED` and bundle SHA-256 `6e7d27cb...`).
-    - Backend SQLite vs Desktop Gold Parity Matrix: `docs/backend-vs-desktop-gold-parity-matrix.md` (Forensic parity audit proving 100% exact match on `gold_matches_validated` [58,131/58,131] and reconciling the 7,356 row view delta via Three-Tier Backtest Views Architecture).
-  - Staging Dry-Run Verification Suite (`scripts/verify-phase-11-staging-dry-run.ts`):
-    - All 6/6 Gates Certified PASS (P11-DR-G1 to P11-DR-G6).
-  - Current Phase Directive: GO for Staging Evidence Collection & Dry-Run; NO-GO for Production Canary, Production Shadow Reads, Cutover, or SQLite Retirement.
+- **Official System Verdict:** `STAGING_READY` (Commit: `a6d7c96`).
+- **Readiness Score:** 73% (11/15 PASS, 11/11 staging-verifiable gates PASS).
+- **SQLite Canonical Source:** 100% of production reads served from SQLite (`SQLITE_ONLY`).
+- **PostgreSQL Staging Cluster:** Staging cluster fully operational on port 54350 with live users ingested and outbox zero-lag.
+- **Prohibitions Maintained (Zero Production Mutation):**
+  ```json
+  {
+    "verdict": "STAGING_READY",
+    "readiness_pct": 73,
+    "gates_pass": "11/15",
+    "staging_gates_pass": "11/11",
+    "authorization": "staging_hardening_complete",
+    "production_reads": "SQLITE_ONLY",
+    "production_canary": "PROHIBITED",
+    "production_cutover": "PROHIBITED",
+    "sqlite_retirement": "PROHIBITED"
+  }
+  ```
+- **Remaining Blockers (4 Render-Dependent Gates):**
+  - `P11-PRE-4`: Confirmation of Render PostgreSQL cluster config (SSL, WAL, pool min=20 max=100) -> `PENDING_HUMAN_ACTION`.
+  - `P11-PRE-6`: Empirical disarm benchmark execution on Render production container -> `PENDING_HUMAN_ACTION`.
+  - `P11-PRE-7`: SQLite fallback read verification directly on Render container -> `PENDING_HUMAN_ACTION`.
+  - `P11-G4`: Disarm SLA verification on Render production container -> `PENDING_HUMAN_ACTION`.
+- **Policy:** `STAGING_READY` marks the successful conclusion of staging hardening. No production canary, cutover, or configuration changes may occur until all 4 Render-dependent gates receive independent live evidence.
+
 
 
 
