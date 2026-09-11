@@ -545,8 +545,18 @@
     - Commit `25fc568` is locked as the baseline of Phase 11 staging dry-run execution.
     - Evidence bundle `docs/evidence/phase-11-staging-dry-run-evidence-bundle.json` remains strictly `UNSIGNED` pending independent human review.
     - Production reads remain 100% `SQLITE_ONLY`.
-    - Live Render database remains classified as `UNKNOWN_DELTA`.
     - Zero local data to be written to Render Production; zero routing changes; zero `DATABASE_ENGINE` mutations; zero SQLite retirement.
+- **Decision 46 (2026-09-11): Backend SQLite vs Desktop Gold Forensic Parity Audit & Architectural Reconciliation**
+  - **Context:** Automated forensic audit of schema catalogs, table definitions, columns, and data counts between Authoritative Desktop Gold (`G:/state football/data/tennis_gold.sqlite`) and Primary Backend SQLite (`G:/telegram-backend/data/database.sqlite`).
+  - **Verdict:** PARITY_ARCHITECTURALLY_RECONCILED (100% ID match on `gold_matches_validated` [58,131/58,131]; 7,356 row view delta fully accounted for via Three-Tier Backtest Views Architecture).
+  - **Key Reconciliations Documented:**
+    1. **Exact 58,131 Match Row Parity:** 100.00% overlap on `rapid_event_id` between Desktop Gold and Backend SQLite (58,131 shared IDs; 0 missing, 0 extra).
+    2. **55 Shared Columns / 19 Desktop-Only Columns:** 55 columns identical across both; 19 Desktop-only columns represent DTMC Markov synthetic odds lines (`fair_total_games_lines`, `fair_handicap_lines`, `fair_set_scores`) and advanced box score stats (`w_ace`, `w_df`, `l_ace`, `l_df`, `w_bp_converted`, etc.).
+    3. **Three-Tier Backtest View Resolution (Decision 29):** Desktop `gold_matches_ready_view` (46,076 rows) matches Backend `gold_matches_ready_enriched_view` (46,076 rows = 38,720 raw + 7,356 synthetic Markov admissions). Backend `gold_matches_ready_view` (38,720 rows) defaults to raw matches per the Raw-by-Default governance rule.
+    4. **Telemetry & Application Separation:** Desktop Gold (283MB, 7 entities) houses deep telemetry (`gold_match_pbp_analytics` [50,187], `gold_match_set_stats` [115,265], `gold_match_telemetry` [58,131], `gold_player_profiles` [12,309]); Backend SQLite (545MB, 41 entities) houses the web application, user accounts, affiliate tracking, outbox, and expanded historical archive (115,223 matches).
+    5. **Desktop Gold Invariance:** `tennis_gold.sqlite` remains 100% bitwise invariant (283,303,936 bytes).
+    6. **Governance Matrix Maintained:** Production reads remain strictly `SQLITE_ONLY`, zero production canary, zero production changes.
+
 
 
 

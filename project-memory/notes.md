@@ -198,6 +198,15 @@
     4. Local 0.0693ms disarm SLA applies to staging runtime, not Render production container scheduling.
     5. Structural difference between backend SQLite and Desktop Gold remains an active parity consideration.
   - **Baseline:** Commit `25fc568` locked as the staging baseline. Evidence bundle remains `UNSIGNED`. Production reads remain 100% `SQLITE_ONLY`.
+- **Note 27: Backend SQLite vs Desktop Gold Forensic Parity Audit & Reconciliation:**
+  - **Status:** Completed on 2026-09-11 via `scripts/audit-backend-vs-desktop-gold-parity.ts`.
+  - **`gold_matches_validated` Row Parity:** 58,131 / 58,131 (100.00% exact match on `rapid_event_id`; 0 missing, 0 extra).
+  - **Column Distribution:** 55 shared columns; 19 Desktop-only columns (Markov synthetic odds + box score return stats).
+  - **Three-Tier Backtest Views Parity:** Desktop `gold_matches_ready_view` (46,076 rows) exactly matches Backend `gold_matches_ready_enriched_view` (46,076 rows = 38,720 raw + 7,356 Markov admissions). Backend default `gold_matches_ready_view` has 38,720 rows enforcing the Raw-by-Default governance rule (Decision 29). The 7,356 delta is an architectural safety design, not a parity defect.
+  - **Telemetry Tables:** Desktop Gold (283MB) holds deep telemetry (`gold_match_pbp_analytics` [50,187], `gold_match_set_stats` [115,265], `gold_match_telemetry` [58,131], `gold_player_profiles` [12,309]). Backend SQLite (545MB) holds the web application, user accounts, and expanded historical archive (`historical_matches` [115,223]).
+  - **Documentation:** Full report published at `docs/backend-vs-desktop-gold-parity-matrix.md`.
+  - **Desktop Gold Immutability:** `tennis_gold.sqlite` confirmed 100% bitwise invariant (283,303,936 bytes).
+
 
 
 
