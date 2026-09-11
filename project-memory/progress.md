@@ -241,15 +241,36 @@
     - 45 multi-agent traces with matches unstaged in PostgreSQL (`MATCH_NOT_STAGED_IN_POSTGRES`).
   - Strict zero-fabrication enforcement: 100% of candidate items retained in quarantine, zero synthetic entities created, and production read cutover strictly prohibited.
 
-- [x] **Milestone 27 Certified & Phase 7-B Staging Snapshot Frozen (Commit: `663c5ae428e39afa8f564519d4c627016ce4dac6`):**
+- [x] **Milestone 27 Certified & Phase 7-B Staging Snapshot Frozen (Commit: `14de6c34e1ba5b8bf3e07916c053950ebfaafb45`):**
+
   - **Milestone Certification:** *"Crosswalk artifact accepted; canonical records not admitted; production cutover remains prohibited."*
   - **Operational State:** `staging_execution = CLOSED`, `staging_snapshot = FROZEN`, `crosswalk_parity = PASS`, `quarantine_ledger = ACCEPTED`, `canonical_admission = 0`, `production_cutover = PROHIBITED`.
   - **Authorizations State:** `dual_write = NOT_YET_AUTHORIZED`, `shadow_read = NOT_YET_AUTHORIZED`.
   - **Independent Parity Audit (`scripts/verify-crosswalk-artifact-parity.cjs`):** 100% verified across JSON (133), Markdown ledger (133), and source quarantine ledgers with zero hash or UUID discrepancies.
   - **Phase 8 Entry Gate Defined:** `phase_7_status: CLOSED`, `crosswalk_parity: PASS`, `quarantine_reconciliation: PASS`, `canonical_admission: 0`, `unresolved_parent_policy: DOCUMENTED`, `rollback_target: SQLITE`, `production_reads: SQLITE_ONLY`.
 
+- [x] **Phase 8 Data-Access & Repository Layer Entry Gate Preparation Certified (`scripts/verify-phase-8-entry-gate.cjs`):**
+  - **Repository Layer Contracts (`src/db/interfaces/`):**
+    - Defined abstract TypeScript interfaces: `IPredictionsRepo`, `IEditorialsRepo`, `IPlayersRepo`, `IMatchesRepo`.
+  - **Dual-Engine Adapter Implementations (`src/db/adapters/`):**
+    - `SqliteAdapter`: Verbatim delegation to existing `better-sqlite3` repositories, preserving 100% bug-for-bug runtime behavior.
+    - `PostgresAdapter`: Staging-only adapter mapping queries to canonical schema views (`ai.predictionruns`, `predictions.match_editorials`). Any write mutations throw `POSTGRES_MUTATION_PROHIBITED`.
+  - **Repository Factory with Rollback Circuit-Breaker (`src/db/repositoryFactory.ts`):**
+    - Hardcoded default engine to SQLite (`production_reads: SQLITE_ONLY`).
+    - Staging shadow comparator (`ShadowComparingPredictionsRepo`) runs asynchronous non-blocking queries and suppresses all errors.
+  - **Independent Quality Gate Audit (`scripts/verify-phase-8-entry-gate.cjs`):**
+    - Evaluated and passed 6/6 acceptance gates:
+      - `P8-G1_interface_completeness`: ✅ PASS
+      - `P8-G2_production_read_immutability`: ✅ PASS
+      - `P8-G3_pg_query_conformance`: ✅ PASS
+      - `P8-G4_rollback_circuit_breaker`: ✅ PASS
+      - `P8-G5_zero_production_mutation`: ✅ PASS
+      - `P8-G6_prohibition_matrix`: ✅ PASS
+  - **Operational State Maintained:**
+    - `production_reads: SQLITE_ONLY`, `dual_write: NOT_YET_AUTHORIZED`, `shadow_read: NOT_YET_AUTHORIZED`, `production_cutover: PROHIBITED`.
+
 ## In Progress / Upcoming
-- [ ] Prepare Phase 8 Data-Access Layer Entry Gate (incremental repository connection to PostgreSQL with production read serving strictly from SQLite).
+- [ ] Connect Staging PostgreSQL Disposable Cluster (Port 54350) to shadow comparator harness.
 - [ ] Resolve or record formal status for 45 qualification tournament matches in Phase 4.
 - [ ] Establish documented resolution path for 72 unresolved vendor fixtures without fuzzy force-linking.
 - [ ] Maintain operational freeze on production read paths (`production_cutover: PROHIBITED`).

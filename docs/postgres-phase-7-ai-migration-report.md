@@ -2,7 +2,8 @@
 
 **Document Role:** Authoritative Migration Verification, Differentiated Phase Snapshot Audit, and Quality Gate Certification  
 **Execution Timestamp:** 2026-09-11T10:50:34.153Z  
-**Frozen Commit Hash:** `663c5ae428e39afa8f564519d4c627016ce4dac6` (Branch: `staging/phase-1-ingestion-spec`)  
+**Frozen Commit Hash:** `14de6c34e1ba5b8bf3e07916c053950ebfaafb45` (Branch: `staging/phase-1-ingestion-spec`)  
+
 **Target Environment:** Isolated Disposable Local PostgreSQL Staging Cluster (Port 54350)  
 **Execution Runner:** [`scripts/run-postgres-phase-7-ai-migration.cjs`](file:///g:/telegram-backend/scripts/run-postgres-phase-7-ai-migration.cjs)  
 **Crosswalk Generator:** [`scripts/generate-trace-crosswalk-manifest.cjs`](file:///g:/telegram-backend/scripts/generate-trace-crosswalk-manifest.cjs)  

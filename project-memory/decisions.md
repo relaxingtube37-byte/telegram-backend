@@ -181,6 +181,18 @@
       3. Separate isolated rollback-safe canonical admission pass.
       4. Phase 8 Data-Access Layer migration, followed by Phase 9 dual-write and Phase 10 shadow-read parity.
 
+28. **Phase 8 Entry Gate Architecture, Repository Contract Decoupling, & SQLite Rollback Circuit-Breaker:**
+    - **Entry Gate Objectives:** Prepared the controlled entry gate for Phase 8 (Data-Access / Repository Layer) without authorizing production cutover, dual-write, or live shadow-reads.
+    - **Repository Interface Contracts:** Established clean TypeScript contracts (`IPredictionsRepo`, `IEditorialsRepo`, `IPlayersRepo`, `IMatchesRepo`) under `src/db/interfaces/` decoupling application business logic from underlying database engines.
+    - **Dual-Engine Adapter Isolation:**
+      - `SqliteAdapter`: Wraps existing `better-sqlite3` queries verbatim, preserving 100% bug-for-bug runtime behavior.
+      - `PostgresAdapter`: Staging-only adapter mapping read queries to canonical schema views (`ai.predictionruns`, `predictions.match_editorials`). Any write mutation strictly throws `POSTGRES_MUTATION_PROHIBITED`.
+    - **Zero-Risk Rollback Circuit Breaker:**
+      - `RepositoryFactory` defaults hardcoded to SQLite (`production_reads: SQLITE_ONLY`).
+      - Staging shadow comparator (`ShadowComparingPredictionsRepo`) executes PostgreSQL shadow calls asynchronously and suppresses all errors, guaranteeing zero impact on client latency or availability.
+    - **Entry Gate Quality Certification (`scripts/verify-phase-8-entry-gate.cjs`):**
+      - Certified 6/6 acceptance gates (`P8-G1` through `P8-G6`) passing with zero failures.
+
 
 
 
