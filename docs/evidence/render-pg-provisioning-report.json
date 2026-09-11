@@ -1,0 +1,20 @@
+{
+  "report_id": "REPORT-PG-PROVISIONING-1789146011826",
+  "generated_at_utc": "2026-09-11T17:00:11.826Z",
+  "status": "PENDING_HUMAN_ACTION",
+  "measured_value": "NOT_CONFIGURED — RENDER_PG_CONNECTION_STRING environment variable empty",
+  "acceptance_threshold": "SSL enforced; WAL enabled; pool min=20 max=100; dedicated production cluster",
+  "checks": {
+    "ssl_enforced": false,
+    "wal_enabled": false,
+    "connection_capacity": false,
+    "ping_latency_ms": null,
+    "pg_version": null
+  },
+  "instructions": "Provision Render PostgreSQL instance and re-run with RENDER_PG_CONNECTION_STRING set.",
+  "governance": {
+    "production_reads": "SQLITE_ONLY",
+    "production_canary": "PROHIBITED",
+    "production_cutover": "PROHIBITED"
+  }
+}

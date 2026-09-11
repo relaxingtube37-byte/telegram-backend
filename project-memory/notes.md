@@ -234,3 +234,11 @@
   - **Remaining Gates (4):** P11-PRE-4, P11-PRE-6, P11-PRE-7, P11-G4 remain `PENDING_HUMAN_ACTION` on Render production container.
   - **Production Governance Invariants:** Production reads remain strictly `SQLITE_ONLY`. Canary and cutover remain `PROHIBITED`.
 
+- **Note 32 — Gate P11-PRE-4 Provisioning Tooling & Checklist Deployed:**
+  - **Validator Tool:** Created `scripts/verify-render-pg-provisioning.ts` with SSL, WAL level, max_connections, and ping latency checks.
+  - **Checklist Guide:** Created `docs/phase-11-render-postgres-provisioning-checklist.md` with step-by-step instructions.
+  - **Security:** Secret hygiene enforced; connection strings masked in all reports (`docs/evidence/render-pg-provisioning-report.json`).
+  - **Status:** Integrated into readiness dashboard; P11-PRE-4 cleanly signals `PENDING_HUMAN_ACTION` until live Render cluster is created.
+  - **Scorecard:** Unchanged at 73% (11/15 PASS), `STAGING_READY`. Production reads strictly `SQLITE_ONLY`.
+
+

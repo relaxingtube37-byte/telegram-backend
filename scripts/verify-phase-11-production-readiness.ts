@@ -26,6 +26,7 @@ const RENDER_EV_PATH  = path.resolve(__dirname, '../docs/evidence/render-live-ev
 const DELTA_PATH      = path.resolve(__dirname, '../docs/evidence/render-reconciliation-delta-manifest.json');
 const INGEST_PATH     = path.resolve(__dirname, '../docs/evidence/ingest-render-delta-report.json');
 const ROLLBACK_PATH   = path.resolve(__dirname, '../docs/evidence/rollback-drill-report.json');
+const PG_PROV_PATH    = path.resolve(__dirname, '../docs/evidence/render-pg-provisioning-report.json');
 const DISARM_PATH     = path.resolve(__dirname, '../scratch/postgres-phase-11-cutover/disarm_benchmark_staging.json');
 const CANARY_AUDIT    = path.resolve(__dirname, '../scratch/postgres-phase-11-cutover/canary_audit_log.jsonl');
 const CANARY_ROUTER   = path.resolve(__dirname, '../src/db/canary/canaryRouter.ts');
@@ -57,6 +58,7 @@ async function main() {
   const delta       = loadJson(DELTA_PATH);
   const ingestEv    = loadJson(INGEST_PATH);
   const rollbackEv  = loadJson(ROLLBACK_PATH);
+  const pgProvEv    = loadJson(PG_PROV_PATH);
   const disarm      = loadJson(DISARM_PATH);
   const reports: GateReport[] = [];
 
@@ -141,15 +143,20 @@ async function main() {
   }
 
   // P11-PRE-4: Production PostgreSQL Provisioning
-  R({
-    gate_id: 'P11-PRE-4', title: 'PostgreSQL Production Provisioning',
-    status: 'PENDING_HUMAN_ACTION',
-    measured_value: 'NOT_VERIFIED — requires Render dashboard inspection',
-    acceptance_threshold: 'SSL enforced; WAL enabled; pool min=20 max=100; dedicated production cluster',
-    evidence_path: 'Render dashboard -> Environment -> Database URL config',
-    blocking_reason: 'Confirm Render PostgreSQL cluster config and paste connection string to proceed',
-    rollback_impact: 'Misconfigured PG pool (too few connections) causes pool starvation under canary load. Hard rollback to SQLite required.'
-  });
+  {
+    const hasReport = !!pgProvEv;
+    const isPass = hasReport && (pgProvEv.status as string) === 'PASS';
+    const isPending = !hasReport || (pgProvEv.status as string) === 'PENDING_HUMAN_ACTION';
+    R({
+      gate_id: 'P11-PRE-4', title: 'PostgreSQL Production Provisioning',
+      status: isPass ? 'PASS' : (isPending ? 'PENDING_HUMAN_ACTION' : 'FAIL'),
+      measured_value: hasReport ? (pgProvEv.measured_value as string) : 'NOT_VERIFIED — requires Render dashboard inspection',
+      acceptance_threshold: 'SSL enforced; WAL enabled; pool min=20 max=100; dedicated production cluster',
+      evidence_path: PG_PROV_PATH,
+      blocking_reason: isPass ? '' : (isPending ? 'Provision Render PostgreSQL and run: npx tsx scripts/verify-render-pg-provisioning.ts' : (pgProvEv?.measured_value as string || 'Connection probe failed')),
+      rollback_impact: 'Misconfigured PG pool (too few connections) causes pool starvation under canary load. Hard rollback to SQLite required.'
+    });
+  }
 
   // P11-PRE-5: Outbox Synchronization Zero-Lag
   R({

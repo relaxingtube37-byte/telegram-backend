@@ -1,6 +1,6 @@
 {
-  "report_id": "PHASE-11-READINESS-1789145561777",
-  "generated_at_utc": "2026-09-11T16:52:41.777Z",
+  "report_id": "PHASE-11-READINESS-1789146157677",
+  "generated_at_utc": "2026-09-11T17:02:37.677Z",
   "readiness_percentage": 73,
   "gates_pass": 11,
   "gates_fail": 0,
@@ -51,10 +51,10 @@
       "gate_id": "P11-PRE-4",
       "title": "PostgreSQL Production Provisioning",
       "status": "PENDING_HUMAN_ACTION",
-      "measured_value": "NOT_VERIFIED — requires Render dashboard inspection",
+      "measured_value": "NOT_CONFIGURED — RENDER_PG_CONNECTION_STRING environment variable empty",
       "acceptance_threshold": "SSL enforced; WAL enabled; pool min=20 max=100; dedicated production cluster",
-      "evidence_path": "Render dashboard -> Environment -> Database URL config",
-      "blocking_reason": "Confirm Render PostgreSQL cluster config and paste connection string to proceed",
+      "evidence_path": "G:\\telegram-backend\\docs\\evidence\\render-pg-provisioning-report.json",
+      "blocking_reason": "Provision Render PostgreSQL and run: npx tsx scripts/verify-render-pg-provisioning.ts",
       "rollback_impact": "Misconfigured PG pool (too few connections) causes pool starvation under canary load. Hard rollback to SQLite required."
     },
     {

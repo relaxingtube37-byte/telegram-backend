@@ -624,3 +624,9 @@
       }
       ```
 
+51. **Phase 11 Render Production PostgreSQL Provisioning Validator Deployed (P11-PRE-4):**
+    - **Validation Tooling:** Built `scripts/verify-render-pg-provisioning.ts` to probe target Render PostgreSQL instances for SSL enforcement, engine version (>= 15), WAL configuration, connection limits (max_connections >= 50, target: 100), and network RTT latency (< 300ms).
+    - **Step-by-Step Checklist:** Published `docs/phase-11-render-postgres-provisioning-checklist.md` providing exact step-by-step guidance for provisioning PostgreSQL in Render dashboard.
+    - **Secret Hygiene & Security:** Passwords masked in all logs and reports (`postgresql://user:***@host:port/db`). No credentials stored on disk, git, or memory files.
+    - **Evidence Integration:** Emitted `docs/evidence/render-pg-provisioning-report.json`. Wired into `scripts/verify-phase-11-production-readiness.ts`. In absence of connection string, gracefully reports `PENDING_HUMAN_ACTION`.
+    - **Governance Maintained:** System remains at **`STAGING_READY` (73% readiness, 11/15 PASS)**. Production reads remain `SQLITE_ONLY`. Canary, cutover, and SQLite retirement remain `PROHIBITED`.

@@ -435,7 +435,10 @@
     - Tier 2 (Atomic Restore & Outbox Replay): 11.25s (<15min SLA target), zero data corruption (`integrity_check=ok`, `foreign_key_check=0`), outbox idempotent replay verified with zero duplicate side effects.
     - Evidence emitted to `docs/evidence/rollback-drill-report.json`.
   - **11 Staging-Verifiable Gates Certified (11/11 PASS, 73% Readiness):**
-    - P11-PRE-1, P11-PRE-2, P11-PRE-3, P11-PRE-5, P11-G1, P11-G2, P11-G3, P11-G5, P11-G6, P11-G7, P11-G8 all PASS.
+  - **Gate P11-PRE-4 Provisioning Tooling & Checklist Deployed:**
+    - Built `scripts/verify-render-pg-provisioning.ts` with SSL, WAL level, max_connections, latency probe, and isolated temp table transaction check.
+    - Published step-by-step checklist `docs/phase-11-render-postgres-provisioning-checklist.md`.
+    - Wired `docs/evidence/render-pg-provisioning-report.json` into `verify-phase-11-production-readiness.ts`. Cleanly reports `PENDING_HUMAN_ACTION` until cluster URL is provided via `$env:RENDER_PG_CONNECTION_STRING`.
   - **Official System Verdict:** Promoted to **`STAGING_READY`**.
 
 ## Current Operational State & Authorization Boundary
