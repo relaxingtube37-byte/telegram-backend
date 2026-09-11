@@ -332,3 +332,26 @@
       5. P10-G5: Mismatch ledger with payload hashes (`shadow_mismatch_ledger.jsonl`).
       6. P10-G6: Hard disable switch for comparator reads (<10ms disarm).
       7. P10-G7: Zero user-visible response drift across public API endpoints.
+
+- **Decision 37 (2026-09-11): Phase 10 Staging Shadow-Read Parity Instrumentation Certification (7/7 Gates Passed)**
+  - **Context:** Automated verification of Phase 10 staging shadow-read parity instrumentation across Predictions, Editorials, Players, and Matches.
+  - **Verdict:** CERTIFIED (7/7 Quality Acceptance Gates passed).
+  - **Key Implementations:**
+    - `ShadowComparator` (`src/db/shadow/shadowComparator.ts`) with deep recursive normalization, SHA-256 payload hashing, latency histograms, and failure suppression.
+    - Modular shadow domain repository decorators (`ShadowComparingPredictionsRepo`, `ShadowComparingEditorialsRepo`, `ShadowComparingPlayersRepo`, `ShadowComparingMatchesRepo`) wired into `RepositoryFactory`.
+    - Query plan optimization using subquery/CTE scoping on `PostgresPredictionsAdapter`, dropping execution planning latency from 79.5ms to 1.5ms.
+  - **Certified Quality Gates:**
+    - P10-G1 (Canonical SQLite Response): PASS (100% payload equality between pure SQLite and shadow repo wrappers).
+    - P10-G2 (Async Non-Blocking & Failure Suppression): PASS (Caller returned in 0.06ms; errors cleanly suppressed).
+    - P10-G3 (Field-Level Parity Rate): PASS (100.00% parity across Predictions, Editorials, Players, and Matches).
+    - P10-G4 (P95 Latency Delta Budget): PASS (Primary added delta +0.422ms <= 0.50ms; PostgreSQL shadow P95 5.615ms <= 25.0ms).
+    - P10-G5 (Mismatch Audit Ledger): PASS (Append-only JSONL written to disk with UUIDv4 and 64-character SHA-256 digests).
+    - P10-G6 (Hard Disable Switch): PASS (Disarmed in 0.045ms; zero background queries when disabled; production lock enforced).
+    - P10-G7 (Zero User-Visible Response Drift): PASS (100% SHA-256 match on public read endpoints with shadow ON vs OFF).
+  - **Invariants Maintained:**
+    - Production reads remain strictly `SQLITE_ONLY`.
+    - Production shadow reads remain strictly `PROHIBITED`.
+    - Production cutover remains strictly `PROHIBITED`.
+    - SQLite retirement remains strictly `PROHIBITED`.
+    - Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant.
+

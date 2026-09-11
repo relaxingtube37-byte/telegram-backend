@@ -131,3 +131,14 @@
   - **Status:** Authorized for staging preparation only. Production shadow reads and cutover remain strictly prohibited.
   - **Scope:** Instrumenting field-by-field asynchronous comparison across predictions, editorials, player profiles, and match listings without modifying client-facing SQLite responses.
   - **7 Required Gates:** Canonical SQLite response, asynchronous comparator execution, field-level parity rate (>=99%), P95 latency delta budget (<=25ms), mismatch audit ledger (`shadow_mismatch_ledger.jsonl`), hard disable switch (<10ms disarm), zero user-visible response drift.
+- **Note 19: Phase 10 Staging Shadow-Read Parity Certification (7/7 PASS):**
+  - **Status:** Fully Certified & Verified on 2026-09-11 (`scripts/verify-phase-10-staging-shadow-reads.ts`).
+  - **P10-G1 (Canonical SQLite Response):** 100% exact payload equality between direct SQLite and shadow repo wrapper across all 4 domains.
+  - **P10-G2 (Async Non-Blocking & Failure Suppression):** Detached via `setImmediate()`; caller returned in 0.06ms; errors cleanly suppressed.
+  - **P10-G3 (Field-Level Parity Rate):** 100.00% parity across Predictions, Editorials, Players, and Matches on matching admitted entities.
+  - **P10-G4 (P95 Latency Delta Budget):** Primary added latency delta +0.422ms (budget <= 0.50ms); PostgreSQL shadow P95 5.615ms (budget <= 25.0ms).
+  - **P10-G5 (Mismatch Audit Ledger):** Append-only JSONL written to disk (`scratch/postgres-phase-10-shadow-reads/shadow_mismatch_ledger.jsonl`) with UUIDv4 and 64-character SHA-256 digests.
+  - **P10-G6 (Hard Disable Switch):** Evaluated in 0.045ms (<10ms target); zero background comparisons when disabled; production lock enforced.
+  - **P10-G7 (Zero User-Visible Response Drift):** 100% SHA-256 match on public read endpoints with shadow ON vs OFF.
+  - **Optimizations:** Scoped `PostgresPredictionsAdapter` queries with CTE (`WITH r AS (SELECT * FROM ai.predictionruns ...)`), dropping execution planning time from 79.5ms to 1.5ms.
+

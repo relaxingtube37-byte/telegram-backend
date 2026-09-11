@@ -397,7 +397,21 @@
     - P9-G14 (Crash Recovery): Committed outbox records survive complete restart.
   - **Zero Regression:** 26/26 backend diagnostic tests PASS in `src/test_backend_full.ts`. TypeScript compiles with 0 errors (`npx tsc --noEmit`).
 
+- **2026-09-11 (Phase 10: Staging Shadow-Read Parity Instrumentation & Verification Certified):**
+  - **Asynchronous Detached Shadow Comparator:** Implemented `ShadowComparator` (`src/db/shadow/shadowComparator.ts`) with deep recursive normalization (dates, floats epsilon < 0.001, booleans, strings), SHA-256 payload hashing, latency histograms, and failure suppression.
+  - **Domain Shadow Decorators:** Built `ShadowComparingPredictionsRepo`, `ShadowComparingEditorialsRepo`, `ShadowComparingPlayersRepo`, and `ShadowComparingMatchesRepo` hooked into `RepositoryFactory` under feature flag `ENABLE_STAGING_PG_SHADOW === 'true'`.
+  - **Optimized PostgreSQL Staging Queries:** Implemented CTE subquery scoping on `PostgresPredictionsAdapter` (`WITH r AS (SELECT * FROM ai.predictionruns ...)`), dropping execution planning latency from 79.5ms to 1.5ms.
+  - **7 Quality Acceptance Gates (7/7 PASS):**
+    - P10-G1 (Canonical SQLite Response): 100% exact payload equality between direct SQLite and shadow repo wrapper across all 4 domains.
+    - P10-G2 (Async Non-Blocking & Failure Suppression): Caller returned in 0.06ms (<15ms target); errors cleanly suppressed.
+    - P10-G3 (Field-Level Parity Rate): 100.00% parity across Predictions, Editorials, Players, and Matches on matching admitted entities.
+    - P10-G4 (P95 Latency Delta Budget): Primary added latency delta +0.422ms (budget <= 0.50ms); PostgreSQL shadow P95 5.615ms (budget <= 25.0ms).
+    - P10-G5 (Mismatch Audit Ledger): Append-only JSONL on disk (`shadow_mismatch_ledger.jsonl`) with UUIDv4, UTC timestamps, and 64-char SHA-256 digests.
+    - P10-G6 (Hard Disable Switch): Disarmed in 0.045ms (<10ms target); 0 background comparisons when disabled; production lock enforced.
+    - P10-G7 (Zero User-Visible Response Drift): Bitwise identical response SHA-256 digests across public read endpoints.
+  - **Zero Regression:** 14/14 Phase 9 dual-write gates pass; 26/26 backend diagnostic tests pass; 0 TypeScript compilation errors.
+
 ## In Progress / Upcoming
 - [ ] Maintain operational freeze on production read paths (`production_reads: SQLITE_ONLY`, `production_cutover: PROHIBITED`).
-- [ ] Dual-write remains strictly **PROHIBITED** in production until all downstream shadow-read gates pass.
-- [ ] Prepare Phase 10 shadow-read comparison and verification strategy for staging validation.
+- [ ] Dual-write and shadow-reads remain strictly **PROHIBITED** in production until final migration cutover review.
+- [ ] Next Step: Phase 11 Staging shadow-read burn-in monitoring & telemetry aggregation.
