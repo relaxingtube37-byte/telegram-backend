@@ -289,10 +289,28 @@
         "sqlite_retirement": "PROHIBITED"
       }
       ```
-
-
-
-
+35. **Phase 9 Staging Dual-Write Architecture & 14-Gate Certification:**
+    - **Architecture Decision:** Rejected volatile in-memory queue in favor of a transactional SQLite outbox (`postgres_dual_write_outbox`). The primary business mutation and durable outbox insertion occur within the same SQLite transaction, ensuring zero event loss across process crashes or host restarts.
+    - **Asynchronous Staging Delivery:** In-process worker (`StagingDualWriteWorker`) claims short-term leases and asynchronously executes idempotent upserts against staging PostgreSQL on port 54350.
+    - **Quality Acceptance Gates (14/14 PASS):** Fully certified via `scripts/verify-phase-9-staging-dual-write.ts` and archived in `docs/phase-9-staging-dual-write-verification-report.md`.
+      - Overhead: median 0.303ms (target <= 1ms), P95 0.783ms (target <= 5ms).
+      - Fault tolerance: 100% of SQLite mutations succeed with PostgreSQL offline.
+      - Atomic rollback: 0 mutations and 0 outbox records committed on abort.
+      - Disarm: admission halts in 0.046ms (<100ms target); worker stops in 0.334ms (<1s target).
+      - Replay idempotency: exactly zero duplicate rows and bitwise row hash parity (`7eac2b...`).
+      - Fail-closed security: `PRODUCTION_TARGET_PROHIBITED` thrown on remote/production hosts; sensitive keys scrubbed.
+    - **Operational Governance State:**
+      ```json
+      {
+        "phase_8_audit_closure": "ACCEPTED",
+        "phase_9_design_review": "APPROVED_FOR_STAGING_IMPLEMENTATION",
+        "phase_9_dual_write": "PROHIBITED_UNTIL_GATES_PASS",
+        "production_reads": "SQLITE_ONLY",
+        "production_shadow_reads": "PROHIBITED",
+        "production_cutover": "PROHIBITED",
+        "sqlite_retirement": "PROHIBITED"
+      }
+      ```
 
 
 

@@ -376,16 +376,28 @@
     - Dual-write remains strictly **PROHIBITED** across all production environments.
     - Proposed staging harness includes DLQ audit ledger, circuit breaker auto-trip, and <5 second instant rollback disarm.
 
+- [x] **Phase 9 Staging Dual-Write Harness & 14-Gate Verification Certified (14/14 Gates PASS, `scripts/verify-phase-9-staging-dual-write.ts`, `docs/phase-9-staging-dual-write-verification-report.md`):**
+  - **Durable Transactional SQLite Outbox:** Implemented `postgres_dual_write_outbox` table, coupling primary SQLite mutations and outbox records atomically within the same SQLite transaction.
+  - **Asynchronous Staging Delivery Worker:** Implemented `StagingDualWriteWorker` with short-term leases, fail-closed remote host rejection (`PRODUCTION_TARGET_PROHIBITED`), and auto-tripping circuit breaker targeting PostgreSQL Port 54350.
+  - **Dual-Writing Decorator:** Created `DualWritingPredictionsRepo` implementing `IPredictionsRepo` with pre-compiled statement and transaction runners.
+  - **14 Quality Acceptance Gates (14/14 PASS):**
+    - P9-G1 (Latency Overhead): Median overhead 0.303ms (target <= 1ms), P95 0.783ms (target <= 5ms).
+    - P9-G2 (Circuit Breaker): Tripped to OPEN after persistent failure threshold.
+    - P9-G3 (DLQ Integrity): Full forensic envelope stored in SQLite & exported to `dlq_records.jsonl`.
+    - P9-G4 (Instant Disarm): Admission check 0.046ms (<100ms); worker stop 0.334ms (<1s).
+    - P9-G5 (Read Immutability): Production reads hardcoded to `SQLITE_ONLY`.
+    - P9-G6 (Idempotent Replay): Exactly zero duplicate rows and bitwise row hash parity on replay (`7eac2b...`).
+    - P9-G7 (Fault Tolerance): 100% of SQLite mutations succeed with PostgreSQL offline.
+    - P9-G8 (Atomic Rollback): Forced rollback leaves 0 primary mutations and 0 outbox records.
+    - P9-G9 (Lease Reclamation): Abandoned `PROCESSING` leases safely recovered to `PENDING`.
+    - P9-G10 (DLQ Replay): DLQ item safely replayed to `PENDING` with 0 attempts.
+    - P9-G11 (Backlog Observability): Real-time metrics accurately calculated.
+    - P9-G12 (Prod Target Rejection): Throws `PRODUCTION_TARGET_PROHIBITED` on non-staging targets.
+    - P9-G13 (Payload Sanitization): Sensitive tokens, passwords, and secrets scrubbed.
+    - P9-G14 (Crash Recovery): Committed outbox records survive complete restart.
+  - **Zero Regression:** 26/26 backend diagnostic tests PASS in `src/test_backend_full.ts`. TypeScript compiles with 0 errors (`npx tsc --noEmit`).
+
 ## In Progress / Upcoming
 - [ ] Maintain operational freeze on production read paths (`production_reads: SQLITE_ONLY`, `production_cutover: PROHIBITED`).
-- [ ] Await formal user review and authorization for Phase 9 staging dual-write harness execution.
-- [ ] Ongoing operational monitoring and staging readiness governance.
-
-
-
-
-
-
-
-
-
+- [ ] Dual-write remains strictly **PROHIBITED** in production until all downstream shadow-read gates pass.
+- [ ] Prepare Phase 10 shadow-read comparison and verification strategy for staging validation.

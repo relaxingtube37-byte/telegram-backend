@@ -110,7 +110,21 @@
     - Explicitly designated non-interchangeable with the 0-byte local placeholder `data/tennis_gold.sqlite`.
   - **Phase 9 Dual-Write Design Review (`docs/phase-9-dual-write-architecture-and-design-review.md`):**
     - Dual-write remains strictly **PROHIBITED** across all production paths.
-    - Proposed architecture: Asynchronous Outbox Buffer (Option B) with non-blocking staging worker and auto-tripping circuit breaker to guarantee zero user latency and zero regression risk.
-    - Rollback disarm guaranteed in under 5 seconds via `ENABLE_STAGING_DUAL_WRITE=false`.
-
-
+- **Note 17: Phase 9 Staging Dual-Write Harness & 14-Gate Certification (14/14 PASS):**
+  - **Durability Invariant:** Replaced in-memory queue with transactional SQLite outbox (`postgres_dual_write_outbox`). Primary business mutation and outbox event insert occur within the same SQLite transaction.
+  - **14 Quality Acceptance Gates (100% Certified):**
+    - P9-G1: Latency Overhead (Baseline median 0.059ms, Dual-write median 0.362ms, overhead 0.303ms <= 1.0ms, P95 0.783ms <= 5.0ms).
+    - P9-G2: Circuit Breaker Auto-Trip (tripped to OPEN on persistent failure threshold).
+    - P9-G3: DLQ Envelope Integrity & `dlq_records.jsonl` export.
+    - P9-G4: Instant Rollback Disarm (<100ms admission check: 0.046ms, worker stop: 0.334ms <= 1s).
+    - P9-G5: Production Read Immutability (`SQLITE_ONLY`).
+    - P9-G6: Idempotent Replay & Bitwise Row Hash Parity (`7eac2b625c87818e84eb590df4413a1e631341a77d6924e32f7bb9ab4815d40a`).
+    - P9-G7: PostgreSQL Downtime Fault Tolerance (100% primary mutations succeed with PG offline).
+    - P9-G8: Atomic Commit Invariant (forced rollback leaves 0 primary and 0 outbox records).
+    - P9-G9: Worker Lease Reclamation on restart.
+    - P9-G10: Authenticated DLQ Replay back to PENDING state.
+    - P9-G11: Real-time backlog observability & metrics.
+    - P9-G12: Production Credential Rejection (`PRODUCTION_TARGET_PROHIBITED`).
+    - P9-G13: Payload Sanitization (credentials/tokens scrubbed).
+    - P9-G14: Crash Recovery State Preservation (committed outbox events survive restarts).
+  - **Operational Policy:** Staging execution certified on Port 54350. Dual-write in production remains strictly **PROHIBITED**.

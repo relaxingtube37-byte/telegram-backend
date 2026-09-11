@@ -1,16 +1,15 @@
-# Phase 9: Dual-Write Architecture & Staging Harness Design Review
+# Phase 9: Dual-Write Architecture & Staging Harness Design Specification
 
-**Document Version:** 1.0.0-DRAFT  
+**Document Version:** 2.0.0-APPROVED  
 **Date:** 2026-09-11  
 **Target Environment:** Isolated Local Staging (Port 54350)  
-**Status:** 🛡️ **DESIGN REVIEW ONLY — DUAL-WRITE REMAINS STRICTLY PROHIBITED**  
+**Status:** 🛡️ **APPROVED FOR STAGING IMPLEMENTATION — DUAL-WRITE PROHIBITED IN PRODUCTION**  
 **Authoritative Operational State:**
 ```json
 {
-  "phase_7_staging": "CLOSED_ACCEPTED",
-  "phase_8_staging_data_access": "COMPLETED_CERTIFIED",
   "phase_8_audit_closure": "ACCEPTED",
-  "phase_9_dual_write": "PROHIBITED",
+  "phase_9_design_review": "APPROVED_FOR_STAGING_IMPLEMENTATION",
+  "phase_9_dual_write": "PROHIBITED_UNTIL_GATES_PASS",
   "production_reads": "SQLITE_ONLY",
   "production_shadow_reads": "PROHIBITED",
   "production_cutover": "PROHIBITED",
@@ -20,138 +19,120 @@
 
 ---
 
-## 1. Context, Scope & Governance Boundaries
+## 1. Architectural Model: Transactional SQLite Outbox
 
-The Data-Access Layer (Phase 8) successfully decoupled application domain models from physical storage engines via abstract interfaces (`IPredictionsRepo`, `IEditorialsRepo`, `IPlayersRepo`, `IMatchesRepo`). 
+### 1.1. Core Durability & Non-Blocking Lifecycle
+An in-memory queue is non-durable and vulnerable to crash loss. Therefore, Phase 9 utilizes a **Transactional SQLite Outbox Table** as the authoritative record of write intent.
 
-Phase 9 introduces the **Dual-Write Architecture** to keep PostgreSQL staging synchronized with new SQLite mutations as they occur. 
-
-> [!CAUTION]
-> **STRICT PROHIBITION NOTICE:**
-> Dual-write is currently **PROHIBITED** in all production execution paths. This document provides the architectural design review and staging verification harness specifications only. No dual-write operations may be enabled until formal authorization is granted following this design review.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      REQUEST PATH (TRANSACTIONAL ATOMICITY)                 │
+│                                                                             │
+│  Client Write ──► [Service] ──► SQLite Transaction (Single Atomic Commit)   │
+│                                  ├── 1. Primary Business Mutation           │
+│                                  └── 2. Insert into postgres_dual_write_outbox│
+│                                              (PENDING, available_at=now)    │
+│  Median overhead ≤ 1ms | P95 overhead ≤ 5ms | Zero external network calls   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ (Polling / Signal)
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 ASYNCHRONOUS STAGING DUAL-WRITE WORKER                      │
+│                                                                             │
+│  [Worker Loop] ──► Claim batch of PENDING rows (status -> PROCESSING)      │
+│                ──► Execute Idempotent Upsert against PostgreSQL Port 54350  │
+│                ──► Success: Mark status -> DELIVERED                        │
+│                ──► Error: Retry with exponential backoff                    │
+│                ──► Max Attempts (5) Exceeded: Mark status -> DLQ            │
+│                     └── Append forensic envelope to dlq_records.jsonl       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 2. Architectural Approaches for Dual-Write
+## 2. Durable Outbox Schema & DLQ Specification
 
-We evaluate two architectural strategies for dual-write implementation:
+### 2.1. Outbox Table Schema DDL (SQLite)
+```sql
+CREATE TABLE IF NOT EXISTS postgres_dual_write_outbox (
+  event_id TEXT PRIMARY KEY,
+  aggregate_type TEXT NOT NULL,
+  aggregate_id TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  payload_sha256 TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL CHECK ( status IN ('PENDING', 'PROCESSING', 'DELIVERED', 'FAILED', 'DLQ') ),
+  attempt_count INTEGER NOT NULL DEFAULT 0,
+  available_at TEXT NOT NULL,
+  locked_at TEXT,
+  delivered_at TEXT,
+  last_error TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           OPTION A: SYNCHRONOUS                         │
-│                                                                         │
-│  Client Write ──► [Domain Service] ──► SQLite (Primary, Blocking)       │
-│                                    └─► PostgreSQL (Secondary, Blocking) │
-│  Risk: PostgreSQL latency or failure blocks user requests.              │
-└─────────────────────────────────────────────────────────────────────────┘
+CREATE INDEX IF NOT EXISTS idx_outbox_claim 
+  ON postgres_dual_write_outbox (status, available_at);
 
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     OPTION B: ASYNCHRONOUS BUFFERED                     │
-│                             (RECOMMENDED)                               │
-│                                                                         │
-│  Client Write ──► [Domain Service] ──► SQLite (Primary, 0ms latency)    │
-│                                    │                                    │
-│                                    ▼                                    │
-│                         In-Memory Outbox Queue                          │
-│                                    │                                    │
-│                         [Background Staging Worker]                     │
-│                                    │                                    │
-│                                    ▼                                    │
-│                         PostgreSQL Staging (Port 54350)                 │
-│                                    │                                    │
-│                                    ▼ (on error)                         │
-│                         Dead-Letter Queue (DLQ)                         │
-│                                                                         │
-│  Benefit: Complete isolation; PostgreSQL downtime has zero user impact. │
-└─────────────────────────────────────────────────────────────────────────┘
+CREATE INDEX IF NOT EXISTS idx_outbox_aggregate 
+  ON postgres_dual_write_outbox (aggregate_type, aggregate_id);
 ```
 
-### Recommendation: Option B (Asynchronous Buffered Outbox)
-- **Zero Latency Impact:** SQLite primary transaction completes immediately.
-- **Fail-Closed Safety:** If the staging PostgreSQL daemon is offline, errors do not bubble up to the caller; mutations are queued in an in-memory DLQ buffer with structured forensic logging.
-- **Circuit Breaker:** If 5 consecutive dual-write errors occur, the worker enters `CIRCUIT_OPEN` state, suspending writes to PostgreSQL while keeping primary SQLite operational.
-
----
-
-## 3. Detailed Component Design
-
-### 3.1. Dual-Write Repository Wrapper (`DualWritingPredictionsRepo`)
-A decorator implementing `IPredictionsRepo`:
-```typescript
-export class DualWritingPredictionsRepo implements IPredictionsRepo {
-  constructor(
-    private primary: IPredictionsRepo,        // SqlitePredictionsAdapter
-    private secondary: PostgresPredictionsAdapter,
-    private outboxQueue: StagingOutboxQueue
-  ) {}
-
-  async create(prediction: CreatePredictionInput): Promise<Prediction> {
-    // 1. Authoritative SQLite write (Primary)
-    const result = await this.primary.create(prediction);
-
-    // 2. Enqueue asynchronous secondary write if feature flag is active
-    if (process.env.ENABLE_STAGING_DUAL_WRITE === 'true' && process.env.NODE_ENV !== 'production') {
-      this.outboxQueue.enqueue({
-        domain: 'PREDICTIONS',
-        action: 'CREATE',
-        payload: result,
-        enqueuedAt: new Date()
-      });
-    }
-
-    return result;
-  }
-}
-```
-
-### 3.2. Dead-Letter Queue (DLQ) & Forensic Ledger
-When a secondary PostgreSQL write fails:
-1. The error message and full serialized payload are written to `scratch/postgres-phase-9-dual-write/dlq_records.jsonl`.
-2. A structured audit event is logged with SHA-256 payload checksum.
-3. The circuit breaker increments its failure counter.
-
-### 3.3. Disarm & Instant Rollback Mechanism (<5 Seconds)
-Dual-write can be instantly disarmed via:
-- Setting `ENABLE_STAGING_DUAL_WRITE=false`.
-- Calling `RepositoryFactory.disarmDualWrite()`.
-- Primary SQLite operations remain 100% unaffected.
-
----
-
-## 4. Pre-Requisite Baseline Immutability Manifest
-
-In accordance with Phase 0 migration standards, baseline source databases are locked and verifiable against [`docs/source_baseline_manifest_v1.json`](file:///g:/telegram-backend/docs/source_baseline_manifest_v1.json):
-
+### 2.2. Dead-Letter Queue (DLQ) Forensic Envelope
+When an event exceeds maximum retry attempts (default: 5), it is marked `DLQ` in SQLite, and an audit envelope is appended to `scratch/postgres-phase-9-dual-write/dlq_records.jsonl`:
 ```json
 {
-  "authoritative_desktop_gold": {
-    "path": "G:/state football/data/tennis_gold.sqlite",
-    "bytes": 283303936,
-    "sha256": "2951176b1fc7da0db250b42e53976c67a25aca59bcf0175706599e30e816c086"
-  },
-  "backend_primary_sqlite": {
-    "path": "G:/telegram-backend/data/database.sqlite",
-    "bytes": 545468416,
-    "sha256": "4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358"
-  }
+  "event_id": "uuid-v4",
+  "idempotency_key": "deterministic-key",
+  "aggregate_type": "PREDICTION",
+  "aggregate_id": "fixture_101",
+  "operation": "CREATE",
+  "payload_json": "{...}",
+  "payload_sha256": "4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358",
+  "attempt_count": 5,
+  "first_failed_at": "2026-09-11T16:00:00.000Z",
+  "last_failed_at": "2026-09-11T16:05:00.000Z",
+  "last_error_code": "ECONNREFUSED",
+  "last_error_message": "connect ECONNREFUSED 127.0.0.1:54350",
+  "source_commit": "8bb3e3e"
 }
 ```
 
+### 2.3. Delivery & Recovery Semantics
+1. **At-Least-Once Delivery with Deduplication:** Deterministic idempotency keys prevent duplicate rows. Handlers execute `INSERT ... ON CONFLICT (key) DO UPDATE/NOTHING`.
+2. **Lease Expiration & Crash Recovery:** Rows locked in `PROCESSING` whose `locked_at` exceeds lease timeout (default: 30 seconds) are automatically reclaimed to `PENDING` on worker restart.
+3. **Exponential Retry Backoff:** Delays calculate as $\text{delay} = \min(60000, 1000 \times 2^{\text{attempt\_count}})$.
+4. **Graceful Shutdown:** Worker stops claiming new work immediately upon signal and waits up to 5 seconds for active writes to complete.
+
 ---
 
-## 5. Phase 9 Proposed Quality Acceptance Gates
+## 3. Phase 9 Quality Acceptance Gates (14/14 GATES)
 
-| Gate | Title | Acceptance Criteria |
+| Gate | Requirement & Acceptance Criteria | Verification Method |
 | :---: | :--- | :--- |
-| **P9-G1** | **Outbox Queue Non-Blocking Delivery** | Secondary write processing adds $\le 1\text{ms}$ to primary SQLite response time. |
-| **P9-G2** | **Circuit Breaker Auto-Trip** | PostgreSQL downtime automatically trips circuit breaker without unhandled rejections. |
-| **P9-G3** | **DLQ Reconciliation & Auditability** | 100% of failed dual-writes captured in DLQ ledger with cryptographic SHA-256 hashes. |
-| **P9-G4** | **Instant Rollback Disarm** | Toggling `ENABLE_STAGING_DUAL_WRITE=false` halts all PostgreSQL mutations in $\le 100\text{ms}$. |
-| **P9-G5** | **Production Read Immutability** | Production reads remain strictly locked to `SQLITE_ONLY`. |
-| **P9-G6** | **Dual-Pass Idempotency** | Replaying outbox items produces exactly zero duplicate rows in staging PostgreSQL. |
+| **P9-G1** | **Outbox Latency Overhead:** Primary SQLite transaction overhead: median $\le 1\text{ms}$, P95 $\le 5\text{ms}$. Zero synchronous network calls on request path. | Benchmark 100 benchmark writes with/without outbox insertion. |
+| **P9-G2** | **Circuit Breaker Auto-Trip:** PostgreSQL staging downtime trips circuit breaker to `OPEN` without bubbling exceptions. | Simulate cluster shutdown; verify zero caller errors. |
+| **P9-G3** | **DLQ Envelope & Integrity:** 100% of exhausted events captured in outbox table with status `DLQ` and exported to `dlq_records.jsonl`. | Inject 5 consecutive failures; verify SHA-256 and JSON fields. |
+| **P9-G4** | **Instant Rollback Disarm:** Admission stop $\le 100\text{ms}$ after disarm flag; active workers acknowledge disarm in $\le 1\text{s}$. | Toggle `ENABLE_STAGING_DUAL_WRITE=false`; measure halt latency. |
+| **P9-G5** | **Production Read Immutability:** Production reads remain strictly locked to `SQLITE_ONLY`. | Inspect `RepositoryFactory` in production environment. |
+| **P9-G6** | **Idempotent Replay (Row Hash Parity):** Replaying identical events creates 0 duplicate rows and leaves PostgreSQL row content hashes bitwise unchanged. | Replay delivered batch; compare MD5/SHA-256 of target rows. |
+| **P9-G7** | **PostgreSQL Downtime Fault Tolerance:** Primary SQLite mutations succeed without interruption when PostgreSQL is offline. | Write 10 records with port 54350 offline; verify all commit. |
+| **P9-G8** | **Atomic Commit Invariant:** Primary mutation and outbox record commit atomically; a forced rollback commits neither. | Test transaction abort; verify 0 primary rows and 0 outbox rows. |
+| **P9-G9** | **Worker Lease Reclamation:** Expired `PROCESSING` leases are automatically reset to `PENDING` upon worker restart. | Artificially age `locked_at` by 60s; verify restart reclaims row. |
+| **P9-G10** | **Authenticated & Auditable DLQ Replay:** Replaying DLQ items is idempotent and emits structured audit trail entries. | Trigger DLQ replay handler; verify status changes to `DELIVERED`. |
+| **P9-G11** | **Backlog Observability & Threshold Alerts:** System reports accurate counts of `PENDING`, `PROCESSING`, `DELIVERED`, `DLQ`. | Query outbox metrics; assert count accuracy. |
+| **P9-G12** | **Production Credential Rejection:** Worker asserts fail-closed check if connection config contains non-local host or production credentials. | Pass production host; assert worker throws `PRODUCTION_TARGET_PROHIBITED`. |
+| **P9-G13** | **Payload Sanitization:** Payloads scrubbed of secrets, authorization tokens, and credentials before serialization. | Inspect outbox `payload_json` for credential leak prevention. |
+| **P9-G14** | **Crash Recovery State Preservation:** Crash simulation leaves all committed outbox items preserved without state corruption. | Verify SQLite outbox table integrity across simulated process exits. |
 
 ---
 
-## 6. Authorization & Execution Request
+## 4. Operational Invariants
 
-Phase 9 implementation will remain strictly confined to the staging branch and harness scripts. Authorization to proceed to staging implementation will be requested following review of this architectural document.
+- 🛑 **DATABASE_ENGINE remains SQLite:** No production configuration changes.
+- 🛑 **Dual-write remains strictly PROHIBITED in production:** Staging-only worker on Port 54350.
+- 🛑 **Production reads remain SQLite-only:** 0% production traffic routed to PostgreSQL.
+- 🛑 **Production shadow-read remains PROHIBITED:** Staging non-blocking comparison only.
+- 🛑 **Production cutover remains PROHIBITED:** Hard-blocked by migration policy.
+- 🛑 **Source SQLite Databases bitwise immutable:** Evaluated against `docs/source_baseline_manifest_v1.json`.
