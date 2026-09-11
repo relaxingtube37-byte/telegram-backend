@@ -427,10 +427,29 @@
     }
     ```
   - **Core Architectural Pillars Defined:**
-    1. **Pre-Cutover Entry Gates (P11-PRE-1 to P11-PRE-7):** Mandatory live Render volume backup, test restore verification, SHA-256 hash registration, and conflict report prior to any production cutover activity (RISK-1 remediation).
-    2. **Deterministic Canary Progression:** 0% (soak) $\to$ 1% (read-only feed) $\to$ 5% (catalog) $\to$ 25% (webapp) $\to$ 50% (peak events) $\to$ 100% (SQLite hot-standby) using non-random MD5 session hashing.
-    3. **Conservative Circuit Breakers:** Immediate soft rollback triggered on any unexpected 5xx, P95 latency delta $> 5\text{ms}$, hard ceiling $> 50\text{ms}$, unexplained mismatch, pool saturation $> 75\%$, heap growth $> 25\text{MB}$, or business metric degradation.
-    4. **Dual-Tier Rollback Protocol:** Tier 1 soft rollback (<10ms programmatic in-memory disarm without restart); Tier 2 hard rollback (service restart, immutable baseline restore, outbox catch-up replay).
-    5. **Strict Governance Invariant:** Drafting of the Phase 11 specification does NOT authorize production traffic routing, production PostgreSQL access, or SQLite retirement. Production reads remain 100% `SQLITE_ONLY`.
+- **Decision 41 (2026-09-11): Phase 11 Canary Cutover Specification Refinements & Governance State Update**
+  - **Context:** Formal user review and precision refinement of `docs/phase-11-canary-cutover-spec.md`.
+  - **Verdict:** DRAFTED_FOR_REVIEW (Pre-cutover authorization remains NOT_GRANTED; Production canary remains PROHIBITED).
+  - **Governing Authorization State Matrix:**
+    ```json
+    {
+      "phase_10_hardening": "STAGING_CERTIFIED_HARDENED",
+      "phase_11_design_review": "DRAFTED_FOR_REVIEW",
+      "phase_11_pre_cutover_authorization": "NOT_GRANTED",
+      "phase_11_production_canary": "PROHIBITED",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **Key Architectural Refinements Incorporated:**
+    1. **Decoupled Latency Metrics:** Disambiguated total HTTP latency ($t_{\text{http}}$ added P95 $\le 5\text{ms}$), database query latency ($t_{\text{query}}$ P95 $\le 3\text{ms}$), and pool wait time ($t_{\text{pool}} \le 10\text{ms}$) with a $50\text{ms}$ query hard ceiling.
+    2. **5xx Error Taxonomy:** Disambiguated errors by source; `POSTGRES_INTERNAL_ERROR` and `APPLICATION_LOGIC_ERROR` trigger fail-safe soft rollback; `EXTERNAL_DEPENDENCY_ERROR` (Telegram/Google OAuth) and `NETWORK_INGRESS_ERROR` are isolated without falsely tripping database rollback.
+    3. **Provable Render Live Evidence Bundle:** Required formal artifact with physical dump path, snapshot timestamp, SHA-256 digest, byte count, full table row counts, PRAGMA checks, and test restore verification (formalizing live Render as an `UNKNOWN_DELTA` until audited).
+    4. **Absolute Write-Path Isolation:** Canary protocol restricted strictly to read endpoints. Writes remain 100% canonical SQLite dual-written asynchronously via transactional outbox.
+    5. **Point-in-Time Watermark Parity:** 100% parity on mutable entities qualified with snapshot LSN, outbox watermark, and a $\le 5.0\text{s}$ replication freshness window.
+    6. **Render Runtime Disarm SLA:** Acknowledged 0.064ms benchmark was local/staging; mandated empirical benchmark on Render production runtime to guarantee $< 10.0\text{ms}$ SLA under production constraints.
+    7. **Correct Stage 5 Designation:** 100% Canary primary reads designated as SQLite Hot-Standby Mode, NOT SQLite retirement (retirement deferred to Phase 12).
 
 

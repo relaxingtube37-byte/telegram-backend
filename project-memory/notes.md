@@ -160,10 +160,11 @@
   - **P10H-G7 (Security Audit & Payload Sanitization):** 0 sensitive keys, Bearer tokens, or credentials in audit ledger.
   - **P10H-G8 (Controlled Rapid Rollback Exercise):** Disarmed in 0.064ms (<10ms target); factory returned `SqlitePredictionsAdapter`; 0 async jobs executed post-rollback.
 - **Note 22: Phase 11 Canary Cutover Architecture Design Review & Pre-Cutover Authorization Framework:**
-  - **Status:** `AUTHORIZED_TO_DRAFT` (Specification drafted in `docs/phase-11-canary-cutover-spec.md`; production canary execution remains strictly `PROHIBITED_PENDING_APPROVAL`).
-  - **Pre-Cutover Prerequisite Requirements:** Live Render volume backup with SHA-256 + test restore + foreign key check (RISK-1 remediation); Render vs local baseline state conflict audit; zero unmigrated rows.
-  - **Canary Routing Matrix:** Phased 0% (soak) $\to$ 1% (read-only feed) $\to$ 5% (catalog) $\to$ 25% (webapp) $\to$ 50% (peak events) $\to$ 100% (SQLite standby) using deterministic MD5 hash ring per session/user.
-  - **Circuit Breaker Triggers:** Immediate soft rollback triggered on any unexpected 5xx, P95 latency delta $> 5\text{ms}$, query time $> 50\text{ms}$, response divergence, pool saturation $> 75\%$, heap growth $> 25\text{MB}$, or business metric degradation.
-  - **Two-Tier Rollback Runbook:** Tier 1 programmatic in-memory disarm (<10ms target, benchmarked at 0.064ms); Tier 2 hard rollback with deployment halt, immutable baseline restore, and outbox catch-up replay.
+  - **Status:** `DRAFTED_FOR_REVIEW` (Specification refined in `docs/phase-11-canary-cutover-spec.md`; pre-cutover authorization `NOT_GRANTED`; production canary strictly `PROHIBITED`).
+  - **Pre-Cutover Prerequisite Requirements:** Live Render volume backup evidence bundle with physical path, exact timestamp, SHA-256 digest, byte count, full table row counts, PRAGMA checks, and test restore verification (formalizing live Render as an `UNKNOWN_DELTA` until audited - RISK-1 remediation); zero unmigrated rows.
+  - **Canary Routing Matrix:** Phased 0% (soak) $\to$ 1% (read-only feed) $\to$ 5% (catalog) $\to$ 25% (webapp) $\to$ 50% (peak events) $\to$ 100% (SQLite hot-standby, NOT retirement) using deterministic MD5 hash ring per session/user.
+  - **Decoupled Latency & Error Taxonomy:** Disambiguated total HTTP latency ($t_{\text{http}}$), database query latency ($t_{\text{query}}$), and pool wait time ($t_{\text{pool}}$); disambiguated 5xx errors (database/application errors trigger fail-safe rollback; external dependency errors like Telegram/OAuth are isolated).
+  - **Two-Tier Rollback Runbook:** Tier 1 programmatic in-memory disarm (<10ms target, benchmarked at 0.064ms in staging, requiring empirical benchmark on Render production runtime); Tier 2 hard rollback with deployment halt, immutable baseline restore, and outbox catch-up replay.
+
 
 

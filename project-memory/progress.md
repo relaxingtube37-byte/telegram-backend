@@ -436,8 +436,10 @@
   - `sqlite_retirement`: `PROHIBITED`
 - **Active Milestone:** **Phase 11 (Cutover Planning & Dual-Run Canary Architecture Design Review)**:
   - Specification Document: `docs/phase-11-canary-cutover-spec.md` (Design Review & Pre-Cutover Authorization Framework).
-  - Status: `AUTHORIZED_TO_DRAFT`.
-  - Production Canary Status: `PROHIBITED_PENDING_APPROVAL`.
-  - Defined Prerequisites: Mandatory live Render volume backup & test restore (RISK-1 remediation), Render vs local conflict report, 0/1/5/25/50/100% canary progression with session hash ring, automated circuit breakers (50ms hard ceiling, P95 budget, 5xx trip), and dual-tier rollback runbooks.
+  - Status: `DRAFTED_FOR_REVIEW`.
+  - Pre-Cutover Authorization Status: `NOT_GRANTED`.
+  - Production Canary Status: `PROHIBITED`.
+  - Technical Pillars: Decoupled latency budgets ($t_{\text{http}}$ added P95 $\le 5\text{ms}$, $t_{\text{query}}$ P95 $\le 3\text{ms}$, $t_{\text{pool}} \le 10\text{ms}$, hard ceiling $50\text{ms}$); 5xx error taxonomy; provable Render live backup evidence bundle; write-path isolation; watermark parity freshness ($\le 5\text{s}$ window); empirical Render runtime disarm SLA requirement; Stage 5 designated as SQLite Hot-Standby (NOT retirement).
+
 
 
