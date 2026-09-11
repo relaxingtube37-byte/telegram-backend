@@ -599,3 +599,28 @@
       - P11-PRE-3: **PASS** (evidence emitted to `docs/evidence/ingest-render-delta-report.json`).
     - **Readiness Upgrade:** System readiness promoted from 47% (7/15) to **60% (9/15 PASS)**.
     - **Governance Invariants Maintained:** Production reads remain strictly `SQLITE_ONLY`, zero production canary, zero production mutation.
+
+50. **Phase 11 Scope Divergence Certification, Two-Tier Rollback Drill & Promotion to STAGING_READY:**
+    - **P11-PRE-2 Scope Divergence Certified:** Produced and signed `docs/evidence/render-data-scope-classification-manifest.json`. Certified that the 115,223 `historical_matches` delta is an approved scope divergence between the operational bot container (Render) and the analytical desktop gold warehouse, not missing live production data. Copying historical data to production is prohibited. `P11-PRE-2` **PASS**.
+    - **P11-G8 Two-Tier Rollback Drill Executed:** Ran `scripts/verify-phase-11-rollback-drill.ts` on staging:
+      - **Tier 1 (Instant Disarm):** Executed in 0.793ms (< 10.0ms target), 100% of post-disarm requests routed to SQLite, 0 client errors, audit logging verified.
+      - **Tier 2 (Atomic Restore & Outbox Replay):** Completed in 11.25s (< 15min target), zero data corruption (`integrity_check=ok`, `foreign_key_check=0`), outbox idempotent replay verified with zero duplicate side effects.
+      - Official evidence emitted: `docs/evidence/rollback-drill-report.json`. `P11-G8` **PASS**.
+    - **Official Verdict Promotion to STAGING_READY:**
+      - All 11 staging-verifiable gates are now certified **PASS** (11/15, **73% readiness**).
+      - Official system verdict promoted from `BLOCKED` to **`STAGING_READY`**.
+      - Remaining 4 gates (`P11-PRE-4`, `P11-PRE-6`, `P11-PRE-7`, `P11-G4`) remain `PENDING_HUMAN_ACTION` pending direct Render production container operations.
+    - **Governance Invariants Maintained:**
+      ```json
+      {
+        "verdict": "STAGING_READY",
+        "readiness_pct": 73,
+        "gates_pass": "11/15",
+        "authorization": "staging_hardening_complete",
+        "production_reads": "SQLITE_ONLY",
+        "production_canary": "PROHIBITED",
+        "production_cutover": "PROHIBITED",
+        "sqlite_retirement": "PROHIBITED"
+      }
+      ```
+

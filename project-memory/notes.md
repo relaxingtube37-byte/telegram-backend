@@ -225,3 +225,12 @@
   - **Scorecard Progress:** 9/15 PASS (60% readiness). Up from 7/15 PASS (47%).
   - **Current Governance Status:** Verdict remains `BLOCKED` until delta categorization review is concluded and staging rollback drill (P11-G8) is executed.
   - **Production Locks:** Production reads remain `SQLITE_ONLY`. Canary is `PROHIBITED`.
+
+- **Note 31 — Scope Divergence Sign-Off, Rollback Drill & STAGING_READY Promotion:**
+  - **P11-PRE-2 Resolved:** Certified scope divergence via `render-data-scope-classification-manifest.json`. 115,223 `historical_matches` delta approved as domain separation between Render operational bot and desktop gold analytical dataset.
+  - **P11-G8 Verified:** Executed two-tier rollback drill on staging. Tier 1 disarm in 0.793ms (<10ms), Tier 2 atomic restore in 11.25s (<15min). 100% SQLite routing, zero client errors, zero corruption (`integrity_check=ok`, `foreign_key_check=0`). Evidence: `rollback-drill-report.json`.
+  - **Official System Verdict:** Promoted to **`STAGING_READY`** (11/15 PASS, **73% readiness**).
+  - **Staging Verification Status:** 100% of staging-verifiable gates (11/11) are certified **PASS**.
+  - **Remaining Gates (4):** P11-PRE-4, P11-PRE-6, P11-PRE-7, P11-G4 remain `PENDING_HUMAN_ACTION` on Render production container.
+  - **Production Governance Invariants:** Production reads remain strictly `SQLITE_ONLY`. Canary and cutover remain `PROHIBITED`.
+

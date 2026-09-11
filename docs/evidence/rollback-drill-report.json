@@ -1,0 +1,95 @@
+{
+  "report_id": "ROLLBACK-DRILL-P11-G8-1789145534520",
+  "generated_at_utc": "2026-09-11T16:52:14.520Z",
+  "overall_drill_verdict": "PASS",
+  "tier_1_disarm": {
+    "status": "PASS",
+    "latency_ms": 0.7925000000004729,
+    "target_sla_ms": 10,
+    "sla_met": true,
+    "sqlite_routing_pct": 100,
+    "client_errors_count": 0,
+    "dropped_requests_count": 0,
+    "post_disarm_pg_routes": 0,
+    "audit_event_verified": true
+  },
+  "tier_2_restore": {
+    "status": "PASS",
+    "duration_ms": 11251.175299999999,
+    "target_sla_ms": 900000,
+    "sla_met": true,
+    "data_corruption_detected": false,
+    "integrity_check": "ok",
+    "quick_check": "ok",
+    "foreign_key_violations": 0,
+    "row_counts_verified": {
+      "users": 11,
+      "predictions": 59,
+      "referral_sites": 47,
+      "settings": 4,
+      "postgres_dual_write_outbox": 0
+    },
+    "outbox_idempotent_replay_pass": true
+  },
+  "drill_steps": [
+    {
+      "step": "Preflight SQLite Integrity",
+      "status": "PASS",
+      "details": "integrity_check=ok, fk_violations=0"
+    },
+    {
+      "step": "Canary Traffic Simulation",
+      "status": "PASS",
+      "details": "Armed at 50%: 100/200 requests routed to PostgreSQL simulation"
+    },
+    {
+      "step": "Tier 1 Disarm Execution Latency",
+      "status": "PASS",
+      "details": "Disarm took 0.7925 ms (SLA budget: < 10.0 ms)",
+      "duration_ms": 0.7925000000004729
+    },
+    {
+      "step": "Post-Disarm 100% SQLite Routing",
+      "status": "PASS",
+      "details": "Routed to PG: 0/500 (0 expected), Client errors: 0 (0 expected)"
+    },
+    {
+      "step": "Disarm Audit Log Verification",
+      "status": "PASS",
+      "details": "Captured DISARM event at 2026-09-11T16:52:02.727Z"
+    },
+    {
+      "step": "Snapshot Creation for Restore",
+      "status": "PASS",
+      "details": "Created snapshot at drill_pre_restore_backup_1789145522728.sqlite (545501184 bytes)"
+    },
+    {
+      "step": "Tier 2 Atomic Restore Duration",
+      "status": "PASS",
+      "details": "Restore completed in 11.25s (11251.2ms), target: < 900s (15min)",
+      "duration_ms": 11251.175299999999
+    },
+    {
+      "step": "Restored Database Integrity Checks",
+      "status": "PASS",
+      "details": "integrity_check=ok, quick_check=ok, fk_violations=0"
+    },
+    {
+      "step": "Restored Row Count Verification",
+      "status": "PASS",
+      "details": "users=11, predictions=59, referral_sites=47, outbox=0"
+    },
+    {
+      "step": "Outbox Idempotent Replay Drill",
+      "status": "PASS",
+      "details": "Pre-replay pending: 1, Post-replay pending: 0 (zero duplicate side effects)"
+    }
+  ],
+  "governance": {
+    "environment": "staging_isolated",
+    "production_reads": "SQLITE_ONLY",
+    "production_canary": "PROHIBITED",
+    "production_cutover": "PROHIBITED",
+    "note": "Rollback drill executed strictly on staging sandbox. Zero production mutations."
+  }
+}
