@@ -17,9 +17,10 @@
 6. **Backtest View Disparity (RISK-3) — [RESOLVED]:**
    - *Root Cause:* Traced to Desktop having executed an offline model enrichment pass (`scripts/enrichGoldOddsAndExpandPool.ts`) synthesizing DTMC Markov fair odds for 7,356 matches missing PBP/history/surface/stats and forcing `final_status = 'READY'`. Backend strictly quarantined these under raw rules (`MISSING_PBP`: 3,359, `MISSING_HISTORY`: 1,891, `MISSING_STATS_AND_PBP`: 1,656, `INVALID_SURFACE`: 441, `MISSING_STATS`: 9).
    - *Resolution:* Implemented three-tier backtest view architecture with zero base table mutation: (1) `gold_matches_ready_raw_view` (38,720 rows - authentic baseline), (2) `gold_matches_ready_enriched_view` (46,076 rows - exact parity with Desktop via immutable auxiliary ledger `gold_matches_enriched_admissions`), and (3) `gold_matches_ready_view` (38,720 rows - legacy facade protecting 100% existing consumers). Certified 6/6 quality gates (`scripts/verify-backtest-views-parity.cjs`) and 26/26 backend regression tests.
-7. **Quarantined Qualification Parent Matches (RISK-4):**
-   - *Risk:* 45 authentic traces remain quarantined in `provenance.review_queue` awaiting Phase 4 tournament edition links.
-   - *Mitigation:* Ingest parent tournament editions in Phase 4 before admitting candidate runs to prevent FK violations.
+7. **Quarantined Qualification Parent Matches (RISK-4) — [PARTIALLY RESOLVED / GOVERNED]:**
+   - *Status:* Out of 45 qualification traces, exactly 20 matches had 100% verified tournament editions and player UUIDs in Phase 3/4 registries and were staged into PostgreSQL staging (`batch_qualification_admitted_matches.sql`), expanding admitted runs to 310.
+   - *Residual Risk:* 25 traces involve missing players (6 winners, 15 losers), unlinked Challenger/ITF editions (4), or doubles data (1).
+   - *Mitigation:* Strictly preserved in quarantine under `MATCH_NOT_STAGED_IN_POSTGRES` per Zero-Fabrication policy. Zero synthetic players or tournament editions manufactured.
 8. **Unresolved Vendor Fixtures (RISK-5):**
    - *Risk:* 72 authentic traces lack vendor fixture IDs in local database.
    - *Mitigation:* Strictly prohibit fuzzy force-linking or synthetic identifiers; require authoritative provider crosswalk.

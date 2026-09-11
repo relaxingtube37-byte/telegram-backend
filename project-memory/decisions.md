@@ -210,6 +210,34 @@
       - Total Quarantine Count: $45 + 4 + 72 = 121$ traces (+ 12 legacy outputs = 133 total quarantine records).
     - **Architectural Rule:** Crosswalk resolution to a local SQLite match does NOT equal admission into canonical PostgreSQL tables. Any match lacking a staged parent in `matches.matches` is strictly routed to `provenance.review_queue` as `MATCH_NOT_STAGED_IN_POSTGRES` to prevent foreign-key orphan violations.
 
+31. **Phase 7 Official Closure Statement, Staging Safety vs Migration Coverage Distinction, & Pre-Cutover Blockers:**
+    - **Official Recommended Closure Statement:**
+      > *"Phase 7 closed successfully as an isolated staging ingestion. Safety, quarantine integrity, evidence lineage, idempotency, referential integrity, and SQLite immutability passed. Twenty canonical qualification matches were subsequently admitted, yielding 310 prediction runs and 1,550 agent traces. Canonical migration remains incomplete; 101 telemetry traces and 12 legacy outputs remain quarantined. Production reads remain SQLite-only, and dual-write, shadow-read, and production cutover remain prohibited pending resolution of the documented architectural gates."*
+    - **Gate Semantics (Staging Safety vs Migration Coverage):**
+      - The **12/12 PASS** on Phase 7 Quality Acceptance Gates certifies **staging safety and referential integrity** for the admitted set (zero foreign-key orphans, dual-pass idempotency, 0 bytes SQLite mutation, valid timestamps, non-truncated prompts/reasoning).
+      - It does NOT imply 100% historical migration coverage. Migration coverage is partial (310 / 411 = 75.4%), with the remaining 101 traces properly and safely isolated in quarantine.
+    - **Updated Final Accounting Ledger:**
+      - Total IndexedDB Traces Audited: **411**
+      - SQLite-Resolved Matches: **371**
+      - Admitted Prediction Runs: **310**
+      - Admitted Specialist Agent Traces: **1,550** (5 per admitted run)
+      - Quarantined Trace Records: **101** (25 unstaged qualification parents + 72 unresolved vendor fixtures + 4 missing-payload traces)
+      - Legacy Outputs Quarantined: **12** (9 legacy predictions + 3 editorials)
+      - Total Review-Queue Ledger Items: **113**
+      - Pass 2 Insertion Delta: **+0**
+      - Prediction-Run Orphans: **0**
+      - Agent-Trace Orphans: **0**
+      - SQLite Mutation: **0 bytes**
+      - Production Cutover: **PROHIBITED**
+    - **7 Concrete Pre-Cutover Blockers Required Before Dual-Write / Shadow-Read / Production Cutover:**
+      1. Resolve or formally disposition the 72 unresolved vendor-fixture traces.
+      2. Resolve the remaining 25 qualification traces involving missing players, editions, or unsupported doubles data.
+      3. Complete canonical admission policy for the 9 legacy predictions and 3 editorials.
+      4. Validate SQLite/PostgreSQL API response parity.
+      5. Run shadow reads with measurable field-level parity and latency thresholds.
+      6. Validate dual-write idempotency and rollback behavior.
+      7. Obtain explicit authorization for production dual-write and then shadow-read activation.
+
 
 
 
