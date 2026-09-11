@@ -207,7 +207,17 @@
   - **Documentation:** Full report published at `docs/backend-vs-desktop-gold-parity-matrix.md`.
   - **Desktop Gold Immutability:** `tennis_gold.sqlite` confirmed 100% bitwise invariant (283,303,936 bytes).
 
-
+- **Note 29 — Phase 11 Governance Confirmation & BLOCKED Verdict (Commit: `5b3e762`):**
+  - **Official Verdict:** `BLOCKED` — 47% readiness (7/15 PASS). Authorized as staging hardening only.
+  - **Governance interpretation:** 47% readiness = meaningful progress, not design failure. BLOCKED is the only correct verdict until Render snapshot is authenticated.
+  - **Staging-certified gates (7/7 PASS locally):** PRE-5 (outbox), G1 (canary router), G2 (fallback), G3 (latency), G5 (bundle signed), G6 (outbox), G7 (audit log).
+  - **Render-blocked gates (8 remaining):** PRE-1, PRE-2, PRE-3 (snapshot/delta), PRE-4 (PG cluster), PRE-6 + G4 (Render disarm), PRE-7 (fallback drill), G8 (rollback drill).
+  - **Authorization state unchanged:**
+    ```json
+    { "production_reads": "SQLITE_ONLY", "production_canary": "PROHIBITED", "production_cutover": "PROHIBITED" }
+    ```
+  - **Next human action:** Render Shell → `sqlite3 data/database.sqlite ".backup /tmp/render_export.sqlite"` → download → `data/render_live_snapshot.sqlite` → run audit → run dashboard.
+  - **Verdict upgrade path:** `BLOCKED` → `STAGING_READY` (after PRE-1/2/3 + G8) → `CUTOVER_ELIGIBLE` (all 15 gates).
 
 
 
