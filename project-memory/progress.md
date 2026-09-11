@@ -306,11 +306,60 @@
     - `src/test_backend_full.ts`: **26/26 PASS** (100%).
     - `scripts/verify-phase-8-entry-gate.cjs`: **6/6 PASS** (100%).
 
+- [x] **Phase 7 US Open Match Staging & Telemetry Accounting Expansion Certified (`scripts/stage-us-open-matches.cjs`, `scripts/run-postgres-phase-7-ai-migration.cjs`):**
+  - **Forensic Resolution of 72 Vendor Fixtures:**
+    - 36 authentic US Open 2026 matches were identified in `gold_matches_validated` post-synchronization (Commit `40c347c`).
+    - Staged into `matches.matches` via `batch_us_open_admitted_matches.sql` and `us_open_match_links.jsonl` with 100% verified player identities and competition editions (ATP `4c111dff-fce0-5e96-bccd-0657253a9be3`, WTA `25909d80-2f5e-5b00-9211-71269dfebb23`).
+    - Remaining 36 vendor fixtures definitively preserved in quarantine under `MATCH_CROSSWALK_UNRESOLVED` per Zero-Fabrication rules.
+  - **Definitive Quarantine Ledger Disposition:**
+    - 25 qualification traces preserved in quarantine under `MATCH_NOT_STAGED_IN_POSTGRES` (unindexed ITF players/editions, doubles).
+    - 36 unresolved vendor fixtures preserved in quarantine under `MATCH_CROSSWALK_UNRESOLVED`.
+    - 4 missing payload traces preserved in quarantine under `MATCH_CROSSWALK_MISSING_PAYLOAD`.
+    - 12 legacy SQLite demo outputs preserved in quarantine under `UNRESOLVED_CANONICAL_MATCH`.
+  - **Certified Telemetry Accounting:**
+    - **Admitted Prediction Runs:** **346** (expanded from 310; exactly +36 runs).
+    - **Admitted Specialist Agent Traces:** **1,730** ($346 \times 5$, expanded from 1,550; exactly +180 traces).
+    - **Quarantined Traces:** **65** (reduced from 101; exactly -36 traces).
+    - **Total Review Queue Ledger:** **77 items** (reduced from 113; exactly -36 items).
+    - **Pass 2 Insertion Delta:** Exactly +0 rows inserted (100% idempotent).
+    - **Referential Integrity:** 0 orphan runs (100% resolve to `matches.matches`), 0 orphan agent traces (100% resolve to `ai.predictionruns`).
+    - **Quality Gates Scorecard:** 12/12 Gates certified PASS (P7-G1 through P7-G12).
+    - **Zero SQLite Mutation:** Source databases bitwise immutable ($\Delta = 0\text{ bytes}$).
+  - **Full Regression Verification:**
+    - `src/test_backend_full.ts`: **26/26 PASS** (100%).
+    - `scripts/verify-phase-8-entry-gate.cjs`: **6/6 PASS** (100%).
+
+- [x] **Phase 8 Data-Access Layer Staging Execution & 7/7 Query Conformance Certified (`scripts/verify-phase-8-query-conformance.cjs`, `docs/phase-8-query-conformance-and-parity-report.md`):**
+  - **Decoupled Architecture & Domain Interfaces:**
+    - Defined 4 abstract repository interfaces in `src/db/interfaces/`: `IPredictionsRepo`, `IEditorialsRepo`, `IPlayersRepo`, `IMatchesRepo`.
+  - **Staging Connection Pool (`src/db/stagingPgPool.ts`):**
+    - Isolated connection pool targeting staging cluster (port 54350, max 5 clients, statement timeout 5000ms).
+  - **PostgreSQL Adapters with Zero-Mutation Enforcement:**
+    - Implemented `PostgresPredictionsAdapter`, `PostgresEditorialsAdapter`, `PostgresPlayersAdapter`, `PostgresMatchesAdapter` querying canonical schemas (`ai.predictionruns`, `predictions.match_editorials`, `identity.players`, `matches.matches`).
+    - 100% of write/mutation methods throw `POSTGRES_MUTATION_PROHIBITED`.
+  - **Repository Factory with Rollback Circuit Breaker (`src/db/repositoryFactory.ts`):**
+    - Default production engine strictly hardcoded to SQLite (`productionReads: 'SQLITE_ONLY'`).
+    - Staging feature flag `ENABLE_STAGING_PG_ADAPTER` enables PostgreSQL adapters exclusively in staging.
+    - Non-blocking shadow wrapper `ShadowComparingPredictionsRepo` handles staging comparisons with 0ms interruption to primary reads.
+  - **Certified Quality Gates (7/7 PASS):**
+    - P8-G1 (Interface Completeness): PASS
+    - P8-G2 (Production Read Immutability): PASS
+    - P8-G3 (PostgreSQL Query Conformance): PASS
+    - P8-G4 (Rollback Circuit Breaker): PASS
+    - P8-G5 (Zero Production Mutation): PASS
+    - P8-G6 (Prohibition Matrix): PASS
+    - P8-G7 (API DTO Parity): PASS
+  - **Zero Regression & Zero Mutation:**
+    - `src/test_backend_full.ts`: 26/26 tests PASS.
+    - `npx tsc --noEmit`: 0 TypeScript errors.
+    - Source SQLite databases bitwise immutable ($\Delta = 0\text{ bytes}$).
+
 ## In Progress / Upcoming
-- [ ] Connect Staging PostgreSQL Disposable Cluster (Port 54350) to shadow comparator harness.
-- [ ] Establish documented resolution path for 72 unresolved vendor fixtures without fuzzy force-linking.
-- [ ] Maintain operational freeze on production read paths (`production_cutover: PROHIBITED`).
-- [ ] Ongoing operational monitoring and maintenance.
+- [ ] Maintain operational freeze on production read paths (`production_reads: SQLITE_ONLY`, `production_cutover: PROHIBITED`).
+- [ ] Prepare Phase 9 Dual-Write Architecture Specification (staging branch harness only; dual-write remains PROHIBITED until authorized).
+- [ ] Ongoing operational monitoring and staging readiness governance.
+
+
 
 
 

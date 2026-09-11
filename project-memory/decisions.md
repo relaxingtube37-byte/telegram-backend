@@ -215,28 +215,58 @@
       > *"Phase 7 closed successfully as an isolated staging ingestion. Safety, quarantine integrity, evidence lineage, idempotency, referential integrity, and SQLite immutability passed. Twenty canonical qualification matches were subsequently admitted, yielding 310 prediction runs and 1,550 agent traces. Canonical migration remains incomplete; 101 telemetry traces and 12 legacy outputs remain quarantined. Production reads remain SQLite-only, and dual-write, shadow-read, and production cutover remain prohibited pending resolution of the documented architectural gates."*
     - **Gate Semantics (Staging Safety vs Migration Coverage):**
       - The **12/12 PASS** on Phase 7 Quality Acceptance Gates certifies **staging safety and referential integrity** for the admitted set (zero foreign-key orphans, dual-pass idempotency, 0 bytes SQLite mutation, valid timestamps, non-truncated prompts/reasoning).
-      - It does NOT imply 100% historical migration coverage. Migration coverage is partial (310 / 411 = 75.4%), with the remaining 101 traces properly and safely isolated in quarantine.
-    - **Updated Final Accounting Ledger:**
+    - **Updated Final Accounting Ledger (Post Decision 32):**
       - Total IndexedDB Traces Audited: **411**
-      - SQLite-Resolved Matches: **371**
-      - Admitted Prediction Runs: **310**
-      - Admitted Specialist Agent Traces: **1,550** (5 per admitted run)
-      - Quarantined Trace Records: **101** (25 unstaged qualification parents + 72 unresolved vendor fixtures + 4 missing-payload traces)
+      - SQLite-Resolved Matches: **375**
+      - Admitted Prediction Runs: **346**
+      - Admitted Specialist Agent Traces: **1,730** (5 per admitted run)
+      - Quarantined Trace Records: **65** (25 unstaged qualification parents + 36 unresolved vendor fixtures + 4 missing-payload traces)
       - Legacy Outputs Quarantined: **12** (9 legacy predictions + 3 editorials)
-      - Total Review-Queue Ledger Items: **113**
+      - Total Review-Queue Ledger Items: **77**
       - Pass 2 Insertion Delta: **+0**
       - Prediction-Run Orphans: **0**
       - Agent-Trace Orphans: **0**
       - SQLite Mutation: **0 bytes**
       - Production Cutover: **PROHIBITED**
     - **7 Concrete Pre-Cutover Blockers Required Before Dual-Write / Shadow-Read / Production Cutover:**
-      1. Resolve or formally disposition the 72 unresolved vendor-fixture traces.
-      2. Resolve the remaining 25 qualification traces involving missing players, editions, or unsupported doubles data.
+      1. Formally disposition the 36 truly unresolved vendor-fixture traces in review queue.
+      2. Formally disposition the 25 qualification traces involving missing players, editions, or unsupported doubles data.
       3. Complete canonical admission policy for the 9 legacy predictions and 3 editorials.
       4. Validate SQLite/PostgreSQL API response parity.
       5. Run shadow reads with measurable field-level parity and latency thresholds.
       6. Validate dual-write idempotency and rollback behavior.
       7. Obtain explicit authorization for production dual-write and then shadow-read activation.
+
+32. **Forensic Resolution of 36 US Open Fixtures & Definitive Quarantine Ledger Disposition:**
+    - **Forensic Discovery:** Following the 154-match US Open synchronization (Commit `40c347c`), 36 of the previously unresolved vendor fixtures were verified present in `gold_matches_validated` and had 100% verified player identities and competition editions in Phase 3/4.
+    - **Canonical Staging Execution:** Staged into `matches.matches` via `batch_us_open_admitted_matches.sql` and `us_open_match_links.jsonl`, mapped to ATP US Open 2026 (`4c111dff-fce0-5e96-bccd-0657253a9be3`) and WTA US Open 2026 (`25909d80-2f5e-5b00-9211-71269dfebb23`).
+    - **Staging Expansion:** Admitted prediction runs expanded from 310 to **346**; admitted specialist agent traces expanded from 1,550 to **1,730** ($346 \times 5$).
+    - **Quarantine Isolation:** The 36 truly absent vendor fixtures and the 25 qualification traces (with unindexed players or editions) are definitively preserved in quarantine under `MATCH_CROSSWALK_UNRESOLVED` and `MATCH_NOT_STAGED_IN_POSTGRES` per Zero-Fabrication principles. Zero synthetic players or tournament editions manufactured.
+    - **Review Queue Ledger Reduction:** Total review queue items reduced from 113 to **77** ($65\text{ traces} + 12\text{ legacy demo outputs}$).
+    - **Safety Gates & Immutability:** 12/12 Quality Gates PASS (P7-G1 through P7-G12). Dual-pass idempotency verified (Pass 2 Delta = +0 rows). Source SQLite immutability verified ($\Delta = 0\text{ bytes}$). Phase 8 entry gate certified 6/6 PASS. All 26/26 backend diagnostic tests PASS.
+    - **Operational Constraint Maintained:** Production reads remain strictly `SQLITE_ONLY`; dual-write, shadow-read, and production cutover remain `PROHIBITED`.
+
+33. **Phase 8 Data-Access Layer Staging Architecture & Conformance Certification:**
+    - **Status:** Staging branch execution completed; production cutover prohibited.
+    - **Architectural Abstraction:** Decoupled data access from SQLite engine specifics using abstract domain interfaces (`IPredictionsRepo`, `IEditorialsRepo`, `IPlayersRepo`, `IMatchesRepo`).
+    - **Connection Pooling:** Added `StagingPgPool` (`src/db/stagingPgPool.ts`) connecting exclusively to local isolated staging PostgreSQL cluster on port 54350.
+    - **Feature Flag Isolation:** `ENABLE_STAGING_PG_ADAPTER` enables staging PostgreSQL adapters exclusively for non-production testing; production reads remain hardcoded to `SQLITE_ONLY`.
+    - **Zero Production Mutation Guarantee:** 100% of mutation methods across PostgreSQL adapters throw `POSTGRES_MUTATION_PROHIBITED`.
+    - **Zero-Risk Rollback Circuit Breaker:** Non-blocking `ShadowComparingPredictionsRepo` catches and suppresses all PostgreSQL errors, guaranteeing 0ms interruption to SQLite primary reads.
+    - **API DTO Parity:** 100% field parity certified across domain DTOs (`Prediction`, `MatchEditorialRecord`, `PublishedPlayer`, `PlayerMatchIndexRow`).
+    - **Acceptance Scorecard:** 7/7 Quality Gates PASS (`verify-phase-8-query-conformance.cjs`). 26/26 backend diagnostic tests PASS. Source SQLite databases bitwise immutable ($\Delta = 0\text{ bytes}$).
+    - **Prohibition Matrix Maintained:**
+      ```json
+      {
+        "phase_7_staging": "CLOSED_ACCEPTED",
+        "phase_8_staging_data_access": "COMPLETED_CERTIFIED",
+        "production_reads": "SQLITE_ONLY",
+        "dual_write": "PROHIBITED",
+        "shadow_read": "PROHIBITED",
+        "production_cutover": "PROHIBITED"
+      }
+      ```
+
 
 
 

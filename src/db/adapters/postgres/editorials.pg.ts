@@ -1,6 +1,7 @@
 import type { IEditorialsRepo } from '../../interfaces/editorials.interface';
 import type { MatchEditorialRecord, EditorialPublishStatus } from '../../repositories/editorials.repo';
-import type { PostgresClientPool } from './predictions.pg';
+import type { PostgresClientPool } from '../../stagingPgPool';
+import { getStagingPgPool } from '../../stagingPgPool';
 
 export class PostgresEditorialsAdapter implements IEditorialsRepo {
   private pool: PostgresClientPool | null;
@@ -15,7 +16,7 @@ export class PostgresEditorialsAdapter implements IEditorialsRepo {
 
   private ensurePool(): PostgresClientPool {
     if (!this.pool) {
-      throw new Error('PostgreSQL staging pool is not connected or initialized.');
+      this.pool = getStagingPgPool();
     }
     return this.pool;
   }

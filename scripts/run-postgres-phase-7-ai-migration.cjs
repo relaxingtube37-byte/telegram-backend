@@ -289,6 +289,7 @@ async function seedPhase23456Baseline(pgBins, port) {
     path.join(P4_SCRATCH_DIR, 'batch_tier2_2025.sql'),
     path.join(P4_SCRATCH_DIR, 'batch_tier2_2026.sql'),
     path.join(P4_SCRATCH_DIR, 'batch_qualification_admitted_matches.sql'),
+    path.join(P4_SCRATCH_DIR, 'batch_us_open_admitted_matches.sql'),
     path.join(P4_SCRATCH_DIR, 'batch_conflicts.sql')
   ];
 
@@ -558,6 +559,17 @@ async function runStagingMode(pgBins) {
       const qlink = JSON.parse(ql);
       if (qlink.source_match_id) cmToMatchId.set(qlink.source_match_id, qlink.match_id);
       if (qlink.rapid_event_id) rapidToMatchId.set(Number(qlink.rapid_event_id), qlink.match_id);
+    }
+  }
+
+  const usOpenLinksPath = path.join(PROJECT_ROOT, 'scratch', 'postgres-phase-7-ai-migration', 'us_open_match_links.jsonl');
+  if (fs.existsSync(usOpenLinksPath)) {
+    const uLines = fs.readFileSync(usOpenLinksPath, 'utf8').trim().split('\n');
+    for (const ul of uLines) {
+      if (!ul.trim()) continue;
+      const ulink = JSON.parse(ul);
+      if (ulink.source_match_id) cmToMatchId.set(ulink.source_match_id, ulink.match_id);
+      if (ulink.rapid_event_id) rapidToMatchId.set(Number(ulink.rapid_event_id), ulink.match_id);
     }
   }
 
