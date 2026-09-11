@@ -192,6 +192,24 @@
       - Staging shadow comparator (`ShadowComparingPredictionsRepo`) executes PostgreSQL shadow calls asynchronously and suppresses all errors, guaranteeing zero impact on client latency or availability.
     - **Entry Gate Quality Certification (`scripts/verify-phase-8-entry-gate.cjs`):**
       - Certified 6/6 acceptance gates (`P8-G1` through `P8-G6`) passing with zero failures.
+29. **Three-Tier Backtest Views Architecture & Admission Governance (RISK-3 & RISK-2 Resolution):**
+    - **154 US Open Sync (RISK-2):** Synchronized 154 authentic 2026 US Open matches to backend `gold_matches_validated` via single atomic transaction with pre-write backup, achieving exact 100% parity across Desktop and Backend at 58,131 rows (0 duplicate keys).
+    - **Three-Tier Backtest Views Strategy (RISK-3):** Separated backtest ready queries into 3 formal views to prevent polluting authentic raw telemetry with DTMC Markov synthetic odds:
+      1. `gold_matches_ready_raw_view` (38,720 rows): Strict point-in-time authentic baseline.
+      2. `gold_matches_ready_enriched_view` (46,076 rows): Unites raw ready matches with immutable auxiliary ledger `gold_matches_enriched_admissions` (7,356 IDs), achieving exact bitwise ID parity with Desktop (0 FP, 0 FN).
+      3. `gold_matches_ready_view` (38,720 rows Facade): Points directly to `gold_matches_ready_raw_view`, preserving 100% backward compatibility for all existing API routes, controllers, and tests.
+    - **Raw-by-Default Governance Rule:** The legacy facade MUST default to pure raw telemetry. Enriched views may only be queried via explicit, documented opt-in by experimental models.
+30. **Trace Telemetry Accounting Invariant (`SQLite Resolution ≠ PostgreSQL Canonical Admission`):**
+    - **Fundamental Accounting Formula:**
+      - Total Multi-Agent Traces: **411**
+      - SQLite Match Hits / Resolved: **335**
+      - PostgreSQL Staging Admitted: **290** runs / **1,450** traces ($290 \times 5$)
+      - Resolved-in-SQLite but Not Staged in PostgreSQL: **45** (valid SQLite matches from Phase 4 qualification tournaments quarantined due to unlinked editions)
+      - Missing Payload Traces: **4** (`MATCH_CROSSWALK_MISSING_PAYLOAD`)
+      - Unresolved Vendor Fixtures: **72** (`MATCH_CROSSWALK_UNRESOLVED`)
+      - Total Quarantine Count: $45 + 4 + 72 = 121$ traces (+ 12 legacy outputs = 133 total quarantine records).
+    - **Architectural Rule:** Crosswalk resolution to a local SQLite match does NOT equal admission into canonical PostgreSQL tables. Any match lacking a staged parent in `matches.matches` is strictly routed to `provenance.review_queue` as `MATCH_NOT_STAGED_IN_POSTGRES` to prevent foreign-key orphan violations.
+
 
 
 

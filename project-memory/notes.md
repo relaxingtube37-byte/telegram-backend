@@ -36,8 +36,18 @@
     5. **Three-Way Data Reconciliation:** Perform differential audit across Render, backend SQLite, and desktop SQLite.
     6. **Quarantine Resolution (RISK-4 & RISK-5):** Ingest parent tournament editions in Phase 4 for 45 qualification traces; obtain official vendor mappings for 72 unlinked traces without force-linking.
     7. **Staging Parity Baseline:** Only after all disparities are documented and resolved, formulate the staging parity baseline for controlled Phase 8 execution.
+- **Trace Accounting Invariant (SQLite Resolution ≠ PostgreSQL Canonical Admission):**
+  - **411 Total Multi-Agent Traces:**
+    - **335 SQLite-Resolved:** Fixture cleanly matched in local SQLite `database.sqlite`.
+      - **290 PostgreSQL-Admitted:** Staged into `ai.predictionruns` & `ai.agenttraces` ($290 \times 5 = 1,450$).
+      - **45 Resolved-but-Not-Staged:** Valid SQLite matches from Phase 4 qualification tournaments quarantined under `MATCH_NOT_STAGED_IN_POSTGRES`.
+    - **72 Unresolved Vendor Fixtures:** Vendor fixture ID absent from SQLite (`MATCH_CROSSWALK_UNRESOLVED`).
+    - **4 Missing Payload Traces:** Early August 21 records lacking snapshot/decision (`MATCH_CROSSWALK_MISSING_PAYLOAD`).
+  - **Quarantine Total:** $45 + 72 + 4 = 121$ traces (+ 12 legacy outputs = 133 total quarantine records).
+  - Crosswalk resolution against SQLite does NOT grant canonical admission into PostgreSQL without verified parent records in `matches.matches`.
 - **Backtest Views Dual-Baseline Governance Rule:**
   - `gold_matches_ready_raw_view` (38,720 rows) represents authentic un-synthesized telemetry; strictly required for baseline models and parity proofs.
   - `gold_matches_ready_enriched_view` (46,076 rows) represents DTMC Markov synthesized fair-odds expansion; permitted exclusively for research models tolerant of synthetic odds.
   - Conflating enriched records with raw baseline telemetry is strictly prohibited across all future reporting.
+  - `gold_matches_ready_view` legacy facade remains hard-wired to raw view by default.
 
