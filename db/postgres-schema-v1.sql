@@ -453,7 +453,7 @@ CREATE TABLE IF NOT EXISTS markets.market_odds_ticks (
   decimal_odds NUMERIC(6, 3) NOT NULL CHECK (decimal_odds >= 1.001 AND decimal_odds <= 1000.0),
   is_closing_line BOOLEAN NOT NULL DEFAULT FALSE,
   is_live BOOLEAN NOT NULL DEFAULT FALSE,
-  captured_at_utc TIMESTAMPTZ NULL,
+  captured_at_utc TIMESTAMPTZ NOT NULL,
   reference_match_start_utc TIMESTAMPTZ NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
 );
@@ -463,6 +463,32 @@ CREATE INDEX IF NOT EXISTS idx_markets_ticks_match_market
 
 CREATE INDEX IF NOT EXISTS idx_markets_ticks_captured
   ON markets.market_odds_ticks (captured_at_utc);
+
+-- Table 15B: markets.legacy_undated_odds_quarantine
+CREATE TABLE IF NOT EXISTS markets.legacy_undated_odds_quarantine (
+  quarantine_id BIGSERIAL PRIMARY KEY,
+  source_name VARCHAR(100) NOT NULL,
+  source_record_id VARCHAR(100) NULL,
+  candidate_match_id UUID NULL REFERENCES matches.matches(match_id) ON DELETE CASCADE,
+  match_id UUID NOT NULL REFERENCES matches.matches(match_id) ON DELETE CASCADE,
+  bookmaker_id SMALLINT NOT NULL REFERENCES markets.bookmakers(bookmaker_id) ON DELETE RESTRICT,
+  market_type markets.market_category NOT NULL,
+  selection_side SMALLINT NULL CHECK (selection_side IS NULL OR selection_side IN (1, 2)),
+  selection_player_id UUID NULL REFERENCES identity.players(player_id) ON DELETE RESTRICT,
+  line NUMERIC(5, 2) NULL,
+  decimal_odds NUMERIC(6, 3) NOT NULL CHECK (decimal_odds >= 1.001 AND decimal_odds <= 1000.0),
+  reference_match_start_utc TIMESTAMPTZ NULL,
+  raw_observation_date VARCHAR(50) NULL,
+  quarantine_reason VARCHAR(100) NOT NULL DEFAULT 'UNKNOWN_TIMING_UNDATED_SNAPSHOT',
+  evidence_hash CHAR(64) NULL,
+  created_at_utc TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
+CREATE INDEX IF NOT EXISTS idx_markets_quarantine_match
+  ON markets.legacy_undated_odds_quarantine (match_id, bookmaker_id);
+
+CREATE INDEX IF NOT EXISTS idx_markets_quarantine_source
+  ON markets.legacy_undated_odds_quarantine (source_name, source_record_id);
 
 -- =============================================================================
 -- 10. SCHEMA `ai`: RUNS & AGENT TRACES (Tables 16-17/28)

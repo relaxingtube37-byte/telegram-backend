@@ -29,7 +29,7 @@ export interface IncomingRawMatch {
   sourceMatchId: string;
   matchDate: string; // YYYY-MM-DD
   tour: Tour;
-  gender: 'M' | 'F';
+  gender?: 'M' | 'F';
   rawTournamentName: string;
   rawSurface?: string;
   rawRound?: string;
@@ -37,7 +37,7 @@ export interface IncomingRawMatch {
   rawPlayer2: string;
   rawWinnerName?: string;
   rawScore?: string;
-  rawPayload: Record<string, unknown>;
+  rawPayload?: Record<string, unknown>;
 }
 
 export interface ResolvedMatchContext {

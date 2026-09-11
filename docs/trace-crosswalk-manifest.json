@@ -1,0 +1,4112 @@
+[
+  {
+    "traceId": "pred_16661629",
+    "capturedAt": "2026-08-14T15:48:05.937Z",
+    "sourceMatchId": "16661629",
+    "canonicalMatchId": "cm_atp_2026-08-14_sheltonb_nakashimab_h1157067",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f95616529e287d8f9ef0d48e766409b477d8e7b4578ff1d0e4a0680d4590d3f9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16661633",
+    "capturedAt": "2026-08-14T17:04:31.996Z",
+    "sourceMatchId": "16661633",
+    "canonicalMatchId": "cm_atp_2026-08-12_nakashimab_jodarr_h1157019",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2f41a6b52dc745983b0285a1df1eaf5c453bb18912f9d1d8ee7ff45651f8a531",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16661634",
+    "capturedAt": "2026-08-14T17:10:13.240Z",
+    "sourceMatchId": "16661634",
+    "canonicalMatchId": "cm_atp_2026-08-13_sheltonb_tienl_h1157027",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "93375111c7b5d38f49158da9613e9e4195bc4415241b0211dc3249ab2ce86b98",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16784132",
+    "capturedAt": "2026-08-14T17:20:23.363Z",
+    "sourceMatchId": "16784132",
+    "canonicalMatchId": "cm_atp_2026-08-12_vukica_blanchdar_h1157021",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "116a2c26d19460867f493e8207ec927e3abac43f033a8a307db34f388e13f2ed",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16784161",
+    "capturedAt": "2026-08-14T17:27:12.913Z",
+    "sourceMatchId": "16784161",
+    "canonicalMatchId": "cm_atp_2026-08-12_rochah_gironm_h1157022",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a4ee8422995aadd381aa4835fa9fe31357cd19fe573f59f72b51197d5483a2c9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16784159",
+    "capturedAt": "2026-08-14T17:34:56.093Z",
+    "sourceMatchId": "16784159",
+    "canonicalMatchId": "cm_atp_2026-08-12_mejian_fearnleyj_h1157020",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bc01ee7853461d93a60b8c32bb27436cda42d5fb70871843ed88cd13f85a4b1e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16784130",
+    "capturedAt": "2026-08-14T17:41:00.393Z",
+    "sourceMatchId": "16784130",
+    "canonicalMatchId": "cm_atp_2026-08-12_lajalm_svrcinad_h1157024",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "38a855899d1b46dde3d740f862c774f3e345c2ae0f7ef5b9d7db5cf20af25c47",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16796176",
+    "capturedAt": "2026-08-14T17:50:15.574Z",
+    "sourceMatchId": "16796176",
+    "canonicalMatchId": "cm_atp_2026-08-13_oconnellc_shevchenkoa_h1157026",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2a9d03de0bc7025c86c4fceac64b55011cd3abf6508742460dce45d534d2098e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16799575",
+    "capturedAt": "2026-08-14T18:19:52.273Z",
+    "sourceMatchId": "16799575",
+    "canonicalMatchId": "cm_atp_2026-08-13_vanasschel_lajovicd_h1157029",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ac7691980e8a1b3af4ccae73ce8d14cc866b7633faaea18cc6cf649d163698a1",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16796000",
+    "capturedAt": "2026-08-14T18:29:09.353Z",
+    "sourceMatchId": "16796000",
+    "canonicalMatchId": "cm_atp_2026-08-13_wongc_virtaneno_h1157030",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "71a7566dbb8da5d64e093a7fff0ec235f54b7626ad56c5ade5798e9d7199f14a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16800021",
+    "capturedAt": "2026-08-14T18:34:42.899Z",
+    "sourceMatchId": "16800021",
+    "canonicalMatchId": "cm_atp_2026-08-13_zhengm_svajdat_h1157032",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d41059b63e583996af9d9fabf5d528a1563f8209b9ee1b22065c3d87d41eb4ba",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16800010",
+    "capturedAt": "2026-08-14T18:40:33.351Z",
+    "sourceMatchId": "16800010",
+    "canonicalMatchId": "cm_atp_2026-08-13_fariaj_wuy_h1157031",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "534d6923ed29a75a02d8a7f5f686bfb7e8df3a14898321d9d015eaf1a6c4818e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16800037",
+    "capturedAt": "2026-08-14T18:48:42.268Z",
+    "sourceMatchId": "16800037",
+    "canonicalMatchId": "cm_atp_2026-08-13_trungellitim_nishikorik_h1157033",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4f9ead410a5df2765bc02653ad95dadcac0ff138bc45faeb38b66a2a7cf61609",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16799912",
+    "capturedAt": "2026-08-14T18:55:25.709Z",
+    "sourceMatchId": "16799912",
+    "canonicalMatchId": "cm_atp_2026-08-13_halysq_buy_h1157034",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ba952dd92d5a1530abd85a45f697bd73d7e720a7c5785b1a72f18e3adc99d9cf",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16800145",
+    "capturedAt": "2026-08-14T19:02:10.802Z",
+    "sourceMatchId": "16800145",
+    "canonicalMatchId": "cm_atp_2026-08-13_droguett_sakellaridiss_h1157035",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c5a98fe1d18eb7248c2204177fa7632a6c377a2cb7a6fef49c396e1089dca912",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16800036",
+    "capturedAt": "2026-08-14T19:13:43.196Z",
+    "sourceMatchId": "16800036",
+    "canonicalMatchId": "cm_atp_2026-08-13_jacquetk_budkovkjaern_h1157036",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "73125a64c54ed96b051614a6501ee943075613c3759da622d80259d3aa857ae8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16800331",
+    "capturedAt": "2026-08-14T19:24:01.666Z",
+    "sourceMatchId": "16800331",
+    "canonicalMatchId": "cm_atp_2026-08-13_wolfjj_shimabukuros_h1157037",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bf35a50fc6e9a722dc32eac6da8bf99a9a98ca1c62978fc7d2f7c1b32c9ceaa2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16811703",
+    "capturedAt": "2026-08-14T19:30:12.408Z",
+    "sourceMatchId": "16811703",
+    "canonicalMatchId": "cm_atp_2026-08-13_lajalm_vukica_h1157054",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "899716940db0c464668af1ecbdb97f0fb4c5599a4289ba59fceb3c67137ded8a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16811702",
+    "capturedAt": "2026-08-14T19:33:00.819Z",
+    "sourceMatchId": "16811702",
+    "canonicalMatchId": "cm_atp_2026-08-13_mejian_rochah_h1157057",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3cb89a9cfbbe1d8f4f28999cf433f9d2e53d80c3628ddcc135f04d948bcaf6c5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798519",
+    "capturedAt": "2026-08-15T13:51:49.268Z",
+    "sourceMatchId": "16798519",
+    "canonicalMatchId": "cm_wta_2026-08-13_frechm_ruzica_h1162293",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3ed24196155a863cf58a409c7a958ced2d2083324f792847774038f2777414f2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798523",
+    "capturedAt": "2026-08-15T13:51:49.308Z",
+    "sourceMatchId": "16798523",
+    "canonicalMatchId": "cm_wta_2026-08-13_boissonl_kruegera_h1162292",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ceab2cd1a344051f6ebd91a859c17406d26f7f3a8149b0a3df98c08d7deadad9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798530",
+    "capturedAt": "2026-08-15T13:54:22.255Z",
+    "sourceMatchId": "16798530",
+    "canonicalMatchId": "cm_wta_2026-08-13_ruseg_linettem_h1162295",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c2a6576685310acf711b12d2c6419f25a1031a218f8b91c1b38e429f6007ddc8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798524",
+    "capturedAt": "2026-08-15T13:55:22.272Z",
+    "sourceMatchId": "16798524",
+    "canonicalMatchId": "cm_wta_2026-08-13_parryd_dolehidec_h1162296",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3b6ef11be0172dac533096ce396961d43dd108eecf30506c14f5c63fddcf9977",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798522",
+    "capturedAt": "2026-08-15T13:58:22.260Z",
+    "sourceMatchId": "16798522",
+    "canonicalMatchId": "cm_wta_2026-08-13_mariat_yastremskad_h1162297",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "75d4a68ac6227dd6f8ec1d11b25c4f9733a21ca39c8a91e8cbd6d434b8788fe9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798521",
+    "capturedAt": "2026-08-15T14:27:37.965Z",
+    "sourceMatchId": "16798521",
+    "canonicalMatchId": "cm_wta_2026-08-13_bucsac_udvardyp_h1162298",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b13eaeec132d9ec2abdff690fd3eac3c09a30bfa2527a36cabbf9cf12a459676",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798531",
+    "capturedAt": "2026-08-15T14:28:51.273Z",
+    "sourceMatchId": "16798531",
+    "canonicalMatchId": "cm_wta_2026-08-13_boulterk_volynetsk_h1162300",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "61ee2069eadb0fa158ae2a2f51788f408ce20e6a9125f68c573e741c5c1e9695",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798528",
+    "capturedAt": "2026-08-15T14:36:04.750Z",
+    "sourceMatchId": "16798528",
+    "canonicalMatchId": "cm_wta_2026-08-14_mcnallyc_kesslerm_h1162301",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0018e5ba417e4f07942f85bf19b84e0fbd71d3c582f2773abccf8586af8029e2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798537",
+    "capturedAt": "2026-08-15T14:38:22.263Z",
+    "sourceMatchId": "16798537",
+    "canonicalMatchId": "cm_wta_2026-08-14_dariasnigur_yuliiastarodubtseva_h972045",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "213544486cfe6117395de34b045fb1eb01a4c70691b9da1eee4f8d4d86b5cd16",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16823096",
+    "capturedAt": "2026-08-15T14:48:01.950Z",
+    "sourceMatchId": "16823096",
+    "canonicalMatchId": "cm_wta_2026-08-14_elisabettacocciaretto_lucreziastefanini_h972041",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "16950d6e674185780a08f86d8eb949e7012352257ecc408c4b8956e8c45188c2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798527",
+    "capturedAt": "2026-08-15T14:53:15.180Z",
+    "sourceMatchId": "16798527",
+    "canonicalMatchId": "cm_wta_2026-08-13_kalininaa_vidmanovad_h1162286",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6529b90dc5f9d7f5d1573d6b2c11605ddec67bee0a980fac0b034042f9105bed",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798529",
+    "capturedAt": "2026-08-15T14:53:31.071Z",
+    "sourceMatchId": "16798529",
+    "canonicalMatchId": "cm_wta_2026-08-13_sonmezz_kasatkinad_h1162288",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f8f6a82e0e0c5b437c48995204a066799804b66bb8e210caae30bdabd57d3d48",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798525",
+    "capturedAt": "2026-08-15T14:57:28.377Z",
+    "sourceMatchId": "16798525",
+    "canonicalMatchId": "cm_wta_2026-08-13_rakhimovak_birrellk_h1162285",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5d5d4ceba4fefba0995c75bd3700d2e881472c50e1535df7a1843343e4964888",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798526",
+    "capturedAt": "2026-08-15T14:58:43.020Z",
+    "sourceMatchId": "16798526",
+    "canonicalMatchId": "cm_wta_2026-08-13_walterts_marcinkop_h1162287",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4f146b812535b87895988a7403be4ed67295da031cefdf27a57782b1ad11a49b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16798518",
+    "capturedAt": "2026-08-15T15:03:01.805Z",
+    "sourceMatchId": "16798518",
+    "canonicalMatchId": "cm_wta_2026-08-13_townsendt_osorioc_h1162289",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "fb33175e9c3d07204d7c18a774f99489e850c961993a1638d7dfbd38443785bb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797603",
+    "capturedAt": "2026-08-15T15:33:18.939Z",
+    "sourceMatchId": "16797603",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "b1a445e10000945ed0747ef55383748a34a6ed7f225624676651a1eaa7ba43fb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737503",
+    "capturedAt": "2026-08-15T15:49:13.950Z",
+    "sourceMatchId": "16737503",
+    "canonicalMatchId": "cm_atp_2026-08-15_mensikj_belluccim_h1157114",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a755f5d7215231fe580858d26bd0e99fd64cc9646a337d3e23eafd1f27e24a6a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737508",
+    "capturedAt": "2026-08-15T16:14:53.020Z",
+    "sourceMatchId": "16737508",
+    "canonicalMatchId": "cm_atp_2026-08-15_ferya_duckworthj_h1157122",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3bb10cfb9f5dfde34e051da9ca42b5bb65cb0490dfe25a90eae351a17514f543",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797621",
+    "capturedAt": "2026-08-16T23:00:17.562Z",
+    "sourceMatchId": "16797621",
+    "canonicalMatchId": "cm_atp_2026-08-13_kecmanovicm_ugocarabellic_h1157062",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "341801802b5ec51efc77f54dc764a0d219315ec3b381d0ab7d24fa224c4fdb3e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797614",
+    "capturedAt": "2026-08-16T23:00:33.316Z",
+    "sourceMatchId": "16797614",
+    "canonicalMatchId": "cm_atp_2026-08-13_navonem_collignonr_h1157063",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0ffd53597c8e0e1df821535740fde9019cae5894309bee81c1e25eb93805ec96",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797613",
+    "capturedAt": "2026-08-16T23:00:42.408Z",
+    "sourceMatchId": "16797613",
+    "canonicalMatchId": "cm_ten_2026-08-13_winner_loser_b16797613",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ae79621f3280fa14ef775940b8562686026c3eabda7d225f9283dfe11b3b162b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797612",
+    "capturedAt": "2026-08-16T23:00:58.650Z",
+    "sourceMatchId": "16797612",
+    "canonicalMatchId": "cm_atp_2026-08-13_hijikatar_monfilsg_h1157066",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "225701ad7df01acb14917a1986b5c6774ad2f2e026402f619b72132ab2de6f16",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797615",
+    "capturedAt": "2026-08-16T23:01:07.075Z",
+    "sourceMatchId": "16797615",
+    "canonicalMatchId": "cm_atp_2026-08-14_belluccim_svajdaz_h1157069",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5c2b8e67e5f99bde6741cf2760a164848ccc1919ddb40b23e8688d5fb2953a51",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16823021",
+    "capturedAt": "2026-08-16T23:10:42.646Z",
+    "sourceMatchId": "16823021",
+    "canonicalMatchId": "cm_atp_2026-08-14_vallejod_jacquetk_h1157076",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4c9ec68dfc9472def85e2bab62f137aa716c0e6462df421c5f22bbfa1b862a25",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16823014",
+    "capturedAt": "2026-08-16T23:10:43.029Z",
+    "sourceMatchId": "16823014",
+    "canonicalMatchId": "cm_atp_2026-08-14_altmaierd_wongc_h1157078",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c04cad40cd3e63067fce63e0675f95a99da633f47510fdc39e3b16d8f5eb6b26",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16822907",
+    "capturedAt": "2026-08-16T23:10:52.777Z",
+    "sourceMatchId": "16822907",
+    "canonicalMatchId": "cm_atp_2026-08-14_hurkaczh_shimabukuros_h1157079",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5d1391360f948d18f6473fe0d81f35ce0751d6142616249784523e3b22971d1b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797620",
+    "capturedAt": "2026-08-16T23:10:54.589Z",
+    "sourceMatchId": "16797620",
+    "canonicalMatchId": "cm_atp_2026-08-14_tsitsipass_royerv_h1157080",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3db4ddc0f9b94e6fb34eaa5172745e07fc387df0d2fb9b82fe3b93ddc75c50e0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16823018",
+    "capturedAt": "2026-08-16T23:11:04.595Z",
+    "sourceMatchId": "16823018",
+    "canonicalMatchId": "cm_atp_2026-08-14_halysq_koprivav_h1157077",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "78203904fdb7bd23604c01edf474c001c9985b15a9ddb6aec18301d5d433e84c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797618",
+    "capturedAt": "2026-08-16T23:11:27.541Z",
+    "sourceMatchId": "16797618",
+    "canonicalMatchId": "cm_atp_2026-08-14_baezs_dimitrovg_h1157082",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3134e73c4dcd0c48622a52d373c89939d950cbd17a2fe5c687eb1b7d8974ee28",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16823022",
+    "capturedAt": "2026-08-16T23:11:44.923Z",
+    "sourceMatchId": "16823022",
+    "canonicalMatchId": "cm_atp_2026-08-14_berrettinim_droguett_h1157084",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1b3332ecabd35c0bd7b01b618a34e35af63483005e20f34e0ddcbf6c79382894",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16823023",
+    "capturedAt": "2026-08-16T23:12:08.404Z",
+    "sourceMatchId": "16823023",
+    "canonicalMatchId": "cm_atp_2026-08-14_hanfmanny_vanasschel_h1157083",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2f1a57b0ceb252ef319384af6bb7d27e4b19811a3853a79a5a6b263a5d67219e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797617",
+    "capturedAt": "2026-08-16T23:12:25.194Z",
+    "sourceMatchId": "16797617",
+    "canonicalMatchId": "cm_atp_2026-08-14_carrenobustap_machact_h1157086",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c43e756df4b102d2ce8f68bea3a37c667db138c1be621a504b1ee7252cdfb568",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16823020",
+    "capturedAt": "2026-08-16T23:12:32.606Z",
+    "sourceMatchId": "16823020",
+    "canonicalMatchId": "cm_atp_2026-08-14_duckworthj_wolfjj_h1157087",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5437564c2a0e302992991d8b4fc0746c26af1faf5efda218ff0751e1d88d07ec",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797609",
+    "capturedAt": "2026-08-16T23:17:21.993Z",
+    "sourceMatchId": "16797609",
+    "canonicalMatchId": "cm_atp_2026-08-13_norriec_prizmicd_h1157056",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ce7812429f2c5d567bae0b8efe05176dfa6d2f5284a0965a98ec193fe5ed68f9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797611",
+    "capturedAt": "2026-08-16T23:17:23.003Z",
+    "sourceMatchId": "16797611",
+    "canonicalMatchId": "cm_atp_2026-08-13_landalucem_draperj_h1157050",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a2f8661432c23fb0202474b8a40df13bce6c3c8ec5b42674df893141b6306309",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797606",
+    "capturedAt": "2026-08-16T23:17:59.185Z",
+    "sourceMatchId": "16797606",
+    "canonicalMatchId": "cm_atp_2026-08-13_tiranteta_choinskij_h1157060",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3cb9545e63cac804a89618d04704eb39e1e40ac655ea420c75bea4d7c6c85ebe",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797608",
+    "capturedAt": "2026-08-16T23:18:00.104Z",
+    "sourceMatchId": "16797608",
+    "canonicalMatchId": "cm_atp_2026-08-13_struffjl_burruchagara_h1157059",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1e96de349ad7b41cae3a9e6278e74a04bc9b920f99d320bf5e2596fd6bac101b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16797619",
+    "capturedAt": "2026-08-16T23:18:34.286Z",
+    "sourceMatchId": "16797619",
+    "canonicalMatchId": "cm_atp_2026-08-13_shapovalovd_mannarinoa_h1157061",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f61dc6b90a818778c104972ae77ea7fc97e37de0ffc4ce4f3f4fe93d594285ee",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737516",
+    "capturedAt": "2026-08-17T13:51:44.307Z",
+    "sourceMatchId": "16737516",
+    "canonicalMatchId": "cm_atp_2026-08-15_blockxa_navonem_h1157110",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "cef3c9f6dfb4bb3ce2376012f1fcf85740f8aba17519196453f4255b2b5dd490",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737512",
+    "capturedAt": "2026-08-17T13:51:50.197Z",
+    "sourceMatchId": "16737512",
+    "canonicalMatchId": "cm_atp_2026-08-15_landalucem_arnaldim_h1157108",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "aac39ae790b1e285383ef6774701458ddc2d6b43797e6db1e6a68053e1929531",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737515",
+    "capturedAt": "2026-08-17T13:53:42.343Z",
+    "sourceMatchId": "16737515",
+    "canonicalMatchId": "cm_atp_2026-08-15_cobollif_kecmanovicm_h1157109",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c846ac6aa1de3c8ee1443a3a8dc1ab6b2201b8474de04573a577dbf3d7b1de02",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737513",
+    "capturedAt": "2026-08-17T13:53:52.238Z",
+    "sourceMatchId": "16737513",
+    "canonicalMatchId": "cm_atp_2026-08-15_vallejod_vacherotv_h1157112",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1c4f0d5ab5c60134124b50ba0ebd98f76a79896cd016ba4d7384829a85dadb27",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737514",
+    "capturedAt": "2026-08-17T13:55:45.247Z",
+    "sourceMatchId": "16737514",
+    "canonicalMatchId": "cm_atp_2026-08-15_tiranteta_djokovicn_h1157113",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2ea185059d5e17893ba3c2d21b4d44f52af7cf1a9db58b01bb1ce8b65232cdd0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737488",
+    "capturedAt": "2026-08-19T10:37:07.488Z",
+    "sourceMatchId": "16737488",
+    "canonicalMatchId": "cm_ten_2026-08-18_winner_loser_b16737488",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d60be2ea07a67dc23cd0ff9a32baf7b01b26208630188ed34703c26925032ce8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737888",
+    "capturedAt": "2026-08-19T11:21:19.872Z",
+    "sourceMatchId": "16737888",
+    "canonicalMatchId": "cm_wta_2026-08-18_xiyuwang_elinasvitolina_h972102",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7d4513bfb8ad76bba3ff0ed99509f1e3f2e9b8ac770197e9025df4fee8623c36",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16855693",
+    "capturedAt": "2026-08-19T11:35:17.795Z",
+    "sourceMatchId": "16855693",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "589c6ef4b84799ea20c46451fea2dd9e668403d63acaaf199ac4cbb4fadf61c9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16855692",
+    "capturedAt": "2026-08-19T11:38:25.119Z",
+    "sourceMatchId": "16855692",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "044e07b8877ed1695e1ca39d61ee2762bfc5129905b2346249f50b9fd0123409",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16842455",
+    "capturedAt": "2026-08-19T11:38:27.825Z",
+    "sourceMatchId": "16842455",
+    "canonicalMatchId": "cm_ten_2026-08-18_winner_loser_b16842455",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "771a15ec46b94b1c8e4227c02ff7a33876a2f104632d6efe2d1095e4de75a438",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16808674",
+    "capturedAt": "2026-08-19T11:41:15.117Z",
+    "sourceMatchId": "16808674",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "7ff1dfe7f7e54fd3866e83419abd0f7a192b04afc21f07bd0cb8942d73c399c7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16855694",
+    "capturedAt": "2026-08-19T11:41:15.871Z",
+    "sourceMatchId": "16855694",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "ba5d00b819098012ce2ed99ba6e9baedfaf0930c284cef295259970c45ca21f5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16851061",
+    "capturedAt": "2026-08-19T11:44:06.757Z",
+    "sourceMatchId": "16851061",
+    "canonicalMatchId": "cm_atp_2026-08-18_safiullinr_ofners_h1157312",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "e5fde0f29ae0de9832c87560c7740795d470ce17aec08c3136f6d865e33b2fcc",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16808669",
+    "capturedAt": "2026-08-19T11:44:09.293Z",
+    "sourceMatchId": "16808669",
+    "canonicalMatchId": "cm_ten_2026-08-19_winner_loser_b16808669",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "322d5faecabf4da485b50b7a07401210bc7644cc4ffbc29a18acb1f21c0e1918",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16851060",
+    "capturedAt": "2026-08-19T11:46:45.955Z",
+    "sourceMatchId": "16851060",
+    "canonicalMatchId": "cm_atp_2026-08-18_wawrinkas_svrcinad_h1157320",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "74b5fc6a0546fe92a732a09b5a2bbb8cf1a8634f649a80e6da91140b036828a5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16851062",
+    "capturedAt": "2026-08-19T11:46:49.022Z",
+    "sourceMatchId": "16851062",
+    "canonicalMatchId": "cm_atp_2026-08-19_llamasruizp_comesanaf_h1157326",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "77cd78543df53679d4035e10a89a1d31a3eb56ce5a97ce6117331ddaab6e0d8a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737588",
+    "capturedAt": "2026-08-20T20:58:05.679Z",
+    "sourceMatchId": "16737588",
+    "canonicalMatchId": "cm_atp_2026-08-18_pault_vallejod_h1157255",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5ee977d0a69cca91632c3d57a9c293e0b81426482b8e8f7ec0478e02fa102abd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737592",
+    "capturedAt": "2026-08-20T20:58:19.132Z",
+    "sourceMatchId": "16737592",
+    "canonicalMatchId": "cm_atp_2026-08-16_zhengm_humbertu_h1157163",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0160a067852d8715a6488bb2fb00d1a45be6b8d0270576714be55de529d5a374",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737472",
+    "capturedAt": "2026-08-20T20:58:28.248Z",
+    "sourceMatchId": "16737472",
+    "canonicalMatchId": "cm_ten_2026-08-16_winner_loser_b16737472",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "778b507b73c608356f325f93a812a0f31600c4c5192752106ad4da7dcce144e9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737476",
+    "capturedAt": "2026-08-20T20:58:54.090Z",
+    "sourceMatchId": "16737476",
+    "canonicalMatchId": "cm_atp_2026-08-16_medvedevd_trungellitim_h1157164",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9a5a28da12a92ae0a79d0f91ab484dc8c3e281d0ff5d188a9410a70de096ef42",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737589",
+    "capturedAt": "2026-08-20T21:38:18.913Z",
+    "sourceMatchId": "16737589",
+    "canonicalMatchId": "cm_atp_2026-08-16_cerundolojm_rinderknecha_h1157171",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "40c7a6a0d8ea5f47c35065b20d70674a9489edb9d35a3219b187d0b2055ce7e5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737477",
+    "capturedAt": "2026-08-20T21:38:35.993Z",
+    "sourceMatchId": "16737477",
+    "canonicalMatchId": "cm_atp_2026-08-16_fonsecaj_vandezandschulpb_h1157173",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "86cdf8a0d16a79dc7af1451b53ab19e75022ba28b131804abee38dfc37b6fc5c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737587",
+    "capturedAt": "2026-08-20T21:38:52.627Z",
+    "sourceMatchId": "16737587",
+    "canonicalMatchId": "cm_atp_2026-08-16_augeraliassimef_tsitsipass_h1157175",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3c0ab729cb1bc6da8bc2c799878c07230ae78a0f64741a7b0e35f9a2c69e60c5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737593",
+    "capturedAt": "2026-08-20T21:39:05.913Z",
+    "sourceMatchId": "16737593",
+    "canonicalMatchId": "cm_atp_2026-08-16_musettil_altmaierd_h1157176",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "85952358a366504608257c525fb4ba5b7e233a04ae6560672288b76287b93ff5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737506",
+    "capturedAt": "2026-08-20T21:39:20.950Z",
+    "sourceMatchId": "16737506",
+    "canonicalMatchId": "cm_atp_2026-08-16_fritzt_michelsena_h1157178",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d80660009315fe79e9fa95a07d9e52c949366df3629915995a4ea7c06f51ee76",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737473",
+    "capturedAt": "2026-08-20T21:39:35.831Z",
+    "sourceMatchId": "16737473",
+    "canonicalMatchId": "cm_atp_2026-08-16_nakashimab_kovacevica_h1157180",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4258f1cb1099fad49bc11a1f00576a2cf8554fca931d90eb8e987484713f0c1a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737590",
+    "capturedAt": "2026-08-20T21:39:50.519Z",
+    "sourceMatchId": "16737590",
+    "canonicalMatchId": "cm_atp_2026-08-16_borgesn_cerundolof_h1157183",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5ef786abb6d80ceb8bce8d4cfb439f6c95db56ba403cf8f7ce96aa36dbdbc71a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737478",
+    "capturedAt": "2026-08-20T21:40:04.940Z",
+    "sourceMatchId": "16737478",
+    "canonicalMatchId": "cm_atp_2026-08-16_rubleva_carrenobustap_h1157185",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ab6a464ed12c15c46be1fbe035fc030d3aebf8cb626060194e231c41bc1781a0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737595",
+    "capturedAt": "2026-08-20T21:40:18.945Z",
+    "sourceMatchId": "16737595",
+    "canonicalMatchId": "cm_atp_2026-08-16_tienl_baezs_h1157186",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "594cb87ac9bc99274c3b0c05b9b0ab22bc69d0193e51679429b59640aa491ab3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737507",
+    "capturedAt": "2026-08-20T21:40:32.701Z",
+    "sourceMatchId": "16737507",
+    "canonicalMatchId": "cm_atp_2026-08-16_meridaaguilard_bergsz_h1157188",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9df5acfd4cbe99d4a6840548507c5e1d330af547729565f2a74f33d8b12e90a7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737466",
+    "capturedAt": "2026-08-20T21:40:47.018Z",
+    "sourceMatchId": "16737466",
+    "canonicalMatchId": "cm_atp_2026-08-16_waltona_busei_h1157191",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0cef81ebd44f33cea651b7ddc6ac568280bd7118097897143ac1f4159740c403",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737475",
+    "capturedAt": "2026-08-20T21:41:10.239Z",
+    "sourceMatchId": "16737475",
+    "canonicalMatchId": "cm_atp_2026-08-16_fariaj_sheltonb_h1157192",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8aa7141a0397218108d7160251c5b80ee78068f556397ca8ff48e32e077435aa",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737594",
+    "capturedAt": "2026-08-20T21:41:30.705Z",
+    "sourceMatchId": "16737594",
+    "canonicalMatchId": "cm_atp_2026-08-17_tiafoef_sonegol_h1157193",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1455530fbee27adfef700a2816b8cd8ae7cc6ac1dceb14b6fc17e4e49922e3bb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737891",
+    "capturedAt": "2026-08-21T08:00:13.637Z",
+    "sourceMatchId": "16737891",
+    "canonicalMatchId": "cm_wta_2026-08-17_elenarybakina_magdalenafrech_h972094",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "209ee1775c9322777f71cef0bf0237ea1d9a38113d89e397c9049eae740e50a7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737892",
+    "capturedAt": "2026-08-21T09:13:10.910Z",
+    "sourceMatchId": "16737892",
+    "canonicalMatchId": "cm_wta_2026-08-17_soranacirstea_annakalinskaya_h972095",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "02fdc5230294c1a941a0f0437c2e46a4ac9b65c5400242473ff6ceb90dc15978",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737878",
+    "capturedAt": "2026-08-21T09:13:18.167Z",
+    "sourceMatchId": "16737878",
+    "canonicalMatchId": "cm_wta_2026-08-17_dianashnaider_majachwalinska_h972096",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0d0a224e7a517b0c5c35e4e53ed155a03d1da4a7ce2a10cfcc7048ffed396a61",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737894",
+    "capturedAt": "2026-08-21T09:13:36.655Z",
+    "sourceMatchId": "16737894",
+    "canonicalMatchId": "cm_wta_2026-08-17_noskoval_tausonc_h1162353",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "198e211b8c809df768befb1bb2b085d71ae030e0938a49a3789e6b1ae6dc8d45",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737883",
+    "capturedAt": "2026-08-21T09:13:45.789Z",
+    "sourceMatchId": "16737883",
+    "canonicalMatchId": "cm_wta_2026-08-17_jessicapegula_emmanavarro_h972098",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "70ebf9d39690494af7b6ebe1fc79ea7832a404f05581a7840cce56fc9b043752",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737893",
+    "capturedAt": "2026-08-21T09:14:01.626Z",
+    "sourceMatchId": "16737893",
+    "canonicalMatchId": "cm_wta_2026-08-18_amandaanisimova_alexandraeala_h972099",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6b462f71e82aa8b15d4c71eb976c9347da72999b008e071aa73974fc20821d57",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737897",
+    "capturedAt": "2026-08-21T09:14:09.689Z",
+    "sourceMatchId": "16737897",
+    "canonicalMatchId": "cm_wta_2026-08-16_sarabejlek_barborakrejcikova_h972075",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "446076bd3d3d192accd73f2bf225eac0a2780ee970b71f7f94660d79490f0ed5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737908",
+    "capturedAt": "2026-08-21T09:14:25.679Z",
+    "sourceMatchId": "16737908",
+    "canonicalMatchId": "cm_wta_2026-08-16_janicetjen_viktorijagolubic_h972074",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0b7309c63fde7d4a3e863a2bbe2ed70202e95c766bae8c07404b7122ce3d7fbc",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737914",
+    "capturedAt": "2026-08-21T09:14:33.672Z",
+    "sourceMatchId": "16737914",
+    "canonicalMatchId": "cm_wta_2026-08-16_mirraandreeva_oleksandraoliynykova_h972077",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ed1babad4110110a52f97676b2b9ccb8402d9d126c888ca6d2b227a9af3c590e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737879",
+    "capturedAt": "2026-08-21T09:15:00.446Z",
+    "sourceMatchId": "16737879",
+    "canonicalMatchId": "cm_wta_2026-08-16_elenarybakina_taylortownsend_h972076",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3750c141f761eebe095616c897c9f9358c58bd44875eb2812eede3e93c7cd5b7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737899",
+    "capturedAt": "2026-08-21T09:15:00.790Z",
+    "sourceMatchId": "16737899",
+    "canonicalMatchId": "cm_wta_2026-08-16_xinyuwang_donnavekic_h972078",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "75df9640c791a20ab616a80caa5d54099af50d7349466534cabb37c271f6538f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737917",
+    "capturedAt": "2026-08-21T09:20:23.554Z",
+    "sourceMatchId": "16737917",
+    "canonicalMatchId": "cm_wta_2026-08-16_madisonkeys_dariasnigur_h972079",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "314419a9df3178bbdf12a747ce1c5428944fb943068f64df3ca2ca41c1d1510a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737874",
+    "capturedAt": "2026-08-21T09:20:30.292Z",
+    "sourceMatchId": "16737874",
+    "canonicalMatchId": "cm_wta_2026-08-16_igaswiatek_emilianaarango_h972080",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "628d7bedc4c82987ff219220edf44cd1e1f057f9bf035088d7a22c1fb9bfa4e2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737921",
+    "capturedAt": "2026-08-21T09:20:55.634Z",
+    "sourceMatchId": "16737921",
+    "canonicalMatchId": "cm_wta_2026-08-16_annli_shuaizhang_h972082",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4ec3a496ba3aa7b5c4407281be3495a3bb7077d82723732a7be3dda4324530aa",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737918",
+    "capturedAt": "2026-08-21T09:20:55.685Z",
+    "sourceMatchId": "16737918",
+    "canonicalMatchId": "cm_wta_2026-08-16_mariebouzkova_lucreziastefanini_h972081",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4e887e92b35262f1944c15d33abd7f8a5a140614a977a21355ca7998554f0ad8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737898",
+    "capturedAt": "2026-08-21T09:21:25.950Z",
+    "sourceMatchId": "16737898",
+    "canonicalMatchId": "cm_wta_2026-08-16_sabalenkaa_gibsont_h1162340",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a6742a35845ed4e0892648a7f4af861f34c8f8626c5a122eb97ecdc2a441f479",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737912",
+    "capturedAt": "2026-08-21T09:21:26.460Z",
+    "sourceMatchId": "16737912",
+    "canonicalMatchId": "cm_wta_2026-08-16_kostyukm_kenins_h1162341",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9a7d4337070f0ec9055726f66d28c7560d82202b02e8ca08881bcfa859b8afa9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737913",
+    "capturedAt": "2026-08-21T09:21:42.042Z",
+    "sourceMatchId": "16737913",
+    "canonicalMatchId": "cm_wta_2026-08-16_katerinasiniakova_jessicabouzasmaneiro_h972085",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7738ff89b80febfd670b303eeb8f1e29e9368940da90bc5e53a4393e35df5a13",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737915",
+    "capturedAt": "2026-08-21T09:21:48.097Z",
+    "sourceMatchId": "16737915",
+    "canonicalMatchId": "cm_wta_2026-08-16_ekaterinaalexandrova_annablinkova_h972086",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "594e435ddbd9b32d763facf1209441fcc2a37c7b2f80af8c721c4efee0a1fe0a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737923",
+    "capturedAt": "2026-08-21T09:22:03.153Z",
+    "sourceMatchId": "16737923",
+    "canonicalMatchId": "cm_wta_2026-08-16_xiyuwang_leylahfernandez_h972087",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a206ab20973c39d9efe88988eb2167cb2862f7bd6a5a8145c172e5801bc14ab0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737909",
+    "capturedAt": "2026-08-21T09:22:11.838Z",
+    "sourceMatchId": "16737909",
+    "canonicalMatchId": "cm_wta_2026-08-16_ivajovic_tamarakorpatsch_h972088",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1ba4127bd3306602907747943ccc36399d3d596fd495ff9c1ba10d696f214477",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16805827",
+    "capturedAt": "2026-08-21T09:29:17.914Z",
+    "sourceMatchId": "16805827",
+    "canonicalMatchId": "cm_atp_2026-08-22_baezs_wongc_h1157427",
+    "resolutionStatus": "QUARANTINED_MISSING_PAYLOAD",
+    "quarantineReason": "MISSING_DATA_SNAPSHOT_OR_DECISION",
+    "payloadSha256": "b5fadc9c11ed7bbf42b6a391ea6f186e4158097ab77e898d883650621ac8a40d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16805834",
+    "capturedAt": "2026-08-21T09:29:37.918Z",
+    "sourceMatchId": "16805834",
+    "canonicalMatchId": "cm_atp_2026-08-21_hurkaczh_safiullinr_h1157421",
+    "resolutionStatus": "QUARANTINED_MISSING_PAYLOAD",
+    "quarantineReason": "MISSING_DATA_SNAPSHOT_OR_DECISION",
+    "payloadSha256": "ecff13added21d55b2055d0baf97b865bf07d1000de618a67d8c9a0002cfec82",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16806958",
+    "capturedAt": "2026-08-21T09:30:03.899Z",
+    "sourceMatchId": "16806958",
+    "canonicalMatchId": "cm_atp_2026-08-21_gastonh_dejongj_h1157417",
+    "resolutionStatus": "QUARANTINED_MISSING_PAYLOAD",
+    "quarantineReason": "MISSING_DATA_SNAPSHOT_OR_DECISION",
+    "payloadSha256": "453e29bc5d594361aa8b3604e1d30423b5604d4524b36a31ea0b12acc84f61d6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16806962",
+    "capturedAt": "2026-08-21T09:30:23.021Z",
+    "sourceMatchId": "16806962",
+    "canonicalMatchId": "cm_atp_2026-08-21_vanasschel_bonzib_h1157416",
+    "resolutionStatus": "QUARANTINED_MISSING_PAYLOAD",
+    "quarantineReason": "MISSING_DATA_SNAPSHOT_OR_DECISION",
+    "payloadSha256": "286c80d81ffec36ff5fdc1c05ff0c550720d7598221e588b60bff3af3d48cb77",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737468",
+    "capturedAt": "2026-08-22T15:16:05.522Z",
+    "sourceMatchId": "16737468",
+    "canonicalMatchId": "cm_atp_2026-08-17_jodarr_tabiloa_h1157246",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "73a63f04c0f415c610f146499a615de6d6a9aeacbeadd94d048456a72a2314cf",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737489",
+    "capturedAt": "2026-08-22T15:16:21.191Z",
+    "sourceMatchId": "16737489",
+    "canonicalMatchId": "cm_atp_2026-08-17_mensikj_hijikatar_h1157248",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "145247f3c7e3e439cc107e66ffd5d4a8043a5c8a30d01b64dd342db9e1081630",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737586",
+    "capturedAt": "2026-08-22T15:16:39.830Z",
+    "sourceMatchId": "16737586",
+    "canonicalMatchId": "cm_atp_2026-08-17_zvereva_atmanet_h1157249",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "90417ee1068da637ea0859fcd7431759950ea6fa267e88a29be4f5f019cc4067",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737467",
+    "capturedAt": "2026-08-22T15:16:55.167Z",
+    "sourceMatchId": "16737467",
+    "canonicalMatchId": "cm_atp_2026-08-18_filsa_leheckaj_h1157253",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "80fb2ec29ee1989bb9eb9421eaab5dd3884cf9891c25713afddbc423906fe5de",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892047",
+    "capturedAt": "2026-08-22T23:17:40.344Z",
+    "sourceMatchId": "16892047",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "a57652a73e24728b22d5cae982d3572996dfb201088f02db934bf04d59732577",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892045",
+    "capturedAt": "2026-08-22T23:18:07.106Z",
+    "sourceMatchId": "16892045",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "be34c3a2e2f73f4ab00c1bb8d28ab14bc2fa8674003f11c0c23ca3cc1c8f22d0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16891906",
+    "capturedAt": "2026-08-22T23:18:14.589Z",
+    "sourceMatchId": "16891906",
+    "canonicalMatchId": "cm_wta_2026-08-22_putintsevay_rodriguezv_h1162379",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "801394eac6454746fcaa5108915ed8b93adc3b3dc0ee030f186c55ea943cb8fd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892044",
+    "capturedAt": "2026-08-22T23:19:03.195Z",
+    "sourceMatchId": "16892044",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "5cdc74933a5146beccdedf77cfc2f7d7ba9899866b3325605e7ca6bf7bece4ea",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892048",
+    "capturedAt": "2026-08-22T23:19:30.695Z",
+    "sourceMatchId": "16892048",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "4ab34d8921cbcad0fc76f70e14a2503d580e076d96a0cbcff3579e7068003245",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892049",
+    "capturedAt": "2026-08-22T23:19:55.028Z",
+    "sourceMatchId": "16892049",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "7c0a56d74ea79446c3a74c97081bfd99bf2c8c450106a5edda6cebc8fa385ad7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892046",
+    "capturedAt": "2026-08-22T23:20:19.151Z",
+    "sourceMatchId": "16892046",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "3fc48363ffc86d8866153a4eb90ae9adeb8fe6cb1b1e887f5432471bc912b8a3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737896",
+    "capturedAt": "2026-08-22T23:20:23.950Z",
+    "sourceMatchId": "16737896",
+    "canonicalMatchId": "cm_wta_2026-08-20_igaswiatek_elenarybakina_h972117",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "915a06f1d81bd39477b070a303107cea8a26e12d44d3e7cb64eed60fbaa10ad3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737889",
+    "capturedAt": "2026-08-22T23:42:33.982Z",
+    "sourceMatchId": "16737889",
+    "canonicalMatchId": "cm_wta_2026-08-18_kostyukm_stephenss_h1162359",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d18c04f6a9a5285034d93aa2fece363fee5ef43d0ee6ffd361e06a5e4212632e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737877",
+    "capturedAt": "2026-08-23T00:01:38.379Z",
+    "sourceMatchId": "16737877",
+    "canonicalMatchId": "cm_wta_2026-08-17_dianeparry_loisboisson_h972093",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9a1bf6e732e9f1769db7c224f13617b4761346c908a5947e6cd41f50f864f20a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892050",
+    "capturedAt": "2026-08-23T12:18:52.949Z",
+    "sourceMatchId": "16892050",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "520ddef2422ccd335b0684e3207954592d5e1d61b0f1f7866f377d1e10337e66",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892052",
+    "capturedAt": "2026-08-23T12:19:29.202Z",
+    "sourceMatchId": "16892052",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "9f6e58140fb65cb3a6dbfae260253f1e5202a8976eb053315ba73e15ec026dc3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16891911",
+    "capturedAt": "2026-08-23T23:41:45.191Z",
+    "sourceMatchId": "16891911",
+    "canonicalMatchId": "cm_wta_2026-08-22_vidmanovad_wernerc_h1162374",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6c10088d9176fc5cccea6fe2a9c2975cc888a239ecd4f58171021f9215ccb167",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896196",
+    "capturedAt": "2026-08-23T23:42:37.993Z",
+    "sourceMatchId": "16896196",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "75e311ebcb701673f5f1a48985c6215719260ea8f86bbd7b534e19c56718ef41",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896261",
+    "capturedAt": "2026-08-23T23:43:09.217Z",
+    "sourceMatchId": "16896261",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "b32d5d925b002350a26818eea5017d1a33fce983d8be9e502f5d838aa9e11456",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16891909",
+    "capturedAt": "2026-08-23T23:43:25.070Z",
+    "sourceMatchId": "16891909",
+    "canonicalMatchId": "cm_wta_2026-08-22_lianges_krauss_h1162378",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "e9ae717d66196ae58283a3283050a9e19dbb8f98f992a1ff0b3a003d3abdd073",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896197",
+    "capturedAt": "2026-08-23T23:43:47.029Z",
+    "sourceMatchId": "16896197",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "03713d46e57ccb586139dfdb249311af4f01770c806dc00548f017fb90d4ab99",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737519",
+    "capturedAt": "2026-08-24T00:10:16.701Z",
+    "sourceMatchId": "16737519",
+    "canonicalMatchId": "cm_atp_2026-08-18_fariaj_waltona_h1157313",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8c17f76f9939c4b3f751918f7adc63d9e6ee383b538b665666c7eaf235b4fd79",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737487",
+    "capturedAt": "2026-08-24T00:10:36.633Z",
+    "sourceMatchId": "16737487",
+    "canonicalMatchId": "cm_atp_2026-08-18_augeraliassimef_cerundolojm_h1157319",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "42613e46a1a39532b30f08c09b304e7bf34e98e5c6f68aeeba97534ab476e64a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737871",
+    "capturedAt": "2026-08-24T00:10:39.560Z",
+    "sourceMatchId": "16737871",
+    "canonicalMatchId": "cm_wta_2026-08-18_sarabejlek_ekaterinaalexandrova_h972105",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4e6143c52beeec319e65a1663fc7a4d832930a86b41243561cad1c0ddbdd7209",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737486",
+    "capturedAt": "2026-08-24T00:10:47.731Z",
+    "sourceMatchId": "16737486",
+    "canonicalMatchId": "cm_atp_2026-08-19_tiafoef_tienl_h1157322",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "62366d2f582cc263914d76d8d99515daa224f657e3279e66b98517ef0e6cb40a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737872",
+    "capturedAt": "2026-08-24T00:10:51.081Z",
+    "sourceMatchId": "16737872",
+    "canonicalMatchId": "cm_wta_2026-08-18_sabalenkaa_wangxin_h1162361",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "52528eca0d9b59f36c526a2c385134582032c8c9e565d68a850d8cff44b21f34",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737485",
+    "capturedAt": "2026-08-24T00:11:00.391Z",
+    "sourceMatchId": "16737485",
+    "canonicalMatchId": "cm_atp_2026-08-17_cobollif_blockxa_h1157211",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7bae4e4dc76efdaea41ee6198f17e66cd9aecfde3376cea7a1689878b89e5235",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737887",
+    "capturedAt": "2026-08-24T00:11:08.156Z",
+    "sourceMatchId": "16737887",
+    "canonicalMatchId": "cm_wta_2026-08-19_mariebouzkova_ivajovic_h972107",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "20a6be42eaf6737f376405bab1fd63c97e5a0823f5a7c1bfe91c6e910448ec8c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737490",
+    "capturedAt": "2026-08-24T00:11:13.037Z",
+    "sourceMatchId": "16737490",
+    "canonicalMatchId": "cm_atp_2026-08-17_tiranteta_landalucem_h1157212",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6305e891802a6dd4290e7721c316de81e41a684bcab6baa6addb6b31feb1c593",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737882",
+    "capturedAt": "2026-08-24T00:11:20.106Z",
+    "sourceMatchId": "16737882",
+    "canonicalMatchId": "cm_wta_2026-08-17_igaswiatek_mariasakkari_h972092",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ca1e7d24403ab28010338cf02de3fd4e5baa3455bc89e058ecd369318bcc10aa",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737903",
+    "capturedAt": "2026-08-24T00:16:03.630Z",
+    "sourceMatchId": "16737903",
+    "canonicalMatchId": "cm_wta_2026-08-19_kostyukm_andreevam_h1162365",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "cd3e8874a738106f676419941ee464fcd365a8f7d5466dbf628d424ca49f186d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737900",
+    "capturedAt": "2026-08-24T00:16:07.943Z",
+    "sourceMatchId": "16737900",
+    "canonicalMatchId": "cm_wta_2026-08-19_anisimovaa_noskoval_h1162366",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b087f29e08654d834a7c2837391596d691c0a968c842685c540ca9a47db85f7f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737906",
+    "capturedAt": "2026-08-24T00:16:13.078Z",
+    "sourceMatchId": "16737906",
+    "canonicalMatchId": "cm_wta_2026-08-19_elenarybakina_dianashnaider_h972112",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "35a99a6ca450d30b229561a466fa582b23af6e90d62a1e560190c92b8b33ee62",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737885",
+    "capturedAt": "2026-08-24T00:16:17.690Z",
+    "sourceMatchId": "16737885",
+    "canonicalMatchId": "cm_wta_2026-08-19_cocogauff_mariebouzkova_h972113",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "819a871ac35587aef27bbbea658a56ee9ba4f41214bd51239bc137f5a41d350e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737884",
+    "capturedAt": "2026-08-24T00:16:22.147Z",
+    "sourceMatchId": "16737884",
+    "canonicalMatchId": "cm_wta_2026-08-19_madisonkeys_xiyuwang_h972114",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7ee0141879de792c1ca057142da77c2a770cd9c64db69b0a696958c0b26cae3f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737517",
+    "capturedAt": "2026-08-24T00:25:47.285Z",
+    "sourceMatchId": "16737517",
+    "canonicalMatchId": "cm_atp_2026-08-20_musettil_fariaj_h1157376",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "233dfeae20e4f64b18a12a546363f3a68720631ba304bfa3f66e71f0c228ca8b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737886",
+    "capturedAt": "2026-08-24T00:25:52.053Z",
+    "sourceMatchId": "16737886",
+    "canonicalMatchId": "cm_wta_2026-08-20_bejleks_sabalenkaa_h1162370",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6ecf92d9959670155bc00d254c77dce6a7ed78d4932ffdccc257184b000a962f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737518",
+    "capturedAt": "2026-08-24T00:25:52.502Z",
+    "sourceMatchId": "16737518",
+    "canonicalMatchId": "cm_atp_2026-08-18_borgesn_rubleva_h1157292",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0a0640a25e32af0f8905bfc2b6436a602349a641ba292028e4716dd3cef506a0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737866",
+    "capturedAt": "2026-08-24T00:25:56.721Z",
+    "sourceMatchId": "16737866",
+    "canonicalMatchId": "cm_wta_2026-08-18_madisonkeys_katerinasiniakova_h972100",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "00b0a78a6ff7f63a1487bddc068e09e21f38afb3b840d9f8cd0d1aa4d00cea90",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737481",
+    "capturedAt": "2026-08-24T00:25:58.414Z",
+    "sourceMatchId": "16737481",
+    "canonicalMatchId": "cm_atp_2026-08-18_fritzt_meridaaguilard_h1157299",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c2825e0f4dd6f3ee91c5fe5523274862c4d32cf4f0340b27e52eedc70bffb26f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737474",
+    "capturedAt": "2026-08-24T00:26:02.862Z",
+    "sourceMatchId": "16737474",
+    "canonicalMatchId": "cm_atp_2026-08-18_musettil_zhengm_h1157301",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9a2c7a98c3c18622e8ce2735043b63ac443dd095a7e40e178e874282a7eebad4",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737895",
+    "capturedAt": "2026-08-24T00:26:02.943Z",
+    "sourceMatchId": "16737895",
+    "canonicalMatchId": "cm_wta_2026-08-18_mirraandreeva_janicetjen_h972101",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bfad3ee6bc3ba0449c962df9bc5fdb84e3e37345725610a5a753474b723a8993",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737890",
+    "capturedAt": "2026-08-24T00:26:07.421Z",
+    "sourceMatchId": "16737890",
+    "canonicalMatchId": "cm_wta_2026-08-18_cocogauff_annli_h972103",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "417d9c8092e4db87a311427e534c725a03492b282db5f6ce7489cd9bd060b7e0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737482",
+    "capturedAt": "2026-08-24T00:26:08.190Z",
+    "sourceMatchId": "16737482",
+    "canonicalMatchId": "cm_atp_2026-08-18_nakashimab_medvedevd_h1157305",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ef4dc57e3db857b5b8f106dca2a646fbfccf73ae7e6f0650a9c41f5ddd6cfe04",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892208",
+    "capturedAt": "2026-08-24T08:22:42.506Z",
+    "sourceMatchId": "16892208",
+    "canonicalMatchId": "cm_ten_2026-08-23_winner_loser_b16892208",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5850865d9c43cf723fc2c5a8cd8beeb6b4345548fb4f234f3674b98dc77b559a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16891913",
+    "capturedAt": "2026-08-24T08:52:52.873Z",
+    "sourceMatchId": "16891913",
+    "canonicalMatchId": "cm_wta_2026-08-22_udvardyp_arangoe_h1162375",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "22f535ad0ac5eff1c6e1d378e481c1b4339b873be4b9fcaa4acb2d70c0ca20df",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737499",
+    "capturedAt": "2026-08-24T08:53:13.479Z",
+    "sourceMatchId": "16737499",
+    "canonicalMatchId": "cm_atp_2026-08-21_filsa_tiranteta_h1157408",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "83d3aab0b2f50732f4a4529c8ae68835c454530e248883e6ffad4f11bd7836c2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16891912",
+    "capturedAt": "2026-08-24T08:53:21.059Z",
+    "sourceMatchId": "16891912",
+    "canonicalMatchId": "cm_wta_2026-08-22_timofeevam_tararudeel_h1162380",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "42c7a8986f9de7bcfa24de867046fa9f63882029a69b8968e4d7fcb071be6242",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737480",
+    "capturedAt": "2026-08-24T08:53:29.161Z",
+    "sourceMatchId": "16737480",
+    "canonicalMatchId": "cm_atp_2026-08-19_cobollif_jodarr_h1157352",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b40d640c0b12715d72d75507db8b5cbd7dca6932edbb1c2e030852c30f4a6e9b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16891910",
+    "capturedAt": "2026-08-24T08:53:44.267Z",
+    "sourceMatchId": "16891910",
+    "canonicalMatchId": "cm_wta_2026-08-23_bondara_jacquemote_h1162382",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "345124b5158a8433fa33253dd811132310f3b4d8092e8d5a2d95e764f65f5640",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737497",
+    "capturedAt": "2026-08-24T08:53:52.771Z",
+    "sourceMatchId": "16737497",
+    "canonicalMatchId": "cm_atp_2026-08-19_tiranteta_mensikj_h1157357",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1b9255c155872d29cb0b55a3d18126ceeaff643f86ddd6923990b9d2c63f1c0b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737907",
+    "capturedAt": "2026-08-24T08:54:00.554Z",
+    "sourceMatchId": "16737907",
+    "canonicalMatchId": "cm_wta_2026-08-21_sarabejlek_madisonkeys_h972118",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3337cd13b69bd86b987a64a01ddb1c55c4d8667c1dcd6030cb0719bc14cb64c9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737483",
+    "capturedAt": "2026-08-24T08:54:08.718Z",
+    "sourceMatchId": "16737483",
+    "canonicalMatchId": "cm_atp_2026-08-19_pault_zvereva_h1157360",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2210479b8f35e8d639df8bd2df621246fc2e9fb763c2758957fbda196dddf911",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737904",
+    "capturedAt": "2026-08-24T08:54:17.040Z",
+    "sourceMatchId": "16737904",
+    "canonicalMatchId": "cm_wta_2026-08-22_gauffc_kostyukm_h1162373",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5f283deeaf63c48f7db78fff8771cd2cb085215682abe5f32f2164d312130ffd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737496",
+    "capturedAt": "2026-08-24T09:02:57.589Z",
+    "sourceMatchId": "16737496",
+    "canonicalMatchId": "cm_atp_2026-08-19_filsa_deminaura_h1157363",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6eb8c6e271be7ad207302659e28c446438d14c32f45fabda4abd9bba7943ec92",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737494",
+    "capturedAt": "2026-08-24T09:03:07.127Z",
+    "sourceMatchId": "16737494",
+    "canonicalMatchId": "cm_atp_2026-08-19_nakashimab_borgesn_h1157369",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "afe80303572a5e5507d67bdab034c0d4a8c5915014ab749d5712689d2c10b79c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737905",
+    "capturedAt": "2026-08-24T09:03:10.144Z",
+    "sourceMatchId": "16737905",
+    "canonicalMatchId": "cm_wta_2026-08-20_jessicapegula_amandaanisimova_h972116",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4074b387fba75c01d5ec62d7448763d55660dabd80645e39b55ca16e3efbbfec",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737495",
+    "capturedAt": "2026-08-24T09:03:18.024Z",
+    "sourceMatchId": "16737495",
+    "canonicalMatchId": "cm_atp_2026-08-20_fritzt_oconnellc_h1157374",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d2c6e148a5ce39439ae31272c9e9c5cce1d89ffdb69aa6b7c3770744d4c91f54",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737902",
+    "capturedAt": "2026-08-24T09:03:21.388Z",
+    "sourceMatchId": "16737902",
+    "canonicalMatchId": "cm_wta_2026-08-19_igaswiatek_dianeparry_h972108",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "fd7af5d42451624880fd133185cf8b81033930f5f1ac1f8a41918d8a2ba7d3ea",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737500",
+    "capturedAt": "2026-08-24T09:03:30.661Z",
+    "sourceMatchId": "16737500",
+    "canonicalMatchId": "cm_atp_2026-08-20_tiafoef_augeraliassimef_h1157377",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "91d336e0c20a802c2d923b15c8cc5b11ae87a9f391cb09e5a53a120c46e60ecb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737901",
+    "capturedAt": "2026-08-24T09:03:34.435Z",
+    "sourceMatchId": "16737901",
+    "canonicalMatchId": "cm_wta_2026-08-19_jessicapegula_soranacirstea_h972109",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b5b481322f17d642f423274975070c87e9e67460b0e17a1162ecb64936523536",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737858",
+    "capturedAt": "2026-08-24T13:06:43.716Z",
+    "sourceMatchId": "16737858",
+    "canonicalMatchId": "cm_wta_2026-08-23_cocogauff_jessicapegula_h972122",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5738b65ff416c86d0e17dba6a918c67918082b01be5cf7c8e2a6b18c4fe75b98",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737493",
+    "capturedAt": "2026-08-24T13:06:44.413Z",
+    "sourceMatchId": "16737493",
+    "canonicalMatchId": "cm_atp_2026-08-23_filsa_tiafoef_h1157491",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c7dd38ad24bafa8e497703fdc64379ad36fd3f168d81224cbeedeb6ac14193d5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892215",
+    "capturedAt": "2026-08-24T13:06:47.886Z",
+    "sourceMatchId": "16892215",
+    "canonicalMatchId": "cm_atp_2026-08-23_brooksbyj_mpetshiperricardg_h1157486",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "151db84e3f8c72933edc11d43f795177b98c4c032677e8ef3f2b15ae623004b5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896831",
+    "capturedAt": "2026-08-24T13:06:49.324Z",
+    "sourceMatchId": "16896831",
+    "canonicalMatchId": "cm_wta_2026-08-24_yuliiastarodubtseva_lillitagger_h972123",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "84cf540322c3f7871fa55b0a784a5e3d0870bad9c75c0bde3e7417dcbf735a8e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896833",
+    "capturedAt": "2026-08-24T13:06:54.011Z",
+    "sourceMatchId": "16896833",
+    "canonicalMatchId": "cm_wta_2026-08-24_nikolabartunkova_antoniaruzic_h972124",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "147070fb78383b02589eff038c01597e55f5a01a5a6053e06d93df5c6c9093d7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892218",
+    "capturedAt": "2026-08-24T13:06:57.645Z",
+    "sourceMatchId": "16892218",
+    "canonicalMatchId": "cm_atp_2026-08-23_kecmanovicm_shimabukuros_h1157485",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3d8084a6eec6bbe93ecd92c4e6bbebe203223767ed20d683a50ef065b953262f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892212",
+    "capturedAt": "2026-08-24T13:07:01.719Z",
+    "sourceMatchId": "16892212",
+    "canonicalMatchId": "cm_atp_2026-08-23_comesanaf_wuy_h1157489",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3b6df96751f7e66e0dcdcc63b4edf82db7362ce7784428ad634a0d0a49dad1cd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896837",
+    "capturedAt": "2026-08-24T13:07:02.283Z",
+    "sourceMatchId": "16896837",
+    "canonicalMatchId": "cm_wta_2026-08-24_oleksandraoliynykova_mayarsherif_h972125",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "babbfeccd8a1d67273a29eaac608a23c32694d1fdc533e9bdb2262fd18c00f90",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892207",
+    "capturedAt": "2026-08-24T13:07:06.045Z",
+    "sourceMatchId": "16892207",
+    "canonicalMatchId": "cm_atp_2026-08-23_belluccim_landalucem_h1157492",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7564e64752f520db17420a969e4a5056e7afc33f45b9ed3f9c1501d357fb379e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896830",
+    "capturedAt": "2026-08-24T13:07:06.259Z",
+    "sourceMatchId": "16896830",
+    "canonicalMatchId": "cm_wta_2026-08-23_vidmanovad_udvardyp_h1162396",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0dbb6fc1a35ef274721badc4ecea4bb020e1fe7794610db84caa087c11b3b7c6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737471",
+    "capturedAt": "2026-08-24T13:08:16.222Z",
+    "sourceMatchId": "16737471",
+    "canonicalMatchId": "cm_atp_2026-08-22_filsa_cobollif_h1157438",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0a738f5722edcc4dcf639450ec22c9856e55d25297371906fda603c06a4b2501",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16897185",
+    "capturedAt": "2026-08-24T13:08:43.381Z",
+    "sourceMatchId": "16897185",
+    "canonicalMatchId": "cm_wta_2026-08-23_timofeevam_rakhimovak_h1162397",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "86356fae9275ed8c7a0cc533a0f7238373929ef1db3820ec98eb84f9510d173a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737470",
+    "capturedAt": "2026-08-24T13:08:51.250Z",
+    "sourceMatchId": "16737470",
+    "canonicalMatchId": "cm_atp_2026-08-22_tiafoef_nakashimab_h1157443",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "33a08bab1f99380f9e222f952c26954fbcbc1f39766ffe52ae0e89ba07675950",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896991",
+    "capturedAt": "2026-08-24T13:08:59.697Z",
+    "sourceMatchId": "16896991",
+    "canonicalMatchId": "cm_wta_2026-08-24_jointm_putintsevay_h1162400",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2eeddb6383e30cf6b28121ca81ff4237b8887e69fec92f97ebae2dfd430858aa",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737479",
+    "capturedAt": "2026-08-24T13:09:08.398Z",
+    "sourceMatchId": "16737479",
+    "canonicalMatchId": "cm_atp_2026-08-21_nakashimab_fritzt_h1157418",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "26b7e4ceb884ae6c64582febc2e1f94a228452b9a62a9bb79bd10d74fe0d3683",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737860",
+    "capturedAt": "2026-08-24T13:09:14.684Z",
+    "sourceMatchId": "16737860",
+    "canonicalMatchId": "cm_wta_2026-08-22_jessicapegula_igaswiatek_h972120",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8b73fb587dd116b6f2a3e547d390d4bdacaf9671fe2137085409d2d72a24485a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737469",
+    "capturedAt": "2026-08-24T13:09:23.217Z",
+    "sourceMatchId": "16737469",
+    "canonicalMatchId": "cm_atp_2026-08-21_tiafoef_musettil_h1157423",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f6bea022331181fac897013b0095ce8fc14ecdd4e9e5649f8d3a905ddc2a745e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737859",
+    "capturedAt": "2026-08-24T13:09:28.576Z",
+    "sourceMatchId": "16737859",
+    "canonicalMatchId": "cm_wta_2026-08-23_cocogauff_sarabejlek_h972121",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "89e355f334e083f704fb64e3ed22b94136824e236d2bfb538e66572b34e23f9f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16737498",
+    "capturedAt": "2026-08-24T13:09:39.718Z",
+    "sourceMatchId": "16737498",
+    "canonicalMatchId": "cm_atp_2026-08-20_cobollif_pault_h1157399",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1ce51ea99828e0306da9bb661416e8bd9915b34077bce06a0c98a871b3941d9f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16891908",
+    "capturedAt": "2026-08-24T13:09:51.880Z",
+    "sourceMatchId": "16891908",
+    "canonicalMatchId": "cm_wta_2026-08-22_rakhimovak_jeanjeanl_h1162376",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c5083361625b7f1e669d06e2a9439f5136c6b77069a1e5e4186b66f989b51f16",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892209",
+    "capturedAt": "2026-08-25T11:37:08.444Z",
+    "sourceMatchId": "16892209",
+    "canonicalMatchId": "cm_atp_2026-08-24_bonzib_majchrzakk_h1157537",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c8c7cd8215c1f2cab45e538a1c9a101729a616e24810f3310b7810707f33e024",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896834",
+    "capturedAt": "2026-08-25T11:37:23.282Z",
+    "sourceMatchId": "16896834",
+    "canonicalMatchId": "cm_wta_2026-08-24_annli_camilaosorio_h972126",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ee2269abeeed1d9e268677300cc5f84b54dd4d4390872b87d8d39323aa9162c9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16892211",
+    "capturedAt": "2026-08-25T11:37:35.732Z",
+    "sourceMatchId": "16892211",
+    "canonicalMatchId": "cm_atp_2026-08-24_waltona_dejongj_h1157549",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "09e1e2d21a4fe73aaafb492a4bdda023b0cc2bcffe31dd47ff9ed3dae8e9b576",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896832",
+    "capturedAt": "2026-08-25T11:37:49.249Z",
+    "sourceMatchId": "16896832",
+    "canonicalMatchId": "cm_wta_2026-08-24_janicetjen_dayanayastremska_h972127",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c4a61e7a8f19062e822bbfac48401bce46b9655f2f447a8fc533f30e7b979319",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868118",
+    "capturedAt": "2026-08-25T11:38:07.150Z",
+    "sourceMatchId": "16868118",
+    "canonicalMatchId": "cm_atp_2026-08-24_tsitsipass_brooksbyj_h1157568",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "fe602369e2ca5266cf478a452c5a7f86d478016240ec19e32605ddf0b0b3e548",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896835",
+    "capturedAt": "2026-08-25T11:38:22.008Z",
+    "sourceMatchId": "16896835",
+    "canonicalMatchId": "cm_wta_2026-08-24_parksa_marcinkop_h1162444",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6a3289c03df2271f2c0bfd1acc2d929aa81a9fac89fc1446413b8bcb479336d3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868121",
+    "capturedAt": "2026-08-25T11:38:33.143Z",
+    "sourceMatchId": "16868121",
+    "canonicalMatchId": "cm_atp_2026-08-25_altmaierd_comesanaf_h1157572",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "64d117b05a2be15a4f4003b5bab84861d7042926a32a8540a9ba00ec6c27d407",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896838",
+    "capturedAt": "2026-08-25T11:38:45.993Z",
+    "sourceMatchId": "16896838",
+    "canonicalMatchId": "cm_wta_2026-08-25_claratauson_renatazarazua_h972129",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "e47e847ae5691d153e3cd8e932f483a00b46c5c100eabee273093c08273fed0c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16902555",
+    "capturedAt": "2026-08-25T11:38:57.755Z",
+    "sourceMatchId": "16902555",
+    "canonicalMatchId": "cm_atp_2026-08-24_schwaerzlerjj_heideg_h1157536",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "48a93bd32383e0b3ea7ac19acba0442cb93cb4625ad0c1b4d6031ce0f88a41ff",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16896836",
+    "capturedAt": "2026-08-25T11:39:08.828Z",
+    "sourceMatchId": "16896836",
+    "canonicalMatchId": "cm_wta_2026-08-25_dianeparry_donnavekic_h972130",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "59fb30cfd9a3ced9025ebbd43760f4165b2e61616566267decabeb91a5b5b40e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868103",
+    "capturedAt": "2026-08-28T12:36:50.870Z",
+    "sourceMatchId": "16868103",
+    "canonicalMatchId": "cm_atp_2026-08-27_busei_cerundolojm_h1157727",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bf480dec8d87ddfdf83690eb67403c8e9e9e3f3fd85c6fd51f56e68a57c5a85a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868101",
+    "capturedAt": "2026-08-28T12:36:51.139Z",
+    "sourceMatchId": "16868101",
+    "canonicalMatchId": "cm_atp_2026-08-27_bonzib_vandezandschulpb_h1157724",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6141425ea47f30760fb06e85acb55ac7da6a747deb6934519b72d17dcb7b53c3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16929842",
+    "capturedAt": "2026-08-28T12:36:53.228Z",
+    "sourceMatchId": "16929842",
+    "canonicalMatchId": "cm_wta_2026-08-27_montgomeryr_branstinec_h1162533",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ff25c8920cc64de4e07157da1bc4afd2c3cd7d90aea763ba79fad17c915b7794",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868100",
+    "capturedAt": "2026-08-28T12:37:18.602Z",
+    "sourceMatchId": "16868100",
+    "canonicalMatchId": "cm_atp_2026-08-28_ferya_kovacevica_h1157729",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0fed97a05497d390fdd3ec46c3d1a470b310bc188a49975348fb65364a7a86fd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930944",
+    "capturedAt": "2026-08-28T12:37:19.203Z",
+    "sourceMatchId": "16930944",
+    "canonicalMatchId": "cm_wta_2026-08-27_stefaninil_parejaj_h1162534",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6e24c0fc37c09a09ecc7d9bbb37ea56d5a6f239623f1fcae8ed10eeccff0a35c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930946",
+    "capturedAt": "2026-08-28T12:37:19.407Z",
+    "sourceMatchId": "16930946",
+    "canonicalMatchId": "cm_wta_2026-08-27_knutsong_gorgodzee_h1162536",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c055544bf4df5564a07f04a047bb9a26e2162adc76d6c4e88768d2c92f6ac38c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868108",
+    "capturedAt": "2026-08-28T12:37:19.465Z",
+    "sourceMatchId": "16868108",
+    "canonicalMatchId": "cm_atp_2026-08-28_duckworthj_marozsanf_h1157730",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9008ab86328cfe71e4e6170b020294c45337d5e566983d9027e37964cca79f6e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930943",
+    "capturedAt": "2026-08-28T12:37:20.043Z",
+    "sourceMatchId": "16930943",
+    "canonicalMatchId": "cm_wta_2026-08-27_iatcenkop_lazarogarciaa_h1162535",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9998353fcd7fea53d8bfde8efaebe790f39b5c66977c30c9e669d6691435c5a1",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909579",
+    "capturedAt": "2026-08-28T23:03:37.996Z",
+    "sourceMatchId": "16909579",
+    "canonicalMatchId": "cm_wta_2026-08-26_stefaninil_brenglem_h1162506",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ebcc84cf2ddc1dc6290e08f50868bd2705152e73dd51afce069788b5fda3bed8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909578",
+    "capturedAt": "2026-08-28T23:03:38.168Z",
+    "sourceMatchId": "16909578",
+    "canonicalMatchId": "cm_wta_2026-08-26_parejaj_shymanovichi_h1162505",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8e1996bfb7b8146de3d10b75f604e13e587a97b6f52b1479820b205b4592e080",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911526",
+    "capturedAt": "2026-08-28T23:03:38.181Z",
+    "sourceMatchId": "16911526",
+    "canonicalMatchId": "cm_wta_2026-08-26_gorgodzee_papamichaild_h1162503",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "63b2153c6e6a90254f3f24e846e46a505446e118b8ddfd1a03f5c5002ec853f6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911751",
+    "capturedAt": "2026-08-28T23:03:38.236Z",
+    "sourceMatchId": "16911751",
+    "canonicalMatchId": "cm_wta_2026-08-26_knutsong_salkovad_h1162502",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f3e46bd60498d76de3d9e17cb4d107b5417039a24e7de672cd090a1d4545ebd9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909580",
+    "capturedAt": "2026-08-28T23:03:38.248Z",
+    "sourceMatchId": "16909580",
+    "canonicalMatchId": "cm_wta_2026-08-26_lazarogarciaa_hontamam_h1162495",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "515a4900f14250341d1f65ab2f930a98154c1cf8ea2c769fc3f2ae21e147c585",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911026",
+    "capturedAt": "2026-08-28T23:03:38.287Z",
+    "sourceMatchId": "16911026",
+    "canonicalMatchId": "cm_atp_2026-08-26_svrcinad_galarneaua_h1157690",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2247b1e10f1a3b6959955f5e2c97c9d8ef07b2a097aa95ad4e89ec214dd7f486",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16921049",
+    "capturedAt": "2026-08-28T23:03:38.298Z",
+    "sourceMatchId": "16921049",
+    "canonicalMatchId": "cm_atp_2026-08-26_geaa_chidekhc_h1157688",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7cf5575d9466b58d5a26da348185a9cbb7a3429b352d032b4f3b6dcca42f7239",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16920888",
+    "capturedAt": "2026-08-28T23:03:38.308Z",
+    "sourceMatchId": "16920888",
+    "canonicalMatchId": "cm_wta_2026-08-26_bandecchis_hruncakovav_h1162508",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d178350b61cee6fd74516a36d43b844263a0da86ef5a372a8f75e81145c22804",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909577",
+    "capturedAt": "2026-08-28T23:03:38.350Z",
+    "sourceMatchId": "16909577",
+    "canonicalMatchId": "cm_wta_2026-08-26_zhengq_burelc_h1162499",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "dd9c6c56af64c2a205b72f86e8a4015bbe109d88b9aeb1921c52c5066b92a40e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910925",
+    "capturedAt": "2026-08-28T23:03:38.372Z",
+    "sourceMatchId": "16910925",
+    "canonicalMatchId": "cm_wta_2026-08-26_branstinec_fruhvirtoval_h1162501",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "36216c7c7d52386ce512427bb786e3b46d8a366613d172895fe2c9ebc7691e4c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910828",
+    "capturedAt": "2026-08-28T23:03:38.420Z",
+    "sourceMatchId": "16910828",
+    "canonicalMatchId": "cm_wta_2026-08-26_risticm_jorgef_h1162507",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "892252bf4a54bb6e4f2d94d4b285738a6d32f6cd2ef0e150a0dc8504065f2ebb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911027",
+    "capturedAt": "2026-08-28T23:03:38.478Z",
+    "sourceMatchId": "16911027",
+    "canonicalMatchId": "cm_atp_2026-08-26_mcdonaldm_seybothwildt_h1157687",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4daf7a45247cfac1c77b958ec5f1064b5c3b46823cc6676539fd32d40e906f87",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16920460",
+    "capturedAt": "2026-08-28T23:03:38.901Z",
+    "sourceMatchId": "16920460",
+    "canonicalMatchId": "cm_wta_2026-08-26_darth_penickovak_h1162509",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1b0337efe81e1f3d814695276c75f140211107b2515d78706c79791e27b9ccb0",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910975",
+    "capturedAt": "2026-08-28T23:03:39.522Z",
+    "sourceMatchId": "16910975",
+    "canonicalMatchId": "cm_wta_2026-08-26_sakatsumeh_granttc_h1162510",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "187c9e47787efc8f12d7654dd1340e0eea019f0f5cd88861fdf1482f0b53fcc2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910216",
+    "capturedAt": "2026-08-28T23:03:39.582Z",
+    "sourceMatchId": "16910216",
+    "canonicalMatchId": "cm_atp_2026-08-26_samuelt_harrisb_h1157682",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c26a53dce3638bcd5ab1f1b8e27397fbfe5ecc56a79296c1a6a9761b3ff69c1b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16918908",
+    "capturedAt": "2026-08-28T23:03:40.985Z",
+    "sourceMatchId": "16918908",
+    "canonicalMatchId": "cm_atp_2026-08-26_mochizukis_shickb_h1157689",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bd918bf4accaa888cf1c224c0b51e25c58c4224786a4d3ead964a4839b3f1751",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16921852",
+    "capturedAt": "2026-08-28T23:03:41.029Z",
+    "sourceMatchId": "16921852",
+    "canonicalMatchId": "cm_atp_2026-08-26_oconnellc_budkovkjaern_h1157698",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9d8fed5b02d7d091347b969c7e6f3b38c9c5eb91b1bd6645bd39bc396efcdfb5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911025",
+    "capturedAt": "2026-08-28T23:03:41.103Z",
+    "sourceMatchId": "16911025",
+    "canonicalMatchId": "cm_atp_2026-08-26_passarof_gentzscht_h1157692",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b371c438ae943a2747e1cc48a8dfd73a8951fd5629b596cc6d4a6f5146f888ce",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16921827",
+    "capturedAt": "2026-08-28T23:03:41.205Z",
+    "sourceMatchId": "16921827",
+    "canonicalMatchId": "cm_atp_2026-08-26_gastonh_ilagana_h1157697",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5dba7a829d5cf14270ffa3eeb23fe5d6c3f80cd61f649f19d11d9584cd6faf9a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16921050",
+    "capturedAt": "2026-08-28T23:03:41.307Z",
+    "sourceMatchId": "16921050",
+    "canonicalMatchId": "cm_wta_2026-08-26_rusa_lamenss_h1162514",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "70c78afc075666754ab6f174e14e2e63a8ea570f5ff55723263b8f075a16824f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16918675",
+    "capturedAt": "2026-08-28T23:03:41.368Z",
+    "sourceMatchId": "16918675",
+    "canonicalMatchId": "cm_wta_2026-08-26_havlickoval_uchijimam_h1162512",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3e70f75a94f23bddc8cda01fed35fcf7eeb66c028bae2cab4613a7aab0a22450",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911749",
+    "capturedAt": "2026-08-28T23:03:41.418Z",
+    "sourceMatchId": "16911749",
+    "canonicalMatchId": "cm_atp_2026-08-26_sakamotor_mullera_h1157696",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9379a3fed0a8c0983518e612ea1d1aef6d4e2bcee5aefd7f0beebadbd3289412",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16922712",
+    "capturedAt": "2026-08-28T23:03:41.425Z",
+    "sourceMatchId": "16922712",
+    "canonicalMatchId": "cm_atp_2026-08-26_buy_gojob_h1157703",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f48255d1c36619f28c3c2f94f3e13724eb155df19f153db0e3c3777f731351f1",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16918674",
+    "capturedAt": "2026-08-28T23:03:41.570Z",
+    "sourceMatchId": "16918674",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "8d03ca9aebc8b9b8b7a7cbd4e54dbbd871c13b5007b687c334dbc5a5275e7e91",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16921462",
+    "capturedAt": "2026-08-28T23:03:41.689Z",
+    "sourceMatchId": "16921462",
+    "canonicalMatchId": "cm_atp_2026-08-26_pirosz_glinkad_h1157700",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "17b7e3f2e239e97797c8738c72d7eb3154692a1a9ff3a6c49dfb79c2fa9e8d8d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16921051",
+    "capturedAt": "2026-08-28T23:03:42.057Z",
+    "sourceMatchId": "16921051",
+    "canonicalMatchId": "cm_atp_2026-08-26_basavareddyn_mikrutl_h1157694",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b15b8a364f3221353d80e48bc785402cee22eb0a6a38b2fb841d5c70c61a36ce",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911748",
+    "capturedAt": "2026-08-28T23:40:39.881Z",
+    "sourceMatchId": "16911748",
+    "canonicalMatchId": "cm_atp_2026-08-26_wongc_neumayerl_h1157676",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "86a0c0c0c7041ee0d91bb9b2e2464ce0b17c0d9f8c2533c8d7c1cbbe308351a3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909697",
+    "capturedAt": "2026-08-28T23:40:39.953Z",
+    "sourceMatchId": "16909697",
+    "canonicalMatchId": "cm_atp_2026-08-26_gaubasv_cecchinatom_h1157674",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "46838717489317be678a1bc6eb00c4b52a41b2a226e9716d1a5b94ac00e2479e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909576",
+    "capturedAt": "2026-08-28T23:40:40.004Z",
+    "sourceMatchId": "16909576",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "266788183718cc45237b415fb8f8ecea0d555973050ae4cf2d6ea5facb748ab2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909732",
+    "capturedAt": "2026-08-28T23:40:40.165Z",
+    "sourceMatchId": "16909732",
+    "canonicalMatchId": "cm_wta_2026-08-26_koevermansa_klimovicoval_h1162500",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c8d62fae70153d414e2a21c9ebfdf2b66569e0efb65d23c4580c69d933f9089d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910062",
+    "capturedAt": "2026-08-28T23:40:40.214Z",
+    "sourceMatchId": "16910062",
+    "canonicalMatchId": "cm_wta_2026-08-26_iatcenkop_bronzettil_h1162496",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "acdd5bae1808f4b949418ec74d1ebc0a3083194579082ce254f39fc0a2b4fed7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909575",
+    "capturedAt": "2026-08-28T23:40:40.228Z",
+    "sourceMatchId": "16909575",
+    "canonicalMatchId": "cm_wta_2026-08-26_pridankinae_marinor_h1162493",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c7221e44e58836345848745e5ba7572838e3549e51aa7b04e0dd6c7abe6677ae",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910923",
+    "capturedAt": "2026-08-28T23:40:40.292Z",
+    "sourceMatchId": "16910923",
+    "canonicalMatchId": "cm_wta_2026-08-26_montgomeryr_vandrommej_h1162497",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "99814b59752a058df66dce0145d143c0646e6d044851464843451e687735541f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909572",
+    "capturedAt": "2026-08-28T23:40:41.099Z",
+    "sourceMatchId": "16909572",
+    "canonicalMatchId": "cm_atp_2026-08-26_fearnleyj_pavlovicl_h1157669",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ce44ca1ccdd1c23772663a6171ce21ee2b63ea4b62ee4688377390893dc39d1e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16920044",
+    "capturedAt": "2026-08-28T23:40:41.184Z",
+    "sourceMatchId": "16920044",
+    "canonicalMatchId": "cm_atp_2026-08-26_dimitrovg_skatovt_h1157677",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6d814ac68fc392b97c8b66c3ea97fec09100db298c2712f340bf2cbfd3dd752f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909968",
+    "capturedAt": "2026-08-28T23:40:41.783Z",
+    "sourceMatchId": "16909968",
+    "canonicalMatchId": "cm_atp_2026-08-26_garinc_ymere_h1157678",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a188d3848ee2a61ba54064d42998e51074557f1fea05e25e330fd539249ea635",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16911940",
+    "capturedAt": "2026-08-28T23:40:43.369Z",
+    "sourceMatchId": "16911940",
+    "canonicalMatchId": "cm_atp_2026-08-26_virtaneno_pinningtonjonesj_h1157679",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ec4afc5e7f55b6dc10966d673fcc32d2761ba60cd053ed5fa5127c84783162b4",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910886",
+    "capturedAt": "2026-08-28T23:40:43.809Z",
+    "sourceMatchId": "16910886",
+    "canonicalMatchId": "cm_atp_2026-08-26_wendelkenh_bertolar_h1157681",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8af6d79b812abdece934618be0056b547761f0467d2f84c6bb9811bb356c2f79",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16918909",
+    "capturedAt": "2026-08-28T23:40:44.068Z",
+    "sourceMatchId": "16918909",
+    "canonicalMatchId": "cm_atp_2026-08-26_lajovicd_jordasanchisd_h1157680",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "750e1937b831f9525aa6668afc67df76fae85dcd10518af554e76757032d4be7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868957",
+    "capturedAt": "2026-08-28T23:51:51.820Z",
+    "sourceMatchId": "16868957",
+    "canonicalMatchId": "cm_ten_2026-08-29_winner_loser_b16868957",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6698eae257436f63d01a0379a9251770a770125a741df908701d13f4c038730d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909571",
+    "capturedAt": "2026-08-28T23:59:18.541Z",
+    "sourceMatchId": "16909571",
+    "canonicalMatchId": "cm_atp_2026-08-26_rodionovj_ferreirasilvaf_h1157663",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c7c9bb57320b51a468a5da6419736447e94028db82988947d2397d757247bbd1",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909573",
+    "capturedAt": "2026-08-28T23:59:18.639Z",
+    "sourceMatchId": "16909573",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "40f8bff0089e551e47d9aabd5bfcf9aea3cbfa376705756791a0dcc0e06c7815",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909698",
+    "capturedAt": "2026-08-28T23:59:18.718Z",
+    "sourceMatchId": "16909698",
+    "canonicalMatchId": "cm_atp_2026-08-26_barriosverat_olivieriga_h1157666",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1ce342623fd31206fe073d81dd0e08063f273e67cbc78d373621acf6bf887203",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16910217",
+    "capturedAt": "2026-08-28T23:59:18.729Z",
+    "sourceMatchId": "16910217",
+    "canonicalMatchId": "cm_atp_2026-08-26_guerrieria_schwaerzlerjj_h1157667",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7782c455cadb21663224d1d54dd016c462b09591af3793f2eaff784e3afe78da",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868948",
+    "capturedAt": "2026-08-28T23:59:19.082Z",
+    "sourceMatchId": "16868948",
+    "canonicalMatchId": "cm_wta_2026-08-26_darjavidmanova_cristinabucsa_h972139",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a10ac79de0e0362827df3961e3bfeff51c2089fe1c88bf801a635f8fc36dd233",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16909696",
+    "capturedAt": "2026-08-28T23:59:19.224Z",
+    "sourceMatchId": "16909696",
+    "canonicalMatchId": "cm_atp_2026-08-26_dougaza_jacquetk_h1157665",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "df9645f8b3236b867e4647082dde1677acafd38569f570b106abd4d53e9c60c9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868947",
+    "capturedAt": "2026-08-28T23:59:21.167Z",
+    "sourceMatchId": "16868947",
+    "canonicalMatchId": "cm_wta_2026-08-26_elisemertens_pannaudvardy_h972140",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ca2e08860ba36ca0697032e81f46ff474ecfe27af9e5d42de3aa35283654f8c6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868936",
+    "capturedAt": "2026-08-28T23:59:21.366Z",
+    "sourceMatchId": "16868936",
+    "canonicalMatchId": "cm_wta_2026-08-27_claratauson_ekaterinaalexandrova_h972142",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3b3193bf52f2ed6f402b6d30a33590eecd4f67edd4d125564afeee2a66e0b84e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868939",
+    "capturedAt": "2026-08-28T23:59:21.450Z",
+    "sourceMatchId": "16868939",
+    "canonicalMatchId": "cm_wta_2026-08-27_alyciaparks_majachwalinska_h972141",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "fe016db0598b0741ab86e61befbc495b507d99de655c2b032c17ebba66722ecd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16929872",
+    "capturedAt": "2026-08-29T09:33:09.063Z",
+    "sourceMatchId": "16929872",
+    "canonicalMatchId": "cm_atp_2026-08-27_barriosverat_rincond_h1157720",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ce4bf1de7ae3a17c2d12d01aa1d30b26564225afd2eb277eabe7e1db83e73b54",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930129",
+    "capturedAt": "2026-08-29T09:33:09.236Z",
+    "sourceMatchId": "16930129",
+    "canonicalMatchId": "cm_atp_2026-08-27_guerrieria_dougaza_h1157722",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "edd07c1d4d5f077bde2e3e062113821c989db6ed337b25aaca6bff6a7122ab8e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961066",
+    "capturedAt": "2026-08-29T19:24:28.932Z",
+    "sourceMatchId": "961066",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "016a7b9745ab891489a348ee07e50d374bc03121f2649adf64d8d5c22cb3d162",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961063",
+    "capturedAt": "2026-08-29T19:24:29.075Z",
+    "sourceMatchId": "961063",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "f6fae9ac349ad1ed8646370b31e46e180f69785421651f3ee98eb56f5da0381b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961062",
+    "capturedAt": "2026-08-29T19:24:29.703Z",
+    "sourceMatchId": "961062",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "7791ab9dbbd460460bae795e8273483c66c755c3915b7339a82d518ceb5f9baa",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961058",
+    "capturedAt": "2026-08-29T19:24:30.019Z",
+    "sourceMatchId": "961058",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "fc6c527eb9c211311eb02cb1364322a5a73c5a1d76d5a7106c163375fc97ebfa",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961067",
+    "capturedAt": "2026-08-29T19:24:30.177Z",
+    "sourceMatchId": "961067",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "4de19e3edb06355025de547c66e35f77263d8ba0e1dec06b58134671a55c8d6e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961065",
+    "capturedAt": "2026-08-29T19:24:30.333Z",
+    "sourceMatchId": "961065",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "65b49e84eab6a183c0b574a45ee013c9e9a4422bd45a01567b18a17492465619",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961054",
+    "capturedAt": "2026-08-29T19:24:31.971Z",
+    "sourceMatchId": "961054",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "dae4b54e47970d19138abcd5dfabebf4d7226b22931c67099086ba68852f54ec",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961057",
+    "capturedAt": "2026-08-29T19:24:32.526Z",
+    "sourceMatchId": "961057",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "8217252b468d75f57f2257edc648aa7c324d39d804cc549b4369606a1eaaf4c6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961051",
+    "capturedAt": "2026-08-29T19:24:32.796Z",
+    "sourceMatchId": "961051",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "61a94436bc21a8b89b6c944b5e7f85711b82215acf94a01cdd81b1e5fa37bde7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_961053",
+    "capturedAt": "2026-08-29T19:24:33.237Z",
+    "sourceMatchId": "961053",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "cb1a02ebfa4d95b4de9a38fc514343cc7b96006e44955d72914c7e7bc8b3cf45",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868945",
+    "capturedAt": "2026-08-29T19:28:53.153Z",
+    "sourceMatchId": "16868945",
+    "canonicalMatchId": "cm_wta_2026-08-27_annli_alyciaparks_h1057540",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f4ea768015a76162d1c09057ea454611c1d1a3967531300ef6c7eb1e6fda7b79",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868943",
+    "capturedAt": "2026-08-29T19:28:53.227Z",
+    "sourceMatchId": "16868943",
+    "canonicalMatchId": "cm_wta_2026-08-27_nikolabartunkova_darjavidmanova_h1057541",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a4e3653c004dcdf53420da0d3522b8ef3c7c9af8e65fbbe5440bf0ee3b0ee605",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868935",
+    "capturedAt": "2026-08-29T19:28:53.792Z",
+    "sourceMatchId": "16868935",
+    "canonicalMatchId": "cm_wta_2026-08-28_elisemertens_yuliiastarodubtseva_h1057543",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "3b6d67898d20266154d78052c4943b98dbdc4c5d08d43ed949eb286bc9812545",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868940",
+    "capturedAt": "2026-08-29T19:28:54.210Z",
+    "sourceMatchId": "16868940",
+    "canonicalMatchId": "cm_wta_2026-08-28_dianeparry_claratauson_h1057542",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bf3b9e883005add30cfdba33feaf11574e075dbcda6247ef8c1308f8c6ea9d02",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930945",
+    "capturedAt": "2026-08-29T19:28:54.891Z",
+    "sourceMatchId": "16930945",
+    "canonicalMatchId": "cm_atp_2026-08-27_wongc_lajovicd_h1157721",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "a7c89251fcc9b14a27121a3094b0f524a58b429925763ca8de184f1468cef0f1",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931831",
+    "capturedAt": "2026-08-30T15:03:14.810Z",
+    "sourceMatchId": "16931831",
+    "canonicalMatchId": "cm_atp_2026-08-28_harrisl_llamasruizp_h1157740",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6cb25eeae19865305c207541063350b5d8364a1a1fedfa8cf427aa76370603c9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931911",
+    "capturedAt": "2026-08-30T15:03:15.105Z",
+    "sourceMatchId": "16931911",
+    "canonicalMatchId": "cm_wta_2026-08-28_hunters_semenistajad_h1162549",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "caedda2ea08fa96fc94988bd6717454284ec64411cf25548f9d9584376d7e258",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930942",
+    "capturedAt": "2026-08-30T15:32:33.402Z",
+    "sourceMatchId": "16930942",
+    "canonicalMatchId": "cm_atp_2026-08-28_rodionovj_fearnleyj_h1157735",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "049b73ab5f07a8efa4544545e9b3f8ca0deb7a84bd1abd216a9569fa0185fba5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931538",
+    "capturedAt": "2026-08-30T15:32:33.911Z",
+    "sourceMatchId": "16931538",
+    "canonicalMatchId": "cm_atp_2026-08-28_basavareddyn_geaa_h1157739",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b34dde9fc0738f58fa99b7bf89a172f025178e9b4249157f0efe7c857c43bb24",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931534",
+    "capturedAt": "2026-08-30T15:32:34.143Z",
+    "sourceMatchId": "16931534",
+    "canonicalMatchId": "cm_atp_2026-08-28_svrcinad_mcdonaldm_h1157738",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "e1f7eecb974489f99df48e73f95dc1a02c94543caaae08d8656da9775635693b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868938",
+    "capturedAt": "2026-08-30T15:32:34.196Z",
+    "sourceMatchId": "16868938",
+    "canonicalMatchId": "cm_wta_2026-08-28_dianeparry_annli_h1057544",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "44b72b8db9b713e63ee8930cd4b906afaa28bb1f86585263f0931d3044d90116",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868937",
+    "capturedAt": "2026-08-30T15:32:35.502Z",
+    "sourceMatchId": "16868937",
+    "canonicalMatchId": "cm_wta_2026-08-29_elisemertens_nikolabartunkova_h1057545",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0bb341a30021989c01e08a688fdd14537886ba8761cbcd79888e3b46829f85c8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16868949",
+    "capturedAt": "2026-08-30T15:32:35.633Z",
+    "sourceMatchId": "16868949",
+    "canonicalMatchId": "cm_wta_2026-08-29_dianeparry_elisemertens_h1057546",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2f2361b13b6f63f68d1c3c7eb2044a54e0c5018d565cafed58f6735e2a168726",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1052504",
+    "capturedAt": "2026-08-31T22:26:56.909Z",
+    "sourceMatchId": "1052504",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "04bd8366668d0432ee16b1b7b2281271abe99ad2061c5c6d436ba3d18f647070",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1052507",
+    "capturedAt": "2026-08-31T22:26:56.942Z",
+    "sourceMatchId": "1052507",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "fb5af7c47c8f7e0ff059df6c146c2dbb763213fd559c09110eaa122add876ee5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1052506",
+    "capturedAt": "2026-08-31T22:26:57.236Z",
+    "sourceMatchId": "1052506",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "a4a9e1100f6b587a571b46e55d1106a49786619c10ab9590c44404d657755445",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1052501",
+    "capturedAt": "2026-08-31T22:26:57.283Z",
+    "sourceMatchId": "1052501",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "a3827bd299c4299909be851596b59040ecf96295e3cd196dc7dbe7d0978caef8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1052502",
+    "capturedAt": "2026-08-31T22:26:57.973Z",
+    "sourceMatchId": "1052502",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "924fa0eecc36410ce3b7efa89caf31a5cc558f840c5d4195b307944d84163641",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162564",
+    "capturedAt": "2026-09-02T21:01:04.712Z",
+    "sourceMatchId": "1162564",
+    "canonicalMatchId": "1162564",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d1c9a9cd8c7b9295d4e70de77caa923af09134dd576edf9d2086667e5f6c01f5",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1157812",
+    "capturedAt": "2026-09-02T21:01:04.998Z",
+    "sourceMatchId": "1157812",
+    "canonicalMatchId": "1157812",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5cffbdb018e7785f6da52504a6534f28ee1bff3c2f8557b5aad87d0191974eb1",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1157806",
+    "capturedAt": "2026-09-02T21:01:05.089Z",
+    "sourceMatchId": "1157806",
+    "canonicalMatchId": "1157806",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d0abca02410232f836353f5661fd844fc726c9b066ae1c699f55c63e02bcfa4b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1157808",
+    "capturedAt": "2026-09-02T21:01:05.254Z",
+    "sourceMatchId": "1157808",
+    "canonicalMatchId": "1157808",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b4e7eb711c0150a30412b03e2999d87da6d643c49500e081337ac9d981ab52a9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162567",
+    "capturedAt": "2026-09-02T21:01:05.635Z",
+    "sourceMatchId": "1162567",
+    "canonicalMatchId": "1162567",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "c593eff7113892cb112f60aaeb39b9cabdbd460cf4f19e70e9a3529aa455b061",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162573",
+    "capturedAt": "2026-09-02T21:01:05.734Z",
+    "sourceMatchId": "1162573",
+    "canonicalMatchId": "1162573",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "68f6e6842b440dd1b631bed01bc50f2936850722d5e63ce1b651c83ec7180c7e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162571",
+    "capturedAt": "2026-09-02T21:01:05.950Z",
+    "sourceMatchId": "1162571",
+    "canonicalMatchId": "1162571",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6f7cd07db32d81c9e50c250a438c3ae14700506bf4ab0b97eca1da00e8fc4674",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162572",
+    "capturedAt": "2026-09-02T21:01:06.047Z",
+    "sourceMatchId": "1162572",
+    "canonicalMatchId": "1162572",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bb12d2f739894c77d6fa601f27f9c8c8a21141ffa60e9258fd59250802029f4f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162566",
+    "capturedAt": "2026-09-02T21:01:06.220Z",
+    "sourceMatchId": "1162566",
+    "canonicalMatchId": "1162566",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "70f33290e02d17588feb8efe25fb7a43c7e0e96c575e365ad3cb93b635434882",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1157811",
+    "capturedAt": "2026-09-02T21:01:06.525Z",
+    "sourceMatchId": "1157811",
+    "canonicalMatchId": "1157811",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "87fc1a2a9e8720fa67fa912d586f7463c366b2374ba1c454a2d9fe1cba7a504b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1157805",
+    "capturedAt": "2026-09-02T21:01:06.565Z",
+    "sourceMatchId": "1157805",
+    "canonicalMatchId": "1157805",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d627153cc0eb8c9aaeb056554af909481cd58995ba74670bcfc7260038960f12",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162563",
+    "capturedAt": "2026-09-02T21:01:06.754Z",
+    "sourceMatchId": "1162563",
+    "canonicalMatchId": "1162563",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ac8dd6f42762587d6ad527ff544641bf52bc4429c915a39f2310cb6a670c8237",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162575",
+    "capturedAt": "2026-09-02T21:01:06.796Z",
+    "sourceMatchId": "1162575",
+    "canonicalMatchId": "1162575",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "633233be5ca99da12b27c321006058f596287400e083de800590695be19ca4bb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1157809",
+    "capturedAt": "2026-09-02T21:01:07.160Z",
+    "sourceMatchId": "1157809",
+    "canonicalMatchId": "1157809",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "eaa47250ef4f463ddda096a8eed954d3ecbe052a1989ded2fbdaa1ca1b529c07",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162576",
+    "capturedAt": "2026-09-02T21:01:07.197Z",
+    "sourceMatchId": "1162576",
+    "canonicalMatchId": "1162576",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "24181ff4c8ea1557a28aaaf67d485371c7da276df6c6aba7fa3fdd7a48eb392f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162561",
+    "capturedAt": "2026-09-02T21:01:09.007Z",
+    "sourceMatchId": "1162561",
+    "canonicalMatchId": "1162561",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "969215b722dcac817fabfa4e8a87757de75ecaeea6136f892820546566484aa7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1157795",
+    "capturedAt": "2026-09-02T21:01:09.045Z",
+    "sourceMatchId": "1157795",
+    "canonicalMatchId": "1157795",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "65ab2cb10e2cdbddd78dfa0380b3d06c4f85b8d027290a305d92e31ab233c8df",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162560",
+    "capturedAt": "2026-09-02T21:01:09.157Z",
+    "sourceMatchId": "1162560",
+    "canonicalMatchId": "1162560",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9a4ae947afe5a8c281f28c56be8aab77ffa8704a07863a387d0ac720e8d61b46",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_1162558",
+    "capturedAt": "2026-09-02T21:01:09.197Z",
+    "sourceMatchId": "1162558",
+    "canonicalMatchId": "1162558",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7440a89fb25f5822b79e8bce66ac0dd7b60ad0b4c1165812115ee67549574b24",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16960483",
+    "capturedAt": "2026-09-02T21:58:32.936Z",
+    "sourceMatchId": "16960483",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16960483",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9f5ce69b0dba0c1a4717811ba3953dee5af9c7e8b43c8a847b9daa92192f73a6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16954258",
+    "capturedAt": "2026-09-02T21:58:35.326Z",
+    "sourceMatchId": "16954258",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16954258",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7a66bc5acd1efd0fe6efb63976ac44a5f27de38751d529781cbc9db81869e26d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16960478",
+    "capturedAt": "2026-09-02T21:58:35.423Z",
+    "sourceMatchId": "16960478",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16960478",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "211304c9364b4da2681320b89e092786ab23a461c82a8bafc0d64484a0d1a47d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16960215",
+    "capturedAt": "2026-09-02T21:58:35.993Z",
+    "sourceMatchId": "16960215",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16960215",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "5e8a37666d95a315a7c0c31b6afe760c7805bd8ba7d39b5e171bcaf4c2574e9b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16960216",
+    "capturedAt": "2026-09-02T21:58:36.214Z",
+    "sourceMatchId": "16960216",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16960216",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8179735da8454a597a01203796993d5c62df7029f3b894bfdcb513f2eedb1fe9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16960465",
+    "capturedAt": "2026-09-03T18:58:31.758Z",
+    "sourceMatchId": "16960465",
+    "canonicalMatchId": "cm_atp_2026-08-31_lajalm_abem_h1157830",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1bdc95a34c5f9c6b705b35b268f3800d5de1bd2f9ec0253c16af893647f3c202",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16965637",
+    "capturedAt": "2026-09-03T23:08:46.742Z",
+    "sourceMatchId": "16965637",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16965637",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "2db82e3d30231a6a38829f0c037b767ac6404a568cd7db8fde39c3fa99415457",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16968856",
+    "capturedAt": "2026-09-03T23:08:46.822Z",
+    "sourceMatchId": "16968856",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16968856",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "38cf96df0442bb46a5864c228cb0698f0e02d83480aea320d7a1204b43831af2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16960484",
+    "capturedAt": "2026-09-03T23:08:47.253Z",
+    "sourceMatchId": "16960484",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16960484",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d321f2e201cb8d6c639e4ebf00f0a53c8cb4b608f8da82b4a2f6fb0b214aa03d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16964641",
+    "capturedAt": "2026-09-03T23:08:47.386Z",
+    "sourceMatchId": "16964641",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16964641",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "33c09bcc8afb107a93b028416e04e49adc54ff2b66394cdbedda77edbafa8611",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16967017",
+    "capturedAt": "2026-09-03T23:08:54.573Z",
+    "sourceMatchId": "16967017",
+    "canonicalMatchId": "cm_ten_2026-09-01_winner_loser_b16967017",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "57805b8e2ea83d3927925e24c6452510b10005dbb017ea4f688eedefbdf21836",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16948844",
+    "capturedAt": "2026-09-04T16:12:49.265Z",
+    "sourceMatchId": "16948844",
+    "canonicalMatchId": "cm_atp_2026-08-30_pault_wongc_h1157806",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8a90b722cbc0bd18740011218fdabfb68dee188b9585528e9947f30ea4d0c6e4",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940122",
+    "capturedAt": "2026-09-04T16:12:49.729Z",
+    "sourceMatchId": "16940122",
+    "canonicalMatchId": "cm_atp_2026-08-30_majchrzakk_medjedovich_h1157795",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "242814c4f9723979eb49339bc34b042fe5806937566a299c2643afe4d0fa6c43",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16948843",
+    "capturedAt": "2026-09-04T16:12:56.259Z",
+    "sourceMatchId": "16948843",
+    "canonicalMatchId": "cm_atp_2026-08-30_medvedevd_gastonh_h1157808",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "9e427906eeed0fedf68ae4253ac2b11c6d2b45ab6a8ad5d5c5c73e5044bef95e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940124",
+    "capturedAt": "2026-09-04T16:12:57.295Z",
+    "sourceMatchId": "16940124",
+    "canonicalMatchId": "cm_atp_2026-08-30_rinderknecha_shimabukuros_h1157796",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4aee1e92fb2d96b1310e1fcdf50efb0ce71e4ebf1bb058d76a6e23aecc480922",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940125",
+    "capturedAt": "2026-09-04T16:13:00.685Z",
+    "sourceMatchId": "16940125",
+    "canonicalMatchId": "cm_atp_2026-08-30_munarj_atmanet_h1157805",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b9aa9c0d567d861ad2cf81835f2a23fb415becebc4a620383a7d050a4b6bee2b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940115",
+    "capturedAt": "2026-09-04T16:13:15.143Z",
+    "sourceMatchId": "16940115",
+    "canonicalMatchId": "cm_atp_2026-08-30_navonem_djokovicn_h1157813",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bc526caaaa69c98d7a5e2627cbf67734a69721192892febc7f5bacab2182ae1e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940111",
+    "capturedAt": "2026-09-04T16:13:16.169Z",
+    "sourceMatchId": "16940111",
+    "canonicalMatchId": "cm_atp_2026-08-30_vanasschel_norriec_h1157807",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d32cb225fdbc3b96968669d70b8a94cedabfc336fefd542452ba93d689d15c06",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940119",
+    "capturedAt": "2026-09-04T16:13:17.879Z",
+    "sourceMatchId": "16940119",
+    "canonicalMatchId": "cm_atp_2026-08-30_meridaaguilard_fucsovicsm_h1157799",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4a84ab559e6ca95be86d209b931440644349833675ea2c806a9d9fd56ba00a6a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940117",
+    "capturedAt": "2026-09-04T16:13:18.658Z",
+    "sourceMatchId": "16940117",
+    "canonicalMatchId": "cm_atp_2026-08-30_etcheverrytm_koprivav_h1157812",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8635c881508c23003d306c535d0fa1070bd58df26dba113c2b04083e1ac216d6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940106",
+    "capturedAt": "2026-09-04T16:13:19.017Z",
+    "sourceMatchId": "16940106",
+    "canonicalMatchId": "cm_atp_2026-08-30_prizmicd_shevchenkoa_h1157800",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "fcdb6cc10aaeb9abdd43f3c305f66c1f52b076c17a7a5e5e16088858a7b39327",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940112",
+    "capturedAt": "2026-09-04T16:13:19.552Z",
+    "sourceMatchId": "16940112",
+    "canonicalMatchId": "cm_atp_2026-08-30_shapovalovd_kecmanovicm_h1157811",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "1698a07ab257a411b43ebe87d5e6880bd125d3a33b11752ec21a2dfccfdaffab",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939129",
+    "capturedAt": "2026-09-04T16:13:21.328Z",
+    "sourceMatchId": "16939129",
+    "canonicalMatchId": "cm_wta_2026-08-30_alexandrovae_kesslerm_h1162573",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "20eceed4a204f235132d7faadf7e52cefb2a5206b347ef2e1e5f422ece6f9b02",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939130",
+    "capturedAt": "2026-09-04T16:13:22.298Z",
+    "sourceMatchId": "16939130",
+    "canonicalMatchId": "cm_wta_2026-08-30_prestont_parksa_h1162575",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bd501055240271a2fe988b5dd0dfcc5d1dfb01e0c8c0d11a5ed84dd108992077",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940110",
+    "capturedAt": "2026-09-04T16:13:22.996Z",
+    "sourceMatchId": "16940110",
+    "canonicalMatchId": "cm_atp_2026-08-30_leheckaj_carrenobustap_h1157798",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6d332ee9c53774ba9d3fd64fb79c5d9744bfcfb2289e558936e1180b6cba5190",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940103",
+    "capturedAt": "2026-09-04T16:13:23.344Z",
+    "sourceMatchId": "16940103",
+    "canonicalMatchId": "cm_atp_2026-08-30_fariaj_brooksbyj_h1157809",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "dab7f28358ff2eb2da35de766542d21074edbd1e46d89114ba8ab481dac0e8a6",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939125",
+    "capturedAt": "2026-09-04T16:13:24.772Z",
+    "sourceMatchId": "16939125",
+    "canonicalMatchId": "cm_wta_2026-08-30_pliskovaka_vandewinkelh_h1162572",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6ed92841b745b3d90c6eacfdbef8207d2981ab5a6f121ceb2e898ceced174b39",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939128",
+    "capturedAt": "2026-09-04T16:13:25.810Z",
+    "sourceMatchId": "16939128",
+    "canonicalMatchId": "cm_wta_2026-08-30_rakhimovak_krejcikovab_h1162563",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "37217993934064635efdfeaf57a84a6194d4e5159776581616dda833848b3fda",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940104",
+    "capturedAt": "2026-09-04T16:13:26.206Z",
+    "sourceMatchId": "16940104",
+    "canonicalMatchId": "cm_atp_2026-08-30_wuy_waltona_h1157797",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "356833f1b17e2786f505d9865810ba3554e51359f1a79e0a761c9519455916fc",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939123",
+    "capturedAt": "2026-09-04T16:13:26.794Z",
+    "sourceMatchId": "16939123",
+    "canonicalMatchId": "cm_wta_2026-08-30_paolinij_erjavecv_h1162562",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "10cbc98924e0e0d4d28d3f7eff445974ce16722be07e5028a6cbd9ed56629d3e",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939127",
+    "capturedAt": "2026-09-04T16:13:29.589Z",
+    "sourceMatchId": "16939127",
+    "canonicalMatchId": "cm_wta_2026-08-30_vekicd_gibsont_h1162564",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8e85b6a01b6fb4bd4add2cf90445d8ea2309df286987561d4ec6c794500f7f8d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939112",
+    "capturedAt": "2026-09-04T16:13:36.642Z",
+    "sourceMatchId": "16939112",
+    "canonicalMatchId": "cm_wta_2026-08-30_boulterk_leecy_h1162574",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "873c522c4f371ddb97e698401ea8763787bc1f723d6b2c92893230c34d04229d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939122",
+    "capturedAt": "2026-09-04T16:13:36.992Z",
+    "sourceMatchId": "16939122",
+    "canonicalMatchId": "cm_wta_2026-08-30_pegulaj_ruseg_h1162566",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "20e4cad92ebfaa2194da20775bbd838bb9f1151ffe65c2af90e32bbc5d3e44ac",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939121",
+    "capturedAt": "2026-09-04T16:13:38.488Z",
+    "sourceMatchId": "16939121",
+    "canonicalMatchId": "cm_wta_2026-08-30_fernandezl_zhangs_h1162567",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8464b971aac3ee2c3625be904388a462c5041fcac609d26c5270f9f0974e9221",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939120",
+    "capturedAt": "2026-09-04T16:13:38.726Z",
+    "sourceMatchId": "16939120",
+    "canonicalMatchId": "cm_wta_2026-08-30_svitolinae_sierras_h1162576",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "53e083e1ff1eac52537b00a7abaa060879b2c165f19f4f136ba12e2306e879f9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939113",
+    "capturedAt": "2026-09-04T16:13:40.438Z",
+    "sourceMatchId": "16939113",
+    "canonicalMatchId": "cm_wta_2026-08-30_wangxin_arangoe_h1162571",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "48eb21f4ff7e538fb45cd1fccad73f1fadf9ab2c46c1417980b4fdb692f927fd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939135",
+    "capturedAt": "2026-09-04T16:44:07.187Z",
+    "sourceMatchId": "16939135",
+    "canonicalMatchId": "cm_wta_2026-08-31_arynasabalenka_camilaosorio_h1162779",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d1452dada1b7bb8e28b75ee84486c92728265830cd6d44072491901580533774",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939136",
+    "capturedAt": "2026-09-04T16:44:07.663Z",
+    "sourceMatchId": "16939136",
+    "canonicalMatchId": "cm_wta_2026-08-31_dianashnaider_dariasnigur_h1162852",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "0b039d32c530020ea8071d5da5008c9b7c11ca48861a32e1207ac77a54e33f7b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939119",
+    "capturedAt": "2026-09-04T16:44:10.637Z",
+    "sourceMatchId": "16939119",
+    "canonicalMatchId": "cm_wta_2026-08-31_lindanoskova_katievolynets_h1162849",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "da2bfdfbd7bf2fc2c35b975766327c725b189504f46f66bdc2d63aebea9b5373",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939124",
+    "capturedAt": "2026-09-04T16:44:13.044Z",
+    "sourceMatchId": "16939124",
+    "canonicalMatchId": "cm_wta_2026-08-31_kenins_williamsv_h1162577",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d8ff75e64e0f8d0b7abfa553e658f95fda6e39d659862584ff46442feae52156",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939133",
+    "capturedAt": "2026-09-04T16:44:14.444Z",
+    "sourceMatchId": "16939133",
+    "canonicalMatchId": "cm_wta_2026-08-31_taylortownsend_majachwalinska_h1162809",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ff07bdb63f5aecffca920c5b648fd60175f0f4eb4976e057e737caeeabcddeb2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939115",
+    "capturedAt": "2026-09-04T16:44:26.323Z",
+    "sourceMatchId": "16939115",
+    "canonicalMatchId": "cm_wta_2026-08-31_annakalinskaya_annablinkova_h1162810",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "d02b1a683192a7bb9df06504be4f6f0ef81549179ddab659907a7fdce96cf8b3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939109",
+    "capturedAt": "2026-09-04T16:44:26.759Z",
+    "sourceMatchId": "16939109",
+    "canonicalMatchId": "cm_wta_2026-08-31_karolinamuchova_sinjakraus_h1162795",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "4b8827898e8de3e5bcf6b22ed1e71b2fc58193ce6eb0cf06273cdc84838a07ff",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939118",
+    "capturedAt": "2026-09-04T16:44:28.897Z",
+    "sourceMatchId": "16939118",
+    "canonicalMatchId": "cm_wta_2026-08-31_soranacirstea_juliagrabher_h1162853",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6cca526e6bc75a374db22d2c855453c08d4a53ac605410b1151ac7560fab766f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16939111",
+    "capturedAt": "2026-09-04T16:44:29.402Z",
+    "sourceMatchId": "16939111",
+    "canonicalMatchId": "cm_wta_2026-08-31_emmanavarro_loisboisson_h1162812",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "db2c76defce5d5956a2ac51454bfbbb45626552ab6183a5604109845fc6cceb8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16948998",
+    "capturedAt": "2026-09-04T16:44:30.011Z",
+    "sourceMatchId": "16948998",
+    "canonicalMatchId": "cm_wta_2026-08-30_tararudeel_kalievae_h1162568",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "8c9b6b9cb4eba3a04f8019bea0dd76512643bb9f0476b60b620aa12183356292",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16949007",
+    "capturedAt": "2026-09-04T16:44:34.545Z",
+    "sourceMatchId": "16949007",
+    "canonicalMatchId": "cm_wta_2026-08-30_stefaninil_yastremskad_h1162570",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "69770551941d7c28d56238929b07fe2ca8e075ee944ddf3a26c670ca363a3553",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16949011",
+    "capturedAt": "2026-09-04T16:44:36.117Z",
+    "sourceMatchId": "16949011",
+    "canonicalMatchId": "cm_wta_2026-08-30_kostyukm_hunters_h1162569",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "ab42d164b4727a51cd10ec6eb85a406f4712055422cf2b7f1a9c80692c548682",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16949012",
+    "capturedAt": "2026-09-04T16:44:38.984Z",
+    "sourceMatchId": "16949012",
+    "canonicalMatchId": "cm_wta_2026-08-30_iatcenkop_zarazuar_h1162565",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "7ce2c59ba5e6732099869b5994672f446f9ca556cbd8477448dc0c94297592eb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16948853",
+    "capturedAt": "2026-09-04T16:44:39.428Z",
+    "sourceMatchId": "16948853",
+    "canonicalMatchId": "cm_atp_2026-08-30_harrisl_kennedyj_h1157804",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "89337ebda7c80a503404e0dcbfd72e2074576704123b05664a76e3b72b8fadd3",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16948855",
+    "capturedAt": "2026-09-04T16:44:42.925Z",
+    "sourceMatchId": "16948855",
+    "canonicalMatchId": "cm_atp_2026-08-30_samuelt_machact_h1157810",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b096f12b912c5195f14c8e22bd4036722341fa53c8391708c41208e7ad7c0240",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901598",
+    "capturedAt": "2026-09-04T16:48:08.241Z",
+    "sourceMatchId": "16901598",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "486299e1faa0476fab35682ff8417674d2d2c83e2b046ddb5f5b501c1871506b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901514",
+    "capturedAt": "2026-09-04T16:48:14.547Z",
+    "sourceMatchId": "16901514",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "1e7b09ad549114527d2659a463b582febe77d5dd6957d0ff398fc7190a522797",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901492",
+    "capturedAt": "2026-09-04T16:48:24.296Z",
+    "sourceMatchId": "16901492",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "7dbb1efa4cc0fbdbacd775e909ba0258a08445d177ba0aae387e82b3fddb29b2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901601",
+    "capturedAt": "2026-09-04T16:48:26.209Z",
+    "sourceMatchId": "16901601",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "e7e6d6fb5f2a3eb25ce280b8b36b96152b5c26538024db9732def73b5d0eba97",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901513",
+    "capturedAt": "2026-09-04T16:48:31.074Z",
+    "sourceMatchId": "16901513",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "289b203b3f602b15a68cc796369664e9a5e1033f6b483718ef8ab89a793e6b0f",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901564",
+    "capturedAt": "2026-09-04T16:48:32.492Z",
+    "sourceMatchId": "16901564",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "8f78fb3a16856b2349c585ca5ba8afa90c7cf8b0d6e4793422d0d8fe22b97bdb",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901521",
+    "capturedAt": "2026-09-04T16:48:32.674Z",
+    "sourceMatchId": "16901521",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "478de1569e360458387a0941b67f45e3afa9839e215ce8847a503aea074bc498",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901516",
+    "capturedAt": "2026-09-04T16:48:34.372Z",
+    "sourceMatchId": "16901516",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "8e52ce38898a80c73d3ddd4c43e1c0c77046cd09ecda70c14fb94dcd915bf4ea",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901510",
+    "capturedAt": "2026-09-04T16:48:40.662Z",
+    "sourceMatchId": "16901510",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "5b5e6ccd25629965d3efca15f510298df198667f4cf16e2a131be90e4af6e766",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901518",
+    "capturedAt": "2026-09-04T16:48:41.556Z",
+    "sourceMatchId": "16901518",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "bf151fe8cc74face337f4efeb21e02a99b735d3fa9f90950bf998662a3046bda",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901511",
+    "capturedAt": "2026-09-04T16:48:54.147Z",
+    "sourceMatchId": "16901511",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "4e2fbddbbf99b7ee2543ee5daca0ce40d220761292013ca6e345e37c35b74465",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901565",
+    "capturedAt": "2026-09-04T16:48:57.464Z",
+    "sourceMatchId": "16901565",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "72d4263874897a8c3099a66ac38e52b4042ee4e0d7a6d1bf7195a43376622edd",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901584",
+    "capturedAt": "2026-09-06T14:46:55.910Z",
+    "sourceMatchId": "16901584",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "e8346b1f7ecf74f103e3ab4437d01a7ffbd928700633597f87e56d99f6dbbe91",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901563",
+    "capturedAt": "2026-09-06T14:46:57.375Z",
+    "sourceMatchId": "16901563",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "e1c479413607bec06f169b13dfb46b48a643dc9eb0de21e92d259e41553485b7",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901528",
+    "capturedAt": "2026-09-06T14:47:01.119Z",
+    "sourceMatchId": "16901528",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "4250c38ede3072c43a44e439976d1ff55dade88c5a66c0ea84a4dcf44031f08c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901519",
+    "capturedAt": "2026-09-06T14:47:01.552Z",
+    "sourceMatchId": "16901519",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "3e8c51724ca5aff230735b091c204094d55dbdc645984d0e4894072195a08c87",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901560",
+    "capturedAt": "2026-09-06T14:47:02.539Z",
+    "sourceMatchId": "16901560",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "ae579a8e51d5aa7f578753a1dc6d6a478034264d58d701370182e9244b50cb44",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901529",
+    "capturedAt": "2026-09-06T14:47:04.561Z",
+    "sourceMatchId": "16901529",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "606cd39f1ec67a7f24f65d49837ee4f799993cda79927275c3290495b908fdff",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901525",
+    "capturedAt": "2026-09-06T14:47:43.615Z",
+    "sourceMatchId": "16901525",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "92ff68da08b2d5501b8a572773c3f43283a1926f90da63f3ff595fe6aa8a7b77",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901559",
+    "capturedAt": "2026-09-06T14:47:43.684Z",
+    "sourceMatchId": "16901559",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "e9a34d8371a858012177c166af56300b09d006a7be368b65cdbbbfe0c245555c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940158",
+    "capturedAt": "2026-09-06T21:46:03.448Z",
+    "sourceMatchId": "16940158",
+    "canonicalMatchId": "cm_wta_2026-09-01_madisonkeys_alinakorneeva_h1162854",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b3043c0857ff595a3ab5c6e77f24c7ee7e30de2d0a9a0f69dbb2069fe30bc984",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940156",
+    "capturedAt": "2026-09-06T21:46:04.424Z",
+    "sourceMatchId": "16940156",
+    "canonicalMatchId": "cm_wta_2026-09-01_naomiosaka_anastasiazakharova_h1162851",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "b08b6bc02def136d5143667e3067b81078890b29ef55c9a22fdb072fdf55d994",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940167",
+    "capturedAt": "2026-09-06T21:46:05.041Z",
+    "sourceMatchId": "16940167",
+    "canonicalMatchId": "cm_wta_2026-08-31_amandaanisimova_ashlynkrueger_h1162848",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "e6dd6e36e151bfb18225d4b331afe0ecad74f0392069b34371e2edb231c09245",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940168",
+    "capturedAt": "2026-09-06T21:46:05.555Z",
+    "sourceMatchId": "16940168",
+    "canonicalMatchId": "cm_wta_2026-08-31_lillitagger_tamarakorpatsch_h1162837",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "876217f2c3993f40083627b5a521b0c87807603b0e742033b217c51ad81a8328",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16949005",
+    "capturedAt": "2026-09-06T21:46:08.906Z",
+    "sourceMatchId": "16949005",
+    "canonicalMatchId": "cm_wta_2026-08-31_harrietdart_peytonstearns_h1162847",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "bd559b3b2b2c0a8c94e3aa8441197fb61c9d910a25080cf8350cac792140ea8b",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16949001",
+    "capturedAt": "2026-09-06T21:46:12.290Z",
+    "sourceMatchId": "16949001",
+    "canonicalMatchId": "cm_wta_2026-08-31_himenosakatsume_anhelinakalinina_h1162838",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "f1f0e60826ea59c7adb8191914e753a8e923cce0833b0b05fc35a59cd14c092a",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940159",
+    "capturedAt": "2026-09-06T21:46:19.468Z",
+    "sourceMatchId": "16940159",
+    "canonicalMatchId": "cm_wta_2026-08-31_mariebouzkova_elsajacquemot_h1162811",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "6cf0ae6868f98efe427a1b062f40c179cf06b14e6f2a57e0b40df469fc2eac06",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940161",
+    "capturedAt": "2026-09-06T21:46:29.310Z",
+    "sourceMatchId": "16940161",
+    "canonicalMatchId": "cm_wta_2026-08-31_igaswiatek_xiyuwang_h1162850",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "287dbd3eb8cfd67618ff5fbe647d3ae5ba82871b519b5be2dc067a10b0759f24",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940108",
+    "capturedAt": "2026-09-06T21:46:31.058Z",
+    "sourceMatchId": "16940108",
+    "canonicalMatchId": "cm_atp_2026-08-31_bublika_wolfjj_h1157814",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "30559ad75bdb5c47d7733340e81c41302c71720a0914cd3b3a35e53936bc4e38",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16940164",
+    "capturedAt": "2026-09-06T21:46:31.785Z",
+    "sourceMatchId": "16940164",
+    "canonicalMatchId": "cm_wta_2026-08-31_cristinabucsa_sarabejlek_h1162815",
+    "resolutionStatus": "RESOLVED",
+    "quarantineReason": null,
+    "payloadSha256": "12373cf0ab58d5793497ddd07e339b823e1de654e3a347c6796b04e7d5bed1f8",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901555",
+    "capturedAt": "2026-09-07T12:36:41.625Z",
+    "sourceMatchId": "16901555",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "7d37763bbe54bb8820aacbd4050497f916bc514eec5dd42ab9b573b6906b5d9d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901579",
+    "capturedAt": "2026-09-07T13:20:35.495Z",
+    "sourceMatchId": "16901579",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "645818c608d8c76f1a979aec3e708374ad5a1971fff4d7767ba12e421df54f53",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901556",
+    "capturedAt": "2026-09-07T13:30:29.443Z",
+    "sourceMatchId": "16901556",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "41df15a0db3757ff3f73c563ce4464f3d082cc46171305c1a7395b95d4318c38",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901578",
+    "capturedAt": "2026-09-07T13:30:57.319Z",
+    "sourceMatchId": "16901578",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "437b4e0d89c42c0ad82e22dfe7a9d824ada70d686e008cb707c9e6326b18cfae",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901527",
+    "capturedAt": "2026-09-07T13:33:42.461Z",
+    "sourceMatchId": "16901527",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "67b8d648e1769f022b82e10527e77cc545176864e5256c9cfa4a5a99e6471d6d",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901517",
+    "capturedAt": "2026-09-07T13:33:42.664Z",
+    "sourceMatchId": "16901517",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "81cb8787137473cddfe747f2622cd378433f80370c20f5fd2334f538a38febe2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901520",
+    "capturedAt": "2026-09-07T13:33:46.191Z",
+    "sourceMatchId": "16901520",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "2c4a9de00f8b745c2e5702bbaa2f3e60699b848498b370fae2f4f8e74402a119",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16901524",
+    "capturedAt": "2026-09-07T13:34:43.540Z",
+    "sourceMatchId": "16901524",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "27f3c07406790bd9dad182332d5e595cffb39e39eaa9b6e8b50cfdb4eac66922",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930610",
+    "capturedAt": "2026-09-08T10:01:45.448Z",
+    "sourceMatchId": "16930610",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "5774a8f8eca7daf1f10890b8c872f08f036e01380a55c58f0b65bb27cdd979e2",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930612",
+    "capturedAt": "2026-09-08T10:01:46.342Z",
+    "sourceMatchId": "16930612",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "945e4c5dff367ce8d1b31a1edae47ed959f9634a85cff4f7f80319701954cd5c",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931195",
+    "capturedAt": "2026-09-08T10:02:03.133Z",
+    "sourceMatchId": "16931195",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "162dd1d30d706c533946bcf8a5c8b55c37aa38b81beb5f3bb32b66d9bdd34fe9",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930658",
+    "capturedAt": "2026-09-08T10:02:13.168Z",
+    "sourceMatchId": "16930658",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "ac7629403f211bd05d32d31281f376ff91d725e18a97524e251cf3f454e68374",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931213",
+    "capturedAt": "2026-09-08T10:03:50.017Z",
+    "sourceMatchId": "16931213",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "0d21cca5f5f55803e09692be7377dead75581655a7c1879dcd4730d988104c22",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931170",
+    "capturedAt": "2026-09-08T10:03:51.995Z",
+    "sourceMatchId": "16931170",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "181efda7258c1648a7495117a49313300a5276b7caccf53fa9df26e51732a597",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16930611",
+    "capturedAt": "2026-09-08T10:04:07.002Z",
+    "sourceMatchId": "16930611",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "d6d07a261b58db491267cd86366824eb93b926dcd4ef8c7830765629ba4e9582",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931196",
+    "capturedAt": "2026-09-08T10:04:09.321Z",
+    "sourceMatchId": "16931196",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "803458d4872726f8654f54375bed4bf634cd6c2f20e079ed2f864358ffb2e981",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931224",
+    "capturedAt": "2026-09-09T23:42:31.512Z",
+    "sourceMatchId": "16931224",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "471b9fd4dd50ba67622cbc5620c08f51109bf3894e7257f07b75cfff1beb2774",
+    "auditRuleVersion": "phase-7-v1"
+  },
+  {
+    "traceId": "pred_16931225",
+    "capturedAt": "2026-09-10T12:14:14.628Z",
+    "sourceMatchId": "16931225",
+    "canonicalMatchId": null,
+    "resolutionStatus": "QUARANTINED_UNRESOLVED_MATCH",
+    "quarantineReason": "MATCH_CROSSWALK_UNRESOLVED",
+    "payloadSha256": "7e9667037c8bab0ba6677f71573bcff0eea0df8b24e1bfd89063be587143e42b",
+    "auditRuleVersion": "phase-7-v1"
+  }
+]

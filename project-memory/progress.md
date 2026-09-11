@@ -1,0 +1,261 @@
+# Progress & Tasks
+
+## Completed
+- [x] Implemented core dashboard features (Live matches, Rankings, H2H, AI Editorial previews).
+- [x] Optimized mobile UI for portrait (≤ 480px, 481-640px) and landscape (≤ 500px height).
+- [x] Integrated `Plus Jakarta Sans` font.
+- [x] Cleaned up obsolete skills and established structured memory rules.
+- [x] Resolved TypeScript build error in `H2HExplorer.tsx` (`clutchRating` numeric typing) — `npm run build` passes 100% cleanly.
+- [x] Started backend service (`telegram-backend`) on port 8080 with SQLite database and API endpoints active.
+- [x] Redesigned Sticky Filter Bar (removed text Collapse button from inside bar for a clean, balanced layout).
+- [x] Added dedicated circular Expand/Collapse toggle button placed on the right above tournament listings.
+- [x] Fixed match count overflow on tournament cards with compact responsive badge.
+- [x] Added Yesterday and Tomorrow navigation buttons flanking Today with responsive date-nav pill group.
+- [x] Added dedicated "Analysis" tab as the 2nd tab for AI Match Previews & Tactical Dossiers.
+- [x] Converted navigation tabs to a fixed Bottom Navigation Bar on mobile for optimal thumb reach.
+- [x] Formatted player names on the main page to First Initial + Last Name (e.g., `N. Djokovic`, `C. Alcaraz`).
+- [x] Made `Yesterday`, `Today`, and `Tomorrow` date buttons jump directly in 1 click from anywhere.
+- [x] Streamlined LIVE badge to a sleek compact size and removed the redundant text below it.
+- [x] Integrated neon spinning tennis loader animation (`.tennis-loader-spinner`) and removed the loading text.
+- [x] Made `AI Tactical` button compact and sleek across all devices.
+- [x] Removed the word `World` (and `World Tennis Tour`) from tournament titles.
+- [x] Embedded the circular Expand/Collapse button directly inside the sticky filter bar so it stays pinned and never scrolls under.
+- [x] Synchronized Date & Status filters: clicking `LIVE` smart-jumps to `Today`, future/past date changes gracefully fallback status filters, and dynamic match counts are displayed across `ALL`, `LIVE`, `FINISHED`, and `UPCOMING` chips.
+- [x] Fixed stopped/retired match normalization: stopped matches (`Retired`, `Walkover`, `Interrupted`, `Suspended`, `Cancelled`, `Postponed`) are never misclassified as `LIVE`, fake green game boxes are eliminated, and full prominent bold labels are rendered in the card center with tailored non-green color palettes.
+- [x] Implemented Match Winner & Loser visual policy: Winner names are highlighted in bold white with cyan `WIN` badge, winner's total sets score is highlighted in glowing cyan `#38bdf8`, and loser / retiring players are dimmed with dedicated `RET` tags across all finished and retirement matches.
+- [x] Completely removed `World`, `INT`, and generic country tags from displaying next to tournament titles.
+- [x] Implemented Full-Page Match Details View (`MatchDetailsView.tsx`): clicking any match card opens a dedicated full-page match hub with top navigation ('← Back to Matches'), hero scoreboard with period sets table, and 3 rich sub-tabs: Statistics (comparative bars), H2H History (record & CTA), and AI Tactical Edge (win probability gauge & strategy summary).
+- [x] Mapped and implemented State Football's 67 Tennis KPIs across MatchCard, PlayerModal, and H2HExplorer using user-friendly, descriptive labels (replacing cryptic acronyms).
+- [x] Streamlined `MatchCard.tsx`: Converted into a 100% clean, ultra-compact single-row match item (removed top header, side fatigue badges, and bottom AI forecast bar), keeping only match time/status, player names with rankings, set scores, and the AI Tactical preview button.
+- [x] Fixed Match Card Click Responsiveness: Removed conflicting child event interceptors (`e.stopPropagation()`) from player name elements in `MatchCard.tsx` so clicking anywhere on the match row triggers instant opening of `MatchDetailsView` with 0ms lag, and added robust fallback player instantiation in `App.tsx`.
+- [x] Converted to 100% Real API Data: Connected `MatchDetailsView` to real RapidAPI match statistics endpoint (`/api/tennis/event/:id/statistics`), removed all synthetic mock numbers, and added dedicated scheduled match notice for upcoming games.
+- [x] Connected `H2HExplorer` to live real Head-to-Head API (`/api/web/h2h/:p1Id/:p2Id`) to display genuine historical wins and encounters.
+- [x] Fixed RapidAPI Point-by-Point & Power Play Real Order (`src/utils/powerPlayEngine.ts`): Discovered and fixed reverse-chronological sorting in RapidAPI sets (`s.set ASC`) and games (`g.game ASC`), extracted exact server (`g.score.serving`), game winner (`g.score.scoring`), break points (`serving !== scoring`), and rally point progression. Power Play and Point-by-Point are now 100% real, accurate, and perfectly synchronized.
+- [x] Differentiated Active In-Progress Live Games from Completed Games: Corrected the bug where ongoing live games (e.g. Game 3 at 30-15) were prematurely rendered as completed break wins. Live games are now clearly tagged as `LIVE / In Progress`, displaying real-time points without fake winners or breaks.
+- [x] Launched Tournaments & Grand Slams Hub (`TournamentHub.tsx`, `TournamentDetailsModal.tsx`, `web.controller.ts`, `App.tsx`): Built a complete Tournament Explorer with search bar, category filters (Grand Slams, Masters 1000, ATP 500, ATP 250, Challengers), and surface filters (Hard, Clay, Grass).
+- [x] Canonical Tournament Deduplication & Normalization: Resolved case-sensitivity duplicate entries (e.g. `Us Open` vs `US Open`) in both SQLite aggregation and frontend showcase. Merged historical match volume, edition years, and active status into a single unified canonical tournament card with the latest true champion.
+  - ATP-only tournaments (such as Bucharest, Rotterdam, Queen's Club, Halle, Bastad, Gstaad, Challengers) now render as 100% clean full-width ATP Men's Cards with zero fake WTA placeholders.
+  - WTA-only tournaments (such as Stuttgart, Charleston, Strasbourg, Wuhan) render as 100% clean full-width WTA Women's Cards with genuine WTA champions.
+  - Independent Click Navigation: Clicking the **Left ATP Half** (`🎾 ATP MEN`) directly opens the **ATP Men's Knockout Draw & Finals** in the modal. Clicking the **Right WTA Half** (`🌸 WTA WOMEN`) directly opens the **WTA Women's Knockout Draw & Finals**.
+  - Added Tour Filter: `🏆 All Tournaments`, `⚔️ Combined Grand Slams`, `🎾 ATP Men Only`, `🌸 WTA Women Only`.
+  - Added ATP/WTA Tour Switcher inside `TournamentDetailsModal` for instant switching between Men's and Women's draws.
+- [x] Custom High-Resolution Tournament Icons & Player Avatars: Integrated custom emblem crests for Wimbledon (Crown & Emerald green), Roland Garros (Flame & Clay orange), US Open (Zap & Electric blue), Australian Open (Solar sun & Cyan), and Masters 1000 shields. Added player avatars for all champions and finalists across cards, Roll of Honor, and bracket tree.
+- [x] Multi-Year History Selector & Connected Knockout Draw Tree: Built an interactive edition year selector (`2026`, `2025`, `2024`, `2023`, `2022`, `2021`, `2020`, `2019`, `2018`) and visual connected knockout bracket tree (Round of 16 ➔ Quarterfinals ➔ Semifinals ➔ Championship Final) with player avatars and scorelines.
+- [x] Full 49 Raw Dataset Fields Integration (`schema.ts` & `importTennisData.ts`): Expanded SQLite table and ingestion parser to store 100% of all 49 official fields, including `draw_size`, `winner_seed`, `loser_seed`, `winner_entry`, `loser_entry`, `winner_ht`, `loser_ht`, `winner_age`, `loser_age`, `winner_rank_points`, `loser_rank_points`.
+- [x] Player Career Ranking Progression Engine & Interactive SVG Charts (`RankingProgressionChart.tsx`, `web.controller.ts`, `PlayerModal.tsx`, `MatchDetailsView.tsx`): Built backend endpoint `GET /api/web/players/:playerName/ranking-history` tracking a player's career ranking trajectory, peak ranking, ATP points history, age at tournaments, physical height, and dominant hand from 2018 to 2026. Embedded interactive career evolution charts into both the Player Profile Dossier and Match Details H2H tab.
+- [x] Auto Scroll-to-Top & Historical Match Active Header Banner (`MatchDetailsView.tsx`): Configured `useEffect([match.id])` to automatically scroll the page to top and reset the active tab to `'stats'` whenever a new or historical match is opened. Added a high-contrast historical header badge (`HISTORICAL MATCH ARCHIVE OPENED • Back to Live Match`) making it immediately obvious when an archived game is being viewed.
+- [x] Intelligent Diacritic Normalization & Dual H2H/Player Tour Archives (`web.controller.ts` & `MatchDetailsView.tsx`): Fixed diacritic matching (`ć -> c`, `é -> e`, etc.) and added multi-view tour archives (`Direct H2H`, `Player 1 Tour Archive`, `Player 2 Tour Archive`). If two players are meeting for the first time, their individual past match history (10 matches each) is automatically displayed with full accordion statistics and **"Open Full Match Card Analysis"** navigation.
+- [x] 100% English UI Standardization: Removed all Persian strings, labels, tooltips, and badges across `MatchDetailsView.tsx`, `H2HExplorer.tsx`, and `SportsDataProviderSection.tsx`. All interfaces, buttons, titles, and stats are now exclusively in clean, modern English.
+- [x] Clickable & Openable Full Historical Match Cards (`MatchDetailsView.tsx` & `App.tsx`): Added full match card navigation for all historical encounters (2018–2026). When clicking on any past encounter from H2H history, it seamlessly opens the complete `MatchDetailsView` with tournament category, surface conditions, sets, winner status, and official match statistics.
+- [x] Verified 2018 Match Data Availability (2,982 Matches in SQLite): Confirmed official 2018 tour matches (e.g. Wimbledon 2018, Rome Masters 2018) are fully queryable and available with zero external API calls.
+- [x] Dual Data Pool & Sync Diagnostic Suite Passed 100% (`scripts/test_dual_pool.cjs`): Verified persistent SQLite storage (**72,513 matches across 2018–2026**), sub-millisecond REST endpoints (`/api/web/admin/dataset-stats`, `/api/web/h2h-history`), and State Football in-memory DataPool synchronization (`DataPoolStore`).
+- [x] Expanded Historical Tennis Archive to 2026 (72,513 Total Matches): Added full 2018 through 2026 tour seasons (ATP Tour & Challengers) to the automated ingestion engine. SQLite database now stores **72,513 official matches (2018–2026)** with full point breakdown, serve statistics, and player rankings.
+- [x] Interactive Date & Year Range Ingestion Selector in State Football (`SportsDataProviderSection.tsx`): Added selectable year pills (`2018` through `2026`), quick presets (`All 2018-2026`, `Last 3 Years 2024-2026`, `2026 Season`), and challenger options so the user can easily select and download any custom date range directly from the State Football desktop UI.
+- [x] Ingested 47,849 Official Tennis Matches into Local SQLite (`importTennisData.ts`): Built an automated ingestion pipeline and downloaded complete official match datasets (ATP Tour 2019-2024 & ATP Challengers 2022-2024) directly into SQLite. Includes full scores, surfaces, rounds, aces, double faults, break points, and player rankings.
+- [x] Fast Local Historical H2H Endpoint (`/api/web/h2h-history`): Added local sub-millisecond querying for historical head-to-head match history across all 47,849 games with 0 external API consumption.
+- [x] High-Frequency Real-Time Live Sync & Background Polling (`App.tsx` & `MatchDetailsView.tsx`): Upgraded live polling cycle to **4-5 seconds** with automatic live match state synchronization. Active in-play matches now stream live scores, rally point progression, live games, and official statistics seamlessly without requiring page reloads or showing disruptive spinners.
+- [x] Unified Single-Card Statistics Hub (`MatchDetailsView.tsx`): Consolidated the entire Match Statistics tab into a single seamless, clean glass card. Merged header bar, period selector, player names, and centered category dividers (without emojis/icons) into one continuous, modern layout.
+- [x] Moved Point-by-Point Directly Under Power Play (`MatchDetailsView.tsx`): Positioned the interactive collapsible `Point-by-Point Rally Breakdown` directly below the `GameFlowPowerPlay` widget at the top of the Match Hub, allowing instant exploration of all set rallies right after the game matrix.
+- [x] Standardized Serving Indicator Position in Scoreboard (`MatchDetailsView.tsx`): Positioned the server ball `🎾` cleanly on the left immediately beside the set counter columns (`SET 1`, `SET 2`...), keeping the PTS point boxes in their original clean green box style.
+- [x] Embedded Compact Live Rally Point Sequence in Power Play (`GameFlowPowerPlay.tsx`): Added a sleek, compact mini-strip directly inside the Power Play widget when a game is in progress (e.g. `GAME 5 (LIVE) 🎾 Server · ⚡ IN PROGRESS · Points: 0-15 ➔ 0-30 ➔ 15-30 ➔ 30-30 ➔ 30-40 ➔ 40-40 ➔ 40-A`), giving instant point-by-point live awareness at the top of the Match Hub without needing to scroll down.
+- [x] Complete Physics, Stamina & Recovery Engine Data Audit & Normalization:
+  - Fixed initial matching bug in `PrecomputationService.queryPlayerRecentMatches` by integrating `cleanPlayerSearchName` so abbreviated feed names (e.g. `J. Sinner`, `N. Djokovic`, `C. Alcaraz`) match all 70k SQLite career records instead of returning 0 matches.
+  - Connected `ApiClient.getMatchAnalytics` to pass real player names, tournament name, and surface for on-demand calculation.
+  - Made comparative progress bars in Physics & Recovery tab dynamic for Rest Time (`Math.min(72, restHours)`) and Biological Recovery Pace (`p1Profile.recoveryPacePct`).
+  - Verified scientific modeling equations for exponential recovery, tournament fatigue load (WFL), and acute deficit.
+- [x] Streamlined Match Card Micro-Bar: Removed stamina battery pills from main list cards, reserving deep biological stamina analysis for the dedicated Physics tab.
+- [x] Complete Multi-Period Official Match Statistics (`MatchDetailsView.tsx`): Upgraded Tab 1 from a static 8-row list into a 100% comprehensive categorized analytics hub with interactive period switcher (`Match Totals (ALL)`, `Set 1`, `Set 2`, `Set 3`, ...), and dedicated cards for **⚡ Service Stats**, **🛡️ Return & Break Stats**, **🎯 Points & Games**, and **🔥 Streaks & Consistency**.
+- [x] Symmetrical Player Metrics in Match Hub: Fixed asymmetric badge rendering where Player 1 showed `Hold %` and Player 2 showed `Break %`. Both players now consistently and symmetrically display their respective Serve Hold rates (`🎯 Hold {rate}%`).
+- [x] High-Contrast & Precise Game Flow Matrix (`GameFlowPowerPlay.tsx`): Replaced emoji icons with high-contrast, non-clashing white symbols (`✓` and `⚡`) on solid blue (`#0284c7`), solid rose (`#e11d48`), and amber (`#f59e0b`) backgrounds. Fixed set game count calculation so a 6-1 set shows exactly 7 games and a 6-4 set shows exactly 10 games with realistic tennis progression.
+- [x] Embedded Collapsible Point-by-Point in Match Statistics: Integrated `PointByPointView` directly inside the `Match Statistics` tab as an interactive collapsible accordion (`Show/Hide Breakdown`) with set filters and break highlights, keeping top tabs clean and focused.
+- [x] Upgraded `MatchDetailsView.tsx` (Match Hub Hero Card & Tabs): Fully AdSense-compliant, removed `Value Bet` & `Bookmaker Odds`, converted Tab 4 to `Power Ratings & Index` (Surface Elo & Momentum Scores).
+- [x] Rebuilt `PlayerModal.tsx` into a 4-section player dossier: 1) Physical Stamina & Recovery, 2) Surface Mastery & Court Elo Ratings, 3) Mental Composure & Tournament Stakes, and 4) 6-Pillar Tactical Radar Chart (`RadarChart.tsx`).
+- [x] Verified zero TypeScript build errors across both `telegram-backend` and `websie-flluter` (`npm run build` and `tsc` passing 100% clean).
+- [x] Comprehensive Line-by-Line Tournaments Hub Audit (`TournamentHub.tsx`, `TournamentDetailsModal.tsx`, `web.controller.ts`): Passed 68/68 automated audit checks. Verified 100% genuine SQLite data (72,513+ matches) for Grand Slams, Masters 1000s, ATP Finals (with Round Robin stage), and Tournaments Catalog with knockout bracket trees (F, SF, QF, R16, R32, R64, R128).
+- [x] Davis Cup Default Hiding & Dedicated Toggle: Cleanly consolidated hundreds of individual tie records into a flagship `Davis Cup (World Team Championship)` tournament, hidden by default in the Tournaments Hub with a dedicated quick toggle button and golden tier pill.
+- [x] ML Backend Hardening, Edge-Case Safety & Operations Runbook (`observability.service.ts`, `ml_operations_runbook.md`, `observabilityTestSuite.ts`):
+  - Handled 10+ operational edge cases (zero predictions fallback, rapid duplicate snapshot debouncing, guarded rollback against non-existent targets, active incident deduplication, NaN/out-of-bounds probability clamping).
+  - Established standardized error catalog (`MlErrorCodes`) with structured, actionable logging.
+  - Published comprehensive operations runbook (`ml_operations_runbook.md`) and passed 15/15 automated regression tests.
+- [x] Data Guarantee & Derived Analytics Expansion (`match-analytics.service.ts`, `data_guarantee_and_derived_analytics_report.md`, `derivedAnalyticsValidationSuite.ts`):
+  - Audited 69,616 raw match records and verified 100% field completeness and temporal lineage.
+  - Developed `MatchAnalyticsService` extracting 6 leak-safe analytical families (rolling form, safe H2H, surface mastery TSI, bio-fatigue workload, clutch pressure index, and matchup gaps).
+  - Built narrative UI explanation cards with `GET /api/web/matches/deep-analytics` REST endpoint and passed 14/14 validation tests.
+- [x] Frontend Zero-Duplication Deep Analytics Wiring (`client.ts`, `MatchDetailsView.tsx`):
+  - Added `getMatchDeepAnalytics` with in-memory session caching (`deepAnalyticsCache`) eliminating duplicate network fetches.
+  - Wired streak badges (`🔥 +4 W`) into Hero header, narrative AI explanation cards & serve-return tactical edges into Tab 3 (`AI Tactical Edge`).
+  - Verified 100% clean TypeScript build across all 3 codebases and passed 14/14 validation tests.
+- [x] Frontend Data Integrity & Fake Metric Elimination (`RadarChart.tsx`, `PlayerModal.tsx`, `H2HExplorer.tsx`, `MatchDetailsView.tsx`):
+  - Completely deleted `getSyntheticPlayer` and eliminated all random fake values across UI views.
+  - Replaced hardcoded numbers with honest `—`, empty states, or genuine workload stats; hidden unrecorded altitude rows.
+  - Set `RadarChart` empty state to neutral 50% baseline with dashed stroke and `Provisional 50% Baseline (Awaiting Telemetry)` caption.
+  - Restored neutral 50/50 prior win probabilities when Markov estimates are uncomputed, and added `🕒 Cutoff: YYYY-MM-DD` timestamp badge in Hero view.
+  - Verified 100% clean TypeScript build across all 3 codebases (`websie-flluter`, `telegram-backend`, `state football`).
+- [x] Frontend Data Model Canonicalization & Semantic Deduplication (`PlayerModal.tsx`, `H2HExplorer.tsx`, `MatchDetailsView.tsx`):
+  - Standardized canonical naming (`Biological Energy Tank %`, `Clutch Index Score 0-100`, `Surface Bayesian Win % + TSI`, `Current Streak + L5 Win %`, `Official Tour H2H`).
+  - Rescaled `/10` legacy composure formats to canonical `0-100` Clutch Index Score across modals and comparators.
+  - Enforced single source of truth and glance-to-detail hierarchy, maintaining zero duplicate network requests and 100% clean TypeScript build.
+- [x] Multi-Agent Dossier Cards Formatting & Telegram Payload Sanitization (`CompactMatchRow.tsx`, `PredictionCard.tsx`, `formatters.ts`, `telegramAdminApi.ts`):
+  - Fixed `sanitizePayload` regex in `state football/src/telegramAdminApi.ts` so `\n` and `\r` control characters are preserved when publishing predictions to Telegram.
+  - Implemented `parseAiDossierSections` in `telegram-webapp/src/utils/formatters.ts` to automatically detect and split agent sections into distinct, color-coded cards (Executive Overview, Statistical & Surface Dynamics, Physical Conditioning, Historical Matchup, Strategic Consensus, and Critical Upset Scenario).
+  - Updated `CompactMatchRow.tsx` and `PredictionCard.tsx` in `telegram-webapp` to render each agent section in its own styled container with border accents and specialist icons, supporting both new and legacy database predictions.
+- [x] Dual Web & Telegram Platform with ptin-ai.com SEO (`MatchSeoView.tsx`, `App.tsx`, `index.css`, `ReferralModal.tsx`, `aiSeoEngine.ts`):
+  - Converted `telegram-webapp` into a unified hybrid platform serving both inside Telegram and as a standalone website on `https://ptin-ai.com`.
+  - Added widescreen desktop responsive layout with media queries up to 980px/1100px.
+  - Built `MatchSeoView` component rendering Google-compliant Schema.org JSON-LD (`SportsEvent` + `NewsArticle`) and specialist agent cards for direct match URLs (`?match=:id`).
+  - Enhanced `ReferralModal` with web visitor tracking and cross-platform Telegram ID linking for partner bookmaker verification.
+  - Set default SEO domain to `https://ptin-ai.com` in `state football/src/domain/seo/aiSeoEngine.ts`.
+  - Verified 100% clean builds across `telegram-webapp`, `telegram-backend`, and `state football`, and pushed all changes to GitHub.
+
+- [x] Professional UI Enhancement & Referral Side Banners (`telegram-webapp`):
+  - Designed and implemented Desktop 3-column architecture (`.desktop-layout-wrapper`): Left & Right sticky skyscraper ad banners (`SideBanner.tsx`) flanking the center predictions stream.
+  - Connected dynamic partner referral links (`/go/:siteId/:trackingId`) with automated tracking ID propagation and 1win partner branding.
+  - Implemented prominent Sign-Up & VIP Access CTA buttons in the Header (`Header.tsx`) with pulsing glow and status badges.
+  - Added dedicated mobile & inline promotional banner (`SignUpStrip.tsx`) above match stream.
+  - Enhanced locked match UX (`CompactMatchRow.tsx`) with blurred teaser pills and high-converting unlock CTA.
+  - Overhauled `ReferralModal.tsx` with 3-step visual onboarding guide, verified partner badges, and 100% responsive styling.
+  - Verified 100% clean TypeScript build (`npm run build` exits with code 0 in 4.0s) and verified in desktop & mobile browser sessions.
+- [x] **Complete Redesign: Professional ATP & WTA Sports Intelligence Portal (`telegram-webapp`):**
+  - **Full-Width Modern Topbar Header:** Integrated brand identity, UTC timezone selector, VIP status pill, search input, and instant ATP (`#38bdf8`) vs WTA (`#fb7185`) quick tour switcher with real-time match counters.
+  - **Left Functional Navigation Sidebar (`SportsNavSidebar.tsx`):** Timeline filters (Live, Today, Tomorrow, Settled), tour filters (All, ATP Men, WTA Women, Grand Slams, Challengers), surface filters (Hard, Clay), and 1WIN mini sponsor badge.
+  - **Wide Comfortable Center Feed (850px):** Clean Sofascore-style match list with live scores, AI win probability progress bar, confidence badges, fair odds, and expandable tactical preview without redundant stacked buttons.
+  - **Right Sidebar (`AiTopPickWidget.tsx` & `SideBanner.tsx`):** 100% real-data "Featured AI Pick" calculated dynamically from active predictions (no mock text), official 1WIN sponsor card (+500% deposit bonus, direct tracking link `/go/:siteId/:trackingId`), and Telegram live alerts widget.
+  - **Mobile & Telegram WebApp Optimization:** Full responsive collapse to single-column view with horizontal scrollable tour filter and zero horizontal overflow.
+  - **Verification:** Verified with clean TypeScript compilation (`npm run build` exits with code 0 in 3.94s) and verified in desktop (1440x900) and mobile (390x844) browser automation.
+
+- [x] **Dual Authentication & Professional Content Gating (`telegram-webapp`, `telegram-backend`, `state football`):**
+  - Integrated Google Sign-In & Google One-Tap alongside Telegram authentication in `telegram-webapp` (`useGoogleAuth.ts`).
+  - Added deterministic 53-bit safe integer mapping for Google user IDs in `telegram-backend` (`src/utils/googleAuth.ts`), fully backwards-compatible with SQLite `telegram_id` column without schema breakage.
+  - Replaced aggressive "VIP" buttons and badges across UI with a sophisticated soft-blur gating card on deep AI analytics and simulation metrics.
+  - Configured authorized Google OAuth Client ID (`173985810977-b1g3ggoaj4trki4q94pmcb6qnamfobit.apps.googleusercontent.com`) across environments.
+- [x] **State Football Telegram Admin Consolidation (`state football`):**
+  - Audited and purged redundant/dead code (1,227 lines deleted: removed `WebsiteTab.tsx` and legacy `SeoStudioTab.tsx`).
+  - Consolidated admin panel into 5 canonical tabs: (1) Predictions & Channel, (2) Editorial & Web Publishing, (3) Users & Directory, (4) Partners & Access Policy, (5) Server Config & Backups.
+- [x] **Complete Onboarding Flow & Automatic Registration Unlock (`telegram-webapp`, `telegram-backend`):**
+  - Resolved access gating by introducing `effectiveVerified`: any user who authenticates via Google OAuth or Telegram is immediately recognized as a registered member and granted full access to deep AI predictions and simulation models.
+  - Overhauled Step 2 of `ReferralModal.tsx`: added an explicit activation completion celebration state with confirmation messaging and direct "Complete Registration & Unlock Full Predictions" / "Start Viewing Predictions" action buttons, eliminating dead-end states.
+  - Updated `users.repo.ts` and database migrations in `telegram-backend` to ensure Google registrations persist with `is_verified = 1` and `verify_status = 'google_verified'`.
+  - Added robust syntax error handling for request JSON payloads in Express error middleware.
+  - Verified 100% clean builds across `telegram-backend` and `telegram-webapp` and pushed all changes to `origin/master`.
+
+- [x] **Match URL Direct Navigation & Crawler Routing Fix (`telegram-webapp`):**
+  - Resolved issue where directly entering/refreshing match URLs (e.g. `/match/:slug`) rendered barebones static HTML instead of the rich React WebApp.
+  - Updated `vercel.json` rewrites to only route bot and crawler user-agents (Googlebot, TelegramBot, Twitterbot, etc.) to the `/api/seo` prerender function, allowing human browsers to fall through to `/index.html`.
+  - Added user-agent check in `api/seo.js` to redirect interactive human browsers to `/match/:slug` and embedded a client-side SPA fallback.
+  - Enhanced `App.tsx` direct landing UX with a smooth match dossier loading skeleton and fallback single-match API fetch if the fixture is outside the active feed.
+  - Verified clean compilation and deployed to `origin/master`.
+
+- [x] **Player-Aligned Scores in Match Rows (`CompactMatchRow.tsx`, `index.css`):**
+  - Divided the Dedicated Score / Results column into two distinct rows horizontally aligned with each player's individual row (Home player on top, Away player on bottom).
+  - For live matches: Rendered separate SET, PTS, and GMS chips for Player 1 on the top row and for Player 2 on the bottom row.
+  - For finished matches: Rendered strictly the set count for each player on their respective row (e.g. SET 2 vs SET 0), highlighting the winner in green.
+  - Verified in live browser automation on `https://www.ptin-ai.com/` across Active (Live) and History (Finished) tabs.
+
+- [x] **PostgreSQL Phase 7: Quarantine-Safe AI Migration Execution Completed; Canonical Migration Remains Blocked (`scripts/run-postgres-phase-7-ai-migration.cjs`):**
+  - **Official Title:** `Phase 7 quarantine-safe execution completed; canonical migration remains blocked.`
+  - **Operational Freeze State:**
+    - `Phase 7 staging execution`: `CLOSED`
+    - `Quarantine ledger`: `ACCEPTED`
+    - `Canonical migration`: `BLOCKED`
+    - `Production read cutover`: `PROHIBITED`
+    - `Next unblock condition`: `authentic predictiontracesv1 export + canonical match crosswalk`
+  - **Formal Multi-Axis Verdicts:**
+    - `staging_execution`: `CLOSED`
+    - `safety_passed`: `true`
+    - `quarantine_complete`: `true`
+    - `evidence_lineage_passed`: `true`
+    - `migration_complete`: `false`
+    - `migration_coverage_pct`: `0`
+    - `production_cutover`: `PROHIBITED`
+    - `Pass 2 Idempotency`: **PASS** (Delta = +0 rows)
+    - `SQLite Immutability`: **PASS** ($\Delta = 0\text{ bytes}$)
+  - **Fixed Accounting Invariant:**
+    - `prediction_candidates`: 9 | `prediction_admitted`: 0 | `prediction_quarantined`: 9
+    - `editorial_candidates`: 3 | `editorial_admitted`: 0 | `editorial_quarantined`: 3
+    - `prediction_runs_admitted`: 0 | `agent_traces_admitted`: 0 | `migration_coverage_pct`: 0%
+  - **Permanent SQL Gate Invariants:**
+    - **Gate 1 (Orphan Review Rows — Threshold: 0):**
+      ```sql
+      SELECT COUNT(*) FROM provenance.review_queue rq LEFT JOIN raw.source_evidence se ON se.evidence_id = rq.incoming_evidence_id WHERE se.evidence_id IS NULL; -- Actual: 0
+      ```
+    - **Gate 2 (Evidence Lineage & Source/Hash Match — Threshold: 0):**
+      ```sql
+      SELECT COUNT(*) FROM provenance.review_queue rq JOIN raw.source_evidence se ON se.evidence_id = rq.incoming_evidence_id WHERE rq.incoming_source <> se.source_name OR rq.divergent_fields->>'payload_sha256' <> se.payload_sha256; -- Actual: 0
+      ```
+  - **Cryptographic Invariant & Canonical Serialization:** Implemented deterministic JSON stringification (`canonicalStringify`) with recursive key sorting and UTF-8 encoding. Confirmed $\text{SHA-256}(\text{canonical\_payload}) \equiv \texttt{ledger.payload\_sha256} \equiv \texttt{raw.source\_evidence.payload\_sha256}$ across all 12 candidate records with full 64-character lowercase hexadecimal representation and 0 mismatches.
+  - **Dual-Tier Raw Evidence Lineage:** Registered parent candidate snapshots (`BATCH:predictions`, `BATCH:match_editorials`) containing complete arrays in `payload_json`, alongside 12 dedicated individual rows in `raw.source_evidence` ensuring 100% FK resolution for `review_queue.incoming_evidence_id`.
+  - **Review Queue Enum Compliance:** Set `review_status = 'PENDING'` across all quarantined records, strictly complying with the frozen enum `provenance.review_status_type` without schema mutation, while encapsulating conflict classification in `veto_triggers` and `divergent_fields`.
+  - Evaluated 9 candidate predictions and 3 match editorials from legacy SQLite: quarantined all 12 unresolvable demo fixtures/participants to `quarantine-ledger.jsonl` and `provenance.review_queue` under `UNRESOLVED_CANONICAL_MATCH`.
+  - Zero-Fabrication Policy strictly certified: `synthetic_runs_created = 0`, `synthetic_traces_created = 0`, and `fabricated_timestamps = 0`.
+  - Published comprehensive specification [`docs/postgres-phase-7-ai-migration-spec.md`](file:///g:/telegram-backend/docs/postgres-phase-7-ai-migration-spec.md), official audit report [`docs/postgres-phase-7-ai-migration-report.md`](file:///g:/telegram-backend/docs/postgres-phase-7-ai-migration-report.md), and scratch manifests.
+
+- [x] **Authentic IndexedDB Multi-Agent Trace Telemetry Export & Schema Audit Completed (Read-Only) (`scripts/export-indexeddb-traces.cjs`, `scripts/audit-indexeddb-trace-export.cjs`):**
+  - Built read-only exporter `g:\state football\scripts\export-indexeddb-traces.cjs` connecting directly to Electron store (`prediction_traces_v1` -> `agent_traces`).
+  - Successfully extracted **411 authentic historical trace records** spanning from `2026-08-14T15:48:05.937Z` to `2026-09-10T12:14:14.628Z` without synthesizing timestamps or modifying storage.
+  - Export Package saved to `authentic_prediction_traces_export.json` (Size: 35.77 MB, SHA-256: `c6254fe9db31ffbb8c6eabee67f453810e8ea36d8f93d0be28be258c2868097a`).
+  - Built read-only schema audit script `g:\telegram-backend\scripts\audit-indexeddb-trace-export.cjs`:
+    - Verified 100% (411/411) `traceId`, `capturedAt`, `matchId`, and 5-agent execution array presence (`PHYSICAL`, `STATISTICAL`, `HISTORICAL`, `MARKET`, `CHIEF`).
+    - Verified 99.0% (407/411) complete 6/6 schema conformance (`dataSnapshot` + `finalDecision`). Exactly 4 early records flagged for quarantine due to missing snapshot.
+    - Successfully matched **339 / 411 traces (82.5%)** against genuine matches in local database.
+    - Maintained **0 PostgreSQL insertions** and **0 SQLite mutations**.
+    - Published comprehensive audit report [`scratch/postgres-phase-7-ai-migration/indexeddb-trace-audit-report.md`](file:///g:/telegram-backend/scratch/postgres-phase-7-ai-migration/indexeddb-trace-audit-report.md) and [`indexeddb-trace-audit-summary.json`](file:///g:/telegram-backend/scratch/postgres-phase-7-ai-migration/indexeddb-trace-audit-summary.json).
+
+- [x] **Trace Crosswalk Manifest Finalized & Phase 7 Multi-Mode Staging Ingestion Completed (`scripts/generate-trace-crosswalk-manifest.cjs`, `scripts/run-postgres-phase-7-ai-migration.cjs`):**
+  - **Crosswalk Manifest & Ledger (`scratch/postgres-phase-7-ai-migration/`):**
+    - Generated `trace-crosswalk-manifest.json`, `trace-quarantine-ledger.jsonl`, and `trace-crosswalk-summary.json`.
+    - 411 Total Traces Partitioned:
+      - `RESOLVED`: 335 clean traces (valid 6/6 payload + match in SQLite).
+      - `QUARANTINED_MISSING_PAYLOAD`: 4 early test traces (`pred_16805827`, `pred_16805834`, `pred_16806958`, `pred_16806962` lacking `dataSnapshot` and `finalDecision`).
+      - `QUARANTINED_UNRESOLVED_MATCH`: 72 traces (vendor fixture ID absent from SQLite).
+      - `REJECTED_DUPLICATE`: 0 traces.
+      - SQLite match hits: 339 ($335 + 4$).
+  - **Multi-Mode Runner Architecture:**
+    - Upgraded Phase 7 runner to support 3 distinct modes: `--mode audit`, `--mode staging`, `--mode verify`.
+    - `--mode audit`: Read-only, 0 PostgreSQL writes, verified.
+    - `--mode staging`: 8 pre-insert controls evaluated, admitted resolved runs/traces in transaction, dual-pass idempotency verified, cleanly shut down.
+    - `--mode verify`: Executed mandatory verification queries.
+  - **Pre-Insert Controls & Referential Filter:**
+    - 290 of the 335 candidate matches existed in staged `matches.matches` (Phase 4).
+    - 45 candidate matches were qualification tournament matches quarantined in Phase 4 due to unlinked editions; to prevent foreign key violation or orphan prediction runs, they were safely routed to `provenance.review_queue` as `MATCH_NOT_STAGED_IN_POSTGRES`.
+  - **Staging Database Verification:**
+    - `ai.predictionruns`: **290** rows.
+    - `ai.agenttraces`: **1,450** rows ($290 \times 5$).
+    - `ai.predictionruns r LEFT JOIN matches.matches m ... WHERE m.match_id IS NULL`: **0** orphans.
+    - `ai.agenttraces t LEFT JOIN ai.predictionruns r ... WHERE r.run_id IS NULL`: **0** orphans.
+    - Review Queue Evidence Linkages: **0** orphans.
+    - Pass 2 Delta: **+0** rows across all tables (100% idempotent).
+    - SQLite Immutability: $\Delta = 0\text{ bytes}$ for `database.sqlite` and `tennis_gold.sqlite`.
+  - **Operational State:**
+    - `export_verified: true`, `source_hash_verified: true`, `trace_count: 411`, `resolved_trace_count: 339`, `quarantined_trace_count: 72` (crosswalk) / `121` (staging execution), `staging_inserted: 290` runs / `1450` traces, `production_inserted: 0`, `production_cutover: PROHIBITED`.
+
+- [x] **Authoritative Canonical Match Crosswalk for Legacy Outputs & Unresolved Telemetry Generated (`scripts/generate-canonical-crosswalk-artifact.cjs`):**
+  - Artifacts generated:
+    - JSON: [`scratch/postgres-phase-7-ai-migration/canonical-match-crosswalk-for-legacy-outputs.json`](file:///g:/telegram-backend/scratch/postgres-phase-7-ai-migration/canonical-match-crosswalk-for-legacy-outputs.json)
+    - Documentation: [`docs/canonical-match-crosswalk-for-legacy-outputs.md`](file:///g:/telegram-backend/docs/canonical-match-crosswalk-for-legacy-outputs.md)
+    - Brain Artifact: `canonical_match_crosswalk_for_legacy_outputs.md`
+  - Forensic accounting of all 133 quarantined records:
+    - 9 legacy SQLite predictions (`SYNTHETIC_DEMO_FIXTURE_ABSENT_FROM_OFFICIAL_REGISTRY` / `NULL_VENDOR_FIXTURE_ID`).
+    - 3 legacy SQLite match editorials (`SYNTHETIC_DEMO_FIXTURE_ABSENT_FROM_OFFICIAL_REGISTRY`).
+    - 4 multi-agent traces missing mandatory payload (`MATCH_CROSSWALK_MISSING_PAYLOAD`).
+    - 72 multi-agent traces with unresolvable vendor fixtures (`MATCH_CROSSWALK_UNRESOLVED`).
+    - 45 multi-agent traces with matches unstaged in PostgreSQL (`MATCH_NOT_STAGED_IN_POSTGRES`).
+  - Strict zero-fabrication enforcement: 100% of candidate items retained in quarantine, zero synthetic entities created, and production read cutover strictly prohibited.
+
+- [x] **Milestone 27 Certified & Phase 7-B Staging Snapshot Frozen (Commit: `663c5ae428e39afa8f564519d4c627016ce4dac6`):**
+  - **Milestone Certification:** *"Crosswalk artifact accepted; canonical records not admitted; production cutover remains prohibited."*
+  - **Operational State:** `staging_execution = CLOSED`, `staging_snapshot = FROZEN`, `crosswalk_parity = PASS`, `quarantine_ledger = ACCEPTED`, `canonical_admission = 0`, `production_cutover = PROHIBITED`.
+  - **Authorizations State:** `dual_write = NOT_YET_AUTHORIZED`, `shadow_read = NOT_YET_AUTHORIZED`.
+  - **Independent Parity Audit (`scripts/verify-crosswalk-artifact-parity.cjs`):** 100% verified across JSON (133), Markdown ledger (133), and source quarantine ledgers with zero hash or UUID discrepancies.
+  - **Phase 8 Entry Gate Defined:** `phase_7_status: CLOSED`, `crosswalk_parity: PASS`, `quarantine_reconciliation: PASS`, `canonical_admission: 0`, `unresolved_parent_policy: DOCUMENTED`, `rollback_target: SQLITE`, `production_reads: SQLITE_ONLY`.
+
+## In Progress / Upcoming
+- [ ] Prepare Phase 8 Data-Access Layer Entry Gate (incremental repository connection to PostgreSQL with production read serving strictly from SQLite).
+- [ ] Resolve or record formal status for 45 qualification tournament matches in Phase 4.
+- [ ] Establish documented resolution path for 72 unresolved vendor fixtures without fuzzy force-linking.
+- [ ] Maintain operational freeze on production read paths (`production_cutover: PROHIBITED`).
+- [ ] Ongoing operational monitoring and maintenance.
+
+
+
+
+

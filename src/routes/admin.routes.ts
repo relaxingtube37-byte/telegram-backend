@@ -3,9 +3,14 @@ import { AdminController } from '../controllers/admin.controller';
 import { AnalysisController } from '../controllers/analysis.controller';
 import { requireAdminAuth } from '../middlewares/adminAuth';
 
+import { linkerAdminRoutes } from './linkerAdmin.routes';
+
 const router = Router();
 
 router.use(requireAdminAuth);
+
+// Linker Admin Review API (operates strictly on dedicated linker dry-run DB)
+router.use('/linker', linkerAdminRoutes);
 
 router.post('/analysis/ingest', AnalysisController.ingestAnalysis);
 router.get('/editorials', AnalysisController.listEditorials);

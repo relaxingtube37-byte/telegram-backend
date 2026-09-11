@@ -1,0 +1,154 @@
+{
+  "phase": 7,
+  "mode": "staging",
+  "target_engine": "Disposable Local PostgreSQL Staging (Port 54350)",
+  "execution_timestamp": "2026-09-11T10:50:34.153Z",
+  "duration_seconds": "62.31",
+  "official_verdict": {
+    "staging_execution": "CLOSED",
+    "staging_ingestion_snapshot": "COMPLETE",
+    "quarantine_ledger": "ACCEPTED",
+    "evidence_lineage": "PASSED",
+    "idempotency": "PASSED",
+    "canonical_migration": "BLOCKED",
+    "production_read_cutover": "PROHIBITED",
+    "next_required_artifact": "canonical_match_crosswalk_for_legacy_outputs"
+  },
+  "phase_transition": {
+    "phase_7_a": {
+      "title": "Quarantine-Only Staging Execution (Legacy Predictions & Editorials)",
+      "admitted_prediction_runs": 0,
+      "admitted_agent_traces": 0,
+      "quarantined_legacy_predictions": 9,
+      "quarantined_legacy_editorials": 3,
+      "legacy_prediction_editorial_coverage_pct": 0.0
+    },
+    "phase_7_b": {
+      "title": "Post-Export Isolated Staging Ingestion (Authentic IndexedDB Telemetry)",
+      "candidate_traces_evaluated": 411,
+      "admitted_prediction_runs": 290,
+      "admitted_agent_traces": 1450,
+      "indexeddb_trace_staging_coverage_pct": 70.56,
+      "indexeddb_trace_match_resolution_pct": 82.48,
+      "indexeddb_trace_canonical_admission_pct": 70.56,
+      "quarantined_traces": {
+        "missing_payload": 4,
+        "unresolved_vendor_fixture": 72,
+        "match_not_staged_in_postgres": 45,
+        "total_quarantined_traces": 121
+      },
+      "pass_2_delta": 0,
+      "production_cutover": "PROHIBITED"
+    }
+  },
+  "metrics": {
+    "total_traces_evaluated": 411,
+    "admitted_prediction_runs": 290,
+    "admitted_agent_traces": 1450,
+    "total_review_queue_records": 133,
+    "quarantined_legacy_records": 12,
+    "quarantined_traces": 121,
+    "quarantined_traces_missing_payload": 4,
+    "quarantined_traces_unresolved_fixture": 72,
+    "quarantined_traces_match_unstaged": 45,
+    "synthetic_runs_created": 0,
+    "synthetic_traces_created": 0,
+    "pass_2_delta": 0,
+    "sqlite_delta_bytes": 0,
+    "legacy_prediction_editorial_coverage_pct": 0.0,
+    "indexeddb_trace_staging_coverage_pct": 70.56,
+    "indexeddb_trace_match_resolution_pct": 82.48,
+    "indexeddb_trace_canonical_admission_pct": 70.56
+  },
+  "verification_queries": {
+    "total_prediction_runs": 290,
+    "total_agent_traces": 1450,
+    "orphan_prediction_runs": 0,
+    "orphan_agent_traces": 0,
+    "orphan_review_queue_rows": 0,
+    "review_queue_evidence_mismatches": 0
+  },
+  "quality_gates": [
+    {
+      "gate": "P7-G1",
+      "name": "Parent Match Linkage Fidelity",
+      "status": "PASS",
+      "details": "0 orphan prediction runs in ai.prediction_runs (100% resolve to matches.matches)."
+    },
+    {
+      "gate": "P7-G2",
+      "name": "Participant Integrity",
+      "status": "PASS",
+      "details": "100% of admitted prediction runs have valid predicted_winner_id in identity.players."
+    },
+    {
+      "gate": "P7-G3",
+      "name": "Anti-Lookahead Temporal Barrier",
+      "status": "PASS",
+      "details": "100% of admitted runs verified against scheduled kickoff time."
+    },
+    {
+      "gate": "P7-G4",
+      "name": "Zero Fabricated Timestamps",
+      "status": "PASS",
+      "details": "All timestamps derived from authentic ISO 8601 capturedAt."
+    },
+    {
+      "gate": "P7-G5",
+      "name": "JSONB Structural Parseability",
+      "status": "PASS",
+      "details": "feature_snapshot and parsed_output parse 100% cleanly as JSONB."
+    },
+    {
+      "gate": "P7-G6",
+      "name": "Prediction-to-Run Lineage Fidelity",
+      "status": "PASS",
+      "details": "100% referential integrity across admitted runs."
+    },
+    {
+      "gate": "P7-G7",
+      "name": "Canonical Agent Role Enum Conformance",
+      "status": "PASS",
+      "details": "100% of agent traces strictly adhere to (PHYSICAL, STATISTICAL, HISTORICAL, MARKET, CHIEF)."
+    },
+    {
+      "gate": "P7-G8",
+      "name": "Prompt & Raw Response Fidelity",
+      "status": "PASS",
+      "details": "System prompts, user prompts, reasoning, and raw responses preserved without truncation."
+    },
+    {
+      "gate": "P7-G9",
+      "name": "Zero Orphan Foreign Keys & Lineage",
+      "status": "PASS",
+      "details": "0 orphan runs (0), 0 orphan agent traces (0), 0 orphan review queue items (0)."
+    },
+    {
+      "gate": "P7-G10",
+      "name": "Dual-Pass Idempotency (Pass 2 No-Op)",
+      "status": "PASS",
+      "details": "Pass 2 produced exactly +0 rows; table MD5 hashes bitwise invariant."
+    },
+    {
+      "gate": "P7-G11",
+      "name": "Zero Fabrication Policy Enforcement",
+      "status": "PASS",
+      "details": "0 synthetic runs or traces manufactured; only authentic telemetry admitted."
+    },
+    {
+      "gate": "P7-G12",
+      "name": "Bitwise SQLite Source Immutability",
+      "status": "PASS",
+      "details": "database.sqlite and tennis_gold.sqlite delta = 0 bytes."
+    }
+  ],
+  "unresolved_architectural_gates": [
+    "Legacy predictions and match_editorials canonical migration (12 items quarantined)",
+    "Full canonical match crosswalk for all legacy rows",
+    "Recovery or disposition of the 72 unresolved traces",
+    "Resolution of the 45 traces whose matches are absent from the staged PostgreSQL match set",
+    "Production dual-write validation",
+    "SQLite/PostgreSQL API response parity",
+    "Production shadow-read parity"
+  ]
+}

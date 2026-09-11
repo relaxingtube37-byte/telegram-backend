@@ -16,14 +16,25 @@ import { buildResolvedContext } from './entityResolver';
 import { findCandidatesForMatch } from './candidateFinder';
 import { scoreCandidate } from './matchScorer';
 
+export interface MatchLinkerEngineOptions {
+  canonicalTableName?: 'canonical_matches' | 'canonical_matches_v2' | string;
+}
+
 export class MatchLinkerEngine {
-  constructor(private db: Database.Database) {
+  private canonicalTable: string;
+
+  constructor(private db: Database.Database, options: MatchLinkerEngineOptions = {}) {
     const fkEnabled = this.db.pragma('foreign_keys', { simple: true });
     if (fkEnabled !== 1) {
       throw new Error(
         'MatchLinkerEngine requires SQLite foreign keys to be enabled (PRAGMA foreign_keys = ON). Configure connection before initializing engine.'
       );
     }
+    this.canonicalTable = options.canonicalTableName === 'canonical_matches_v2' ? 'canonical_matches_v2' : (options.canonicalTableName || 'canonical_matches');
+  }
+
+  public getCanonicalTableName(): string {
+    return this.canonicalTable;
   }
 
   /**
@@ -60,7 +71,7 @@ export class MatchLinkerEngine {
     }
 
     // 4. Query candidate matches within symmetric +/- 1 day window
-    const candidates = findCandidatesForMatch(this.db, ctx);
+    const candidates = findCandidatesForMatch(this.db, ctx, this.canonicalTable);
 
     // If no candidate exists in the narrow window, create a new canonical match
     if (candidates.length === 0) {
@@ -146,16 +157,31 @@ export class MatchLinkerEngine {
   /**
    * Approves a pending review item, linking the incoming source to candidate canonical match.
    */
-  public approveReviewItem(reviewId: number, reviewer: string, reason = 'Manual verification confirmed'): LinkDecision {
+  public approveReviewItem(
+    reviewId: number,
+    reviewer: string,
+    reason = 'Manual verification confirmed',
+    expectedLockVersion?: number,
+    targetCanonicalId?: string
+  ): LinkDecision {
     return this.db.transaction(() => {
       const item = this.db.prepare(`SELECT * FROM match_review_queue WHERE review_id = ?`).get(reviewId) as any;
       if (!item) throw new Error(`Review item #${reviewId} not found`);
       if (item.review_status !== 'PENDING') throw new Error(`Review item #${reviewId} is already ${item.review_status}`);
 
+      if (expectedLockVersion !== undefined && item.lock_version !== expectedLockVersion) {
+        throw new Error(`Lock version conflict: review item #${reviewId} has lock_version ${item.lock_version}, expected ${expectedLockVersion}`);
+      }
+
+      const targetId = targetCanonicalId || item.candidate_canonical_id;
+      if (!targetId) {
+        throw new Error(`Cannot approve review item #${reviewId} without a candidate or target canonical match`);
+      }
+
       const candidate = this.db
-        .prepare(`SELECT * FROM canonical_matches WHERE canonical_match_id = ?`)
-        .get(item.candidate_canonical_id) as any;
-      if (!candidate) throw new Error(`Candidate canonical match ${item.candidate_canonical_id} not found`);
+        .prepare(`SELECT * FROM ${this.canonicalTable} WHERE canonical_match_id = ?`)
+        .get(targetId) as any;
+      if (!candidate) throw new Error(`Candidate canonical match ${targetId} not found`);
 
       const incomingBit = SOURCE_BITMASKS[item.incoming_source as SourceName] || 0;
 
@@ -163,10 +189,10 @@ export class MatchLinkerEngine {
       const res = this.db
         .prepare(
           `UPDATE match_review_queue 
-           SET review_status = 'APPROVED', resolved_at = CURRENT_TIMESTAMP, resolved_by = ?, lock_version = lock_version + 1
+           SET review_status = 'APPROVED', resolved_at = CURRENT_TIMESTAMP, resolved_by = ?, candidate_canonical_id = ?, lock_version = lock_version + 1
            WHERE review_id = ? AND lock_version = ?`
         )
-        .run(reviewer, reviewId, item.lock_version);
+        .run(reviewer, targetId, reviewId, item.lock_version);
       if (res.changes === 0) throw new Error(`Concurrent edit collision on review item #${reviewId}`);
 
       // 2. Insert link
@@ -190,7 +216,7 @@ export class MatchLinkerEngine {
       // 3. Update canonical match
       this.db
         .prepare(
-          `UPDATE canonical_matches 
+          `UPDATE ${this.canonicalTable} 
            SET source_mask = source_mask | ?,
                evidence_count = evidence_count + 1,
                updated_at = CURRENT_TIMESTAMP,
@@ -236,8 +262,8 @@ export class MatchLinkerEngine {
         )
         .run(
           reviewId,
-          JSON.stringify({ status: 'PENDING' }),
-          JSON.stringify({ status: 'APPROVED', canonicalMatchId: candidate.canonical_match_id }),
+          JSON.stringify({ status: 'PENDING', lock_version: item.lock_version }),
+          JSON.stringify({ status: 'APPROVED', lock_version: item.lock_version + 1, canonicalMatchId: candidate.canonical_match_id }),
           reviewer,
           reason
         );
@@ -256,20 +282,30 @@ export class MatchLinkerEngine {
   /**
    * Rejects a pending review item and creates an independent canonical match for the incoming source.
    */
-  public rejectReviewItem(reviewId: number, reviewer: string, reason = 'False positive match rejected'): string {
+  public rejectReviewItem(
+    reviewId: number,
+    reviewer: string,
+    reason = 'False positive match rejected',
+    expectedLockVersion?: number
+  ): string {
     return this.db.transaction(() => {
       const item = this.db.prepare(`SELECT * FROM match_review_queue WHERE review_id = ?`).get(reviewId) as any;
       if (!item) throw new Error(`Review item #${reviewId} not found`);
       if (item.review_status !== 'PENDING') throw new Error(`Review item #${reviewId} is already ${item.review_status}`);
 
+      if (expectedLockVersion !== undefined && item.lock_version !== expectedLockVersion) {
+        throw new Error(`Lock version conflict: review item #${reviewId} has lock_version ${item.lock_version}, expected ${expectedLockVersion}`);
+      }
+
       // 1. Update review status
-      this.db
+      const res = this.db
         .prepare(
           `UPDATE match_review_queue 
            SET review_status = 'REJECTED', resolved_at = CURRENT_TIMESTAMP, resolved_by = ?, lock_version = lock_version + 1
            WHERE review_id = ? AND lock_version = ?`
         )
         .run(reviewer, reviewId, item.lock_version);
+      if (res.changes === 0) throw new Error(`Concurrent edit collision on review item #${reviewId}`);
 
       // 2. Fetch raw evidence
       const ev = this.db
@@ -316,8 +352,23 @@ export class MatchLinkerEngine {
   /**
    * Splits a bad merge by detaching a specific source into its own distinct canonical match.
    */
-  public splitCanonicalMatch(canonicalMatchId: string, sourceToDetach: SourceName, reviewer: string, reason: string): string {
+  public splitCanonicalMatch(
+    canonicalMatchId: string,
+    sourceToDetach: SourceName,
+    reviewer: string,
+    reason: string,
+    expectedVersion?: number
+  ): string {
     return this.db.transaction(() => {
+      const canonical = this.db
+        .prepare(`SELECT * FROM ${this.canonicalTable} WHERE canonical_match_id = ?`)
+        .get(canonicalMatchId) as any;
+      if (!canonical) throw new Error(`Canonical match ${canonicalMatchId} not found`);
+
+      if (expectedVersion !== undefined && canonical.version !== expectedVersion) {
+        throw new Error(`Version conflict: canonical match ${canonicalMatchId} has version ${canonical.version}, expected ${expectedVersion}`);
+      }
+
       const link = this.db
         .prepare(`SELECT * FROM match_source_links WHERE canonical_match_id = ? AND source_name = ?`)
         .get(canonicalMatchId, sourceToDetach) as any;
@@ -334,7 +385,7 @@ export class MatchLinkerEngine {
       // 2. Decrement original canonical match
       this.db
         .prepare(
-          `UPDATE canonical_matches 
+          `UPDATE ${this.canonicalTable} 
            SET source_mask = source_mask & ~?,
                evidence_count = MAX(1, evidence_count - 1),
                updated_at = CURRENT_TIMESTAMP,
@@ -447,7 +498,7 @@ export class MatchLinkerEngine {
       // 3. Update Canonical Match
       this.db
         .prepare(
-          `UPDATE canonical_matches 
+          `UPDATE ${this.canonicalTable} 
            SET source_mask = source_mask | ?,
                evidence_count = evidence_count + 1,
                canonical_score = CASE WHEN ? THEN ? ELSE canonical_score END,
@@ -547,18 +598,23 @@ export class MatchLinkerEngine {
   }
 
   private ensureEntitiesExist(ctx: ResolvedMatchContext): void {
+    const gender = ctx.incoming.tour === 'WTA' ? 'F' : 'M';
+    const tourneyLevel =
+      ctx.incoming.tour === 'CHALLENGER' ? 'CHALLENGER' : ctx.incoming.tour === 'ITF' ? 'ITF' : 'ATP_250';
+
     // 1. Ensure tournament exists
     const tourneyId = ctx.canonicalTourneyId || 'ct_unknown';
     this.db
       .prepare(
         `INSERT OR IGNORE INTO canonical_tournaments (
            canonical_tourney_id, name_standard, tour, tour_level, default_surface
-         ) VALUES (?, ?, ?, 'ATP_250', ?)`
+         ) VALUES (?, ?, ?, ?, ?)`
       )
       .run(
         tourneyId,
         ctx.incoming.rawTournamentName || 'Unknown Tournament',
         ctx.incoming.tour,
+        tourneyLevel,
         ctx.surface
       );
 
@@ -573,7 +629,7 @@ export class MatchLinkerEngine {
         ctx.player1CanonicalId,
         ctx.incoming.rawPlayer1,
         ctx.incoming.rawPlayer1.split(' ').pop() || ctx.incoming.rawPlayer1,
-        ctx.incoming.gender
+        gender
       );
 
     // 3. Ensure player 2 exists
@@ -587,7 +643,7 @@ export class MatchLinkerEngine {
         ctx.player2CanonicalId,
         ctx.incoming.rawPlayer2,
         ctx.incoming.rawPlayer2.split(' ').pop() || ctx.incoming.rawPlayer2,
-        ctx.incoming.gender
+        gender
       );
   }
 
@@ -605,7 +661,7 @@ export class MatchLinkerEngine {
       // 1. Insert Canonical Match
       this.db
         .prepare(
-          `INSERT OR IGNORE INTO canonical_matches (
+          `INSERT OR IGNORE INTO ${this.canonicalTable} (
              canonical_match_id, match_date, tour, canonical_tourney_id,
              surface, round_name, player_low_id, player_high_id,
              match_status, winner_canonical_id, loser_canonical_id, canonical_score,

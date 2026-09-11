@@ -3,8 +3,10 @@ import type { CanonicalMatchCandidate, ResolvedMatchContext } from './types';
 
 export function findCandidatesForMatch(
   db: Database.Database,
-  ctx: ResolvedMatchContext
+  ctx: ResolvedMatchContext,
+  canonicalTableName: string = 'canonical_matches'
 ): CanonicalMatchCandidate[] {
+  const table = canonicalTableName === 'canonical_matches_v2' ? 'canonical_matches_v2' : 'canonical_matches';
   // Query strictly on symmetric pair (player_low_id, player_high_id) within +/- 1 day
   const sql = `
     SELECT 
@@ -23,7 +25,7 @@ export function findCandidatesForMatch(
       source_mask AS sourceMask,
       evidence_count AS evidenceCount,
       version
-    FROM canonical_matches
+    FROM ${table}
     WHERE player_low_id = @playerLowId
       AND player_high_id = @playerHighId
       AND match_date BETWEEN date(@matchDate, '-1 day') AND date(@matchDate, '+1 day')

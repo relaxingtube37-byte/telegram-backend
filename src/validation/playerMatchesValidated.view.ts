@@ -204,7 +204,7 @@ SELECT
   END AS is_roi_usable
 FROM player_match_index pmi
 INNER JOIN tracked_players tp ON tp.id = pmi.tracked_player_id AND tp.is_active = 1
-LEFT JOIN canonical_matches h ON h.source_a_historical_match_id = pmi.historical_match_id
+LEFT JOIN canonical_matches_operational h ON h.source_a_historical_match_id = pmi.historical_match_id
 `;
 
 export const CANONICAL_MODELING_MATCHES_2024_PLUS_VIEW_SQL = `

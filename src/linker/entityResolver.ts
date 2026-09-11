@@ -58,15 +58,17 @@ export function resolvePlayer(
     return { hasSiblingAmbiguity: false, isVerified: false };
   }
 
-  // 1. Direct alias match
+  // 1. Direct alias match (source-specific first, then catalog/canonical aliases)
   const alias = db
     .prepare(
       `SELECT canonical_player_id, is_verified, has_sibling_conflict
        FROM player_aliases
-       WHERE source_name = ? AND (raw_name = ? OR normalized_token = ?)
+       WHERE (source_name = ? OR source_name IN ('canonical', 'catalog', 'historical', 'normalized', 'reversed', 'abbreviated', 'csv_style'))
+         AND (raw_name = ? OR normalized_token = ?)
+       ORDER BY CASE WHEN source_name = ? THEN 1 ELSE 2 END, is_verified DESC
        LIMIT 1`
     )
-    .get(sourceName, rawName, clean) as any;
+    .get(sourceName, rawName, clean, sourceName) as any;
 
   if (alias) {
     return {
@@ -94,17 +96,19 @@ export function resolvePlayer(
     };
   }
 
-  // 3. Sibling ambiguity check by last name token
-  const lastNameToken = clean.split(' ').pop();
-  if (lastNameToken && lastNameToken.length >= 4) {
-    const siblings = db
-      .prepare(
-        `SELECT canonical_player_id FROM canonical_players WHERE lower(last_name) = ?`
-      )
-      .all(lastNameToken) as any[];
+  // 3. Sibling ambiguity check across name tokens (handles "First Last", "Last First", and "Last Initial")
+  const tokens = clean.split(' ');
+  for (const tok of tokens) {
+    if (tok.length >= 4) {
+      const siblings = db
+        .prepare(
+          `SELECT canonical_player_id FROM canonical_players WHERE lower(last_name) = ?`
+        )
+        .all(tok) as any[];
 
-    if (siblings.length > 1) {
-      return { hasSiblingAmbiguity: true, isVerified: false };
+      if (siblings.length > 1) {
+        return { hasSiblingAmbiguity: true, isVerified: false };
+      }
     }
   }
 
@@ -127,15 +131,17 @@ export function resolveTournament(
     return { isVerified: false, hasAmbiguity: true };
   }
 
-  // 1. Direct alias match
+  // 1. Direct alias match (source-specific first, then catalog/canonical aliases)
   const alias = db
     .prepare(
       `SELECT canonical_tourney_id, is_verified
        FROM tournament_aliases
-       WHERE source_name = ? AND (raw_name = ? OR normalized_token = ?)
+       WHERE (source_name = ? OR source_name IN ('canonical', 'catalog', 'historical'))
+         AND (raw_name = ? OR normalized_token = ?)
+       ORDER BY CASE WHEN source_name = ? THEN 1 ELSE 2 END, is_verified DESC
        LIMIT 1`
     )
-    .get(sourceName, rawName, clean) as any;
+    .get(sourceName, rawName, clean, sourceName) as any;
 
   if (alias) {
     return {
@@ -145,7 +151,36 @@ export function resolveTournament(
     };
   }
 
-  // 2. Canonical tournaments standard name match
+  // 2. Stripped alias match (remove common qualifiers like "- Paris, FRA" or "ATP")
+  const stripped = rawName
+    .replace(/\s*,\s*.*$/, '')
+    .replace(/\s*-\s*.*$/, '')
+    .replace(/\s+(ATP|WTA|Challenger|ITF)$/i, '')
+    .trim();
+  const cleanStripped = normalizeToken(stripped);
+
+  if (cleanStripped && cleanStripped !== clean) {
+    const strippedAlias = db
+      .prepare(
+        `SELECT canonical_tourney_id, is_verified
+         FROM tournament_aliases
+         WHERE (source_name = ? OR source_name IN ('canonical', 'catalog', 'historical'))
+           AND (raw_name = ? OR normalized_token = ?)
+         ORDER BY CASE WHEN source_name = ? THEN 1 ELSE 2 END, is_verified DESC
+         LIMIT 1`
+      )
+      .get(sourceName, stripped, cleanStripped, sourceName) as any;
+
+    if (strippedAlias) {
+      return {
+        canonicalTourneyId: strippedAlias.canonical_tourney_id,
+        isVerified: strippedAlias.is_verified === 1,
+        hasAmbiguity: false,
+      };
+    }
+  }
+
+  // 3. Canonical tournaments standard name match
   const canon = db
     .prepare(
       `SELECT canonical_tourney_id FROM canonical_tournaments WHERE lower(name_standard) = ?`
