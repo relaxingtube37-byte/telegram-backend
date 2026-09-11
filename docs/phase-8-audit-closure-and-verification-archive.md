@@ -33,6 +33,25 @@ During earlier verification reporting, `data/tennis_gold.sqlite` was reported as
 | **Backend Placeholder File** | `G:/telegram-backend/data/tennis_gold.sqlite` | `true` | **0** | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | **VERIFIED** |
 | **Non-Existent Path** | `../state-football/data/tennisgold.sqlite` | `false` | `null` | `null` | **NOT_VERIFIED** |
 
+### Explicit Non-Interchangeable Source Role Classification:
+```json
+{
+  "backend_placeholder": {
+    "path": "G:/telegram-backend/data/tennis_gold.sqlite",
+    "bytes": 0,
+    "role": "non-authoritative placeholder"
+  },
+  "authoritative_desktop_gold": {
+    "path": "G:/state football/data/tennis_gold.sqlite",
+    "bytes": 283303936,
+    "role": "authoritative desktop source"
+  }
+}
+```
+
+> [!CAUTION]
+> The backend placeholder (`G:/telegram-backend/data/tennis_gold.sqlite`) and the authoritative Desktop Gold database (`G:/state football/data/tennis_gold.sqlite`) are **NOT INTERCHANGEABLE**. The desktop gold database contains point-by-point (PBP), set statistics, telemetry, and player-profile datasets essential for canonical baseline parity. Checksums and byte counts are permanently locked in versioned baseline manifest [`docs/source_baseline_manifest_v1.json`](file:///g:/telegram-backend/docs/source_baseline_manifest_v1.json).
+
 ### Immutability Delta:
 ```json
 {

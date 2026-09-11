@@ -267,6 +267,29 @@
       }
       ```
 
+34. **Authoritative Source Baseline Manifest & Phase 9 Dual-Write Design Review Boundaries:**
+    - **Source Non-Interchangeability & Baseline Lock:**
+      - Established versioned manifest [`docs/source_baseline_manifest_v1.json`](file:///g:/telegram-backend/docs/source_baseline_manifest_v1.json) permanently locking the authoritative Desktop Gold database (`G:/state football/data/tennis_gold.sqlite`, 283,303,936 bytes, SHA-256 `2951176b1fc7da0db250b42e53976c67a25aca59bcf0175706599e30e816c086`) and Backend primary SQLite (`G:/telegram-backend/data/database.sqlite`, 545,468,416 bytes, SHA-256 `4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358`).
+      - Formally classified `data/tennis_gold.sqlite: 0 bytes` as an unpopulated local placeholder file, non-interchangeable with the authoritative desktop source.
+    - **Phase 8 Staging Audit Closure:** Formally accepted with 7/7 follow-up checks passing, including live reads through all 4 PostgreSQL adapters and 100% mutation method assertion.
+    - **Phase 9 Scope & Design Review (`docs/phase-9-dual-write-architecture-and-design-review.md`):**
+      - Dual-write is currently **PROHIBITED** across all production execution paths.
+      - Approved for architectural design review and staging harness preparation only.
+      - Recommended architecture: Option B (Asynchronous Buffered Outbox Queue with in-memory DLQ buffer and auto-tripping circuit breaker) guaranteeing 0ms latency impact and complete fail-closed safety for primary SQLite transactions.
+    - **Authoritative Operational State:**
+      ```json
+      {
+        "phase_7_staging": "CLOSED_ACCEPTED",
+        "phase_8_staging_data_access": "COMPLETED_CERTIFIED",
+        "phase_8_audit_closure": "ACCEPTED",
+        "phase_9_dual_write": "PROHIBITED",
+        "production_reads": "SQLITE_ONLY",
+        "production_shadow_reads": "PROHIBITED",
+        "production_cutover": "PROHIBITED",
+        "sqlite_retirement": "PROHIBITED"
+      }
+      ```
+
 
 
 

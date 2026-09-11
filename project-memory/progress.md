@@ -366,10 +366,21 @@
   - **Mutation Prohibition Asserted:** 9/9 write methods throw `POSTGRES_MUTATION_PROHIBITED`.
   - **Consolidated Archive Generated:** Full audit evidence consolidated in `docs/phase-8-audit-closure-and-verification-archive.md`.
 
+- [x] **Authoritative Source Baseline Manifest (v1.0.0) Locked & Phase 9 Design Review Prepared (`docs/source_baseline_manifest_v1.json`, `docs/phase-9-dual-write-architecture-and-design-review.md`):**
+  - **Versioned Baseline Manifest (`docs/source_baseline_manifest_v1.json`):**
+    - Canonical desktop Gold DB: `G:/state football/data/tennis_gold.sqlite` (283,303,936 bytes, SHA-256 `2951176b1fc7da0db250b42e53976c67a25aca59bcf0175706599e30e816c086`).
+    - Primary backend DB: `G:/telegram-backend/data/database.sqlite` (545,468,416 bytes, SHA-256 `4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358`).
+    - Explicit non-interchangeable labelling enforced between authoritative desktop DB and local placeholder.
+  - **Phase 9 Dual-Write Design Review (`docs/phase-9-dual-write-architecture-and-design-review.md`):**
+    - Architectural design review published for Asynchronous Outbox Buffer (Option B).
+    - Dual-write remains strictly **PROHIBITED** across all production environments.
+    - Proposed staging harness includes DLQ audit ledger, circuit breaker auto-trip, and <5 second instant rollback disarm.
+
 ## In Progress / Upcoming
 - [ ] Maintain operational freeze on production read paths (`production_reads: SQLITE_ONLY`, `production_cutover: PROHIBITED`).
-- [ ] Prepare Phase 9 Dual-Write Architecture Specification (staging branch harness only; dual-write remains PROHIBITED until authorized).
+- [ ] Await formal user review and authorization for Phase 9 staging dual-write harness execution.
 - [ ] Ongoing operational monitoring and staging readiness governance.
+
 
 
 

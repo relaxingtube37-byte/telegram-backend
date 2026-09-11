@@ -103,6 +103,14 @@
     - `check_4_rollback_circuit_breaker`: PostgreSQL downtime suppressed with 0ms interruption; SQLite primary read returned in 2ms.
     - `check_5_live_adapter_reads`: Live queries executed against `ai.predictionruns`, `predictions.match_editorials`, `identity.players`, `matches.matches` on port 54350.
     - `check_6_mutation_prohibition`: 9/9 mutation methods throw exact `POSTGRES_MUTATION_PROHIBITED` error.
-    - `check_7_overall_certification`: Archival package consolidated in `docs/phase-8-audit-closure-and-verification-archive.md`.
+- **Note 16: Versioned Baseline Manifest (v1.0.0) & Phase 9 Design Review Scope:**
+  - **Versioned Baseline Manifest (`docs/source_baseline_manifest_v1.json`):**
+    - Authoritative Desktop Gold DB (`G:/state football/data/tennis_gold.sqlite`): 283,303,936 bytes, SHA-256 `2951176b1fc7da0db250b42e53976c67a25aca59bcf0175706599e30e816c086`.
+    - Primary Backend DB (`G:/telegram-backend/data/database.sqlite`): 545,468,416 bytes, SHA-256 `4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358`.
+    - Explicitly designated non-interchangeable with the 0-byte local placeholder `data/tennis_gold.sqlite`.
+  - **Phase 9 Dual-Write Design Review (`docs/phase-9-dual-write-architecture-and-design-review.md`):**
+    - Dual-write remains strictly **PROHIBITED** across all production paths.
+    - Proposed architecture: Asynchronous Outbox Buffer (Option B) with non-blocking staging worker and auto-tripping circuit breaker to guarantee zero user latency and zero regression risk.
+    - Rollback disarm guaranteed in under 5 seconds via `ENABLE_STAGING_DUAL_WRITE=false`.
 
 

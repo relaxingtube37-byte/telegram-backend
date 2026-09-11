@@ -1,0 +1,45 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_at": "2026-09-11T16:55:00.000Z",
+  "phase_milestone": "Phase 8 Closed / Phase 9 Design Review Pre-requisite",
+  "governance_policy": "Fail-Closed Immutability Verification (Phase 0 Standard)",
+  "interchangeability_warning": "CRITICAL: The backend placeholder and authoritative desktop gold database are NOT interchangeable. The desktop gold database contains deep point-by-point (PBP), set-statistics, and telemetry data not present in the backend placeholder.",
+  "sources": {
+    "authoritative_desktop_gold": {
+      "path": "G:/state football/data/tennis_gold.sqlite",
+      "relative_path_from_backend": "../state football/data/tennis_gold.sqlite",
+      "role": "authoritative desktop source (PBP, set-statistics, telemetry, player profiles)",
+      "exists": true,
+      "bytes": 283303936,
+      "sha256": "2951176b1fc7da0db250b42e53976c67a25aca59bcf0175706599e30e816c086",
+      "immutability_status": "VERIFIED_LOCKED"
+    },
+    "backend_primary_sqlite": {
+      "path": "G:/telegram-backend/data/database.sqlite",
+      "relative_path_from_backend": "data/database.sqlite",
+      "role": "authoritative primary backend production database",
+      "exists": true,
+      "bytes": 545468416,
+      "sha256": "4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358",
+      "immutability_status": "VERIFIED_LOCKED"
+    },
+    "backend_placeholder": {
+      "path": "G:/telegram-backend/data/tennis_gold.sqlite",
+      "relative_path_from_backend": "data/tennis_gold.sqlite",
+      "role": "non-authoritative placeholder (empty local file)",
+      "exists": true,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "immutability_status": "NON_AUTHORITATIVE_PLACEHOLDER"
+    },
+    "invalid_hyphenated_path": {
+      "path": "G:/state-football/data/tennisgold.sqlite",
+      "relative_path_from_backend": "../state-football/data/tennisgold.sqlite",
+      "role": "non-existent path (tested for fail-closed validation)",
+      "exists": false,
+      "bytes": null,
+      "sha256": null,
+      "immutability_status": "NOT_VERIFIED"
+    }
+  }
+}
