@@ -127,4 +127,7 @@
     - P9-G12: Production Credential Rejection (`PRODUCTION_TARGET_PROHIBITED`).
     - P9-G13: Payload Sanitization (credentials/tokens scrubbed).
     - P9-G14: Crash Recovery State Preservation (committed outbox events survive restarts).
-  - **Operational Policy:** Staging execution certified on Port 54350. Dual-write in production remains strictly **PROHIBITED**.
+- **Note 18: Phase 10 Staging Shadow-Read Parity Preparation Scope:**
+  - **Status:** Authorized for staging preparation only. Production shadow reads and cutover remain strictly prohibited.
+  - **Scope:** Instrumenting field-by-field asynchronous comparison across predictions, editorials, player profiles, and match listings without modifying client-facing SQLite responses.
+  - **7 Required Gates:** Canonical SQLite response, asynchronous comparator execution, field-level parity rate (>=99%), P95 latency delta budget (<=25ms), mismatch audit ledger (`shadow_mismatch_ledger.jsonl`), hard disable switch (<10ms disarm), zero user-visible response drift.

@@ -309,8 +309,26 @@
         "production_shadow_reads": "PROHIBITED",
         "production_cutover": "PROHIBITED",
         "sqlite_retirement": "PROHIBITED"
+36. **Phase 10 Staging Shadow-Read Parity Preparation Authorization & Gate Criteria:**
+    - **Governing Status Update:** Phase 9 staging dual-write accepted; Phase 10 authorized for staging preparation only. Production reads remain `SQLITE_ONLY`; production shadow reads and production cutover remain prohibited.
+    - **Operational Boundary State:**
+      ```json
+      {
+        "phase_8_audit_closure": "ACCEPTED",
+        "phase_9_design_review": "IMPLEMENTED_AND_VERIFIED",
+        "phase_9_staging_dual_write": "ACCEPTED",
+        "phase_10_shadow_reads": "AUTHORIZED_FOR_STAGING_PREPARATION",
+        "production_reads": "SQLITE_ONLY",
+        "production_shadow_reads": "PROHIBITED",
+        "production_cutover": "PROHIBITED",
+        "sqlite_retirement": "PROHIBITED"
       }
       ```
-
-
-
+    - **Phase 10 Minimum Gate Set:**
+      1. P10-G1: SQLite-served response remains canonical (zero client mutation).
+      2. P10-G2: PostgreSQL comparator runs asynchronously only (non-blocking, zero client latency impact).
+      3. P10-G3: Field-level parity rate per domain/endpoint (deep field diff; target >= 99%).
+      4. P10-G4: P95 latency delta budget (0.00ms added primary latency; shadow P95 <= 25ms).
+      5. P10-G5: Mismatch ledger with payload hashes (`shadow_mismatch_ledger.jsonl`).
+      6. P10-G6: Hard disable switch for comparator reads (<10ms disarm).
+      7. P10-G7: Zero user-visible response drift across public API endpoints.
