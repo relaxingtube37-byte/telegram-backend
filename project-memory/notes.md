@@ -189,6 +189,16 @@
   - **P11-DR-G5 (Disarm Benchmark SLA & In-Flight Cancellation):** 10,000 iterations, p50 0.0693ms, p99 0.1645ms, max 3.4476ms; 50,000 in-flight tasks cancelled; 0 errors.
   - **P11-DR-G6 (Official Staging Evidence Bundle Packaging):** Staging evidence package generated at `docs/evidence/phase-11-staging-dry-run-evidence-bundle.json` with status `UNSIGNED` and bundle SHA-256 `6e7d27cb...`.
   - **Governance Invariants:** Pre-cutover authorization remains `NOT_GRANTED`. Production reads remain strictly `SQLITE_ONLY`. Live Render database remains classified as `UNKNOWN_DELTA`.
+- **Note 26: Formal Interpretation of Phase 11 Staging Limitations & Baseline Retention:**
+  - **Verdict:** GO for Staging Dry-Run Baseline & Evidence Preparation; NO-GO for All Production Operations.
+  - **5 Limitations Formally Codified:**
+    1. Local backup is a staging evidence artifact, not an authoritative Render live volume backup.
+    2. Local empty outbox does not prove zero lag or queue state on live Render.
+    3. Isolated settlement guard test proves mechanism integrity, not live user/referral reconciliation.
+    4. Local 0.0693ms disarm SLA applies to staging runtime, not Render production container scheduling.
+    5. Structural difference between backend SQLite and Desktop Gold remains an active parity consideration.
+  - **Baseline:** Commit `25fc568` locked as the staging baseline. Evidence bundle remains `UNSIGNED`. Production reads remain 100% `SQLITE_ONLY`.
+
 
 
 

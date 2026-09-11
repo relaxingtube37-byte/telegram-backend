@@ -520,6 +520,34 @@
     - Production reads remain 100% `SQLITE_ONLY`.
     - Live Render database remains classified as `UNKNOWN_DELTA`.
     - Pre-cutover authorization remains `NOT_GRANTED`.
+- **Decision 45 (2026-09-11): Phase 11 Staging Dry-Run Certification Audit, Limitations Interpretation & Operational Boundary (GO for Staging Dry-Run / NO-GO for Production)**
+  - **Context:** Formal user audit of Phase 11 Staging Dry-Run execution (Commit `25fc568`), certifying all 6 acceptance gates while formally codifying operational limitations and maintaining zero-production-impact boundaries.
+  - **Verdict:** STAGING_DRY_RUN_CERTIFIED (GO for Staging Dry-Run Baseline & Evidence Preparation; NO-GO for All Production Operations).
+  - **Mandatory Binding Governance State Matrix:**
+    ```json
+    {
+      "phase_11_design_review": "DRAFTED_FOR_REVIEW",
+      "phase_11_pre_cutover_authorization": "NOT_GRANTED",
+      "phase_11_production_canary": "PROHIBITED",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **Formal Architectural Interpretation of Limitations:**
+    1. **Staging Artifact Boundary:** The backup produced from `data/database.sqlite` (519,815,168 bytes, SHA-256 `4fb9c0ec...`) is strictly a staging/local verification artifact, NOT an authoritative backup of live Render production.
+    2. **Outbox State Disconnection:** A zero-count outbox in local development does not prove the state, pending backlog, or failure queue of Render live outbox.
+    3. **Settlement Scope:** The duplicate settlement guard demonstrated correct suppression in the test harness, but live validation against actual Render user registrations, referral postbacks, and published Telegram messages remains pending live snapshot extraction.
+    4. **Runtime Disarm Decoupling:** The 0.0693ms P50 disarm latency certifies the code and Node.js event-loop in staging; it cannot be equated with Render production container scheduling or multi-tenant CPU limits.
+    5. **Desktop Gold Structural Divergence:** The structural differences between backend SQLite and Desktop Gold (`gold_matches_validated`) remain an active parity consideration.
+  - **Authoritative Baseline Commitment:**
+    - Commit `25fc568` is locked as the baseline of Phase 11 staging dry-run execution.
+    - Evidence bundle `docs/evidence/phase-11-staging-dry-run-evidence-bundle.json` remains strictly `UNSIGNED` pending independent human review.
+    - Production reads remain 100% `SQLITE_ONLY`.
+    - Live Render database remains classified as `UNKNOWN_DELTA`.
+    - Zero local data to be written to Render Production; zero routing changes; zero `DATABASE_ENGINE` mutations; zero SQLite retirement.
+
 
 
 
