@@ -411,7 +411,16 @@
     - P10-G7 (Zero User-Visible Response Drift): Bitwise identical response SHA-256 digests across public read endpoints.
   - **Zero Regression:** 14/14 Phase 9 dual-write gates pass; 26/26 backend diagnostic tests pass; 0 TypeScript compilation errors.
 
-## In Progress / Upcoming
-- [ ] Maintain operational freeze on production read paths (`production_reads: SQLITE_ONLY`, `production_cutover: PROHIBITED`).
-- [ ] Dual-write and shadow-reads remain strictly **PROHIBITED** in production until final migration cutover review.
-- [ ] Next Step: Phase 11 Staging shadow-read burn-in monitoring & telemetry aggregation.
+## In Progress / Upcoming (Phase 10 Staging Parity Hardening & Mismatch Closure Track)
+- [x] Phase 10 Staging Shadow-Read Instrumentation & Verification: **STAGING_CERTIFIED** (7/7 Gates Passed).
+- [ ] Maintain strict operational freeze on production read paths (`production_reads: SQLITE_ONLY`, `production_cutover: PROHIBITED`).
+- [ ] Dual-write and shadow-reads remain strictly **PROHIBITED** in production.
+- [ ] **Next Authorized Milestone: Phase 10 Staging Parity Hardening & Mismatch Closure Suite (8 Required Gates):**
+  - [ ] Gate 1: Endpoint Coverage (Test all public response paths beyond repository methods: `/api/predictions/feed`, `/api/editorials/:slug`, `/api/players/:slug`, `/api/matches/tracked/:id`, `/api/web/tournaments/today`).
+  - [ ] Gate 2: Large-Sample Parity (Compare >= 1,000 representative requests per major endpoint: empty, populated, locked, settled, malformed).
+  - [ ] Gate 3: Mismatch Closure (Classify all 31+ ledger mismatches across the 5 categories; zero unexplained mismatches).
+  - [ ] Gate 4: Staging Freshness (Record PostgreSQL snapshot ID and outbox watermark per parity run).
+  - [ ] Gate 5: Load Behavior (Verify comparator backlog, pool saturation, and memory growth during sustained traffic).
+  - [ ] Gate 6: Restart Safety (Prove shadow errors, worker restarts, and PG recovery cannot affect SQLite client responses).
+  - [ ] Gate 7: Security Audit (Confirm ledger payloads scrub credentials, auth headers, private user data, and AI reasoning).
+  - [ ] Gate 8: Rollback Exercise (Rapid comparator disarm and pre-shadow path restoration).

@@ -141,4 +141,22 @@
   - **P10-G6 (Hard Disable Switch):** Evaluated in 0.045ms (<10ms target); zero background comparisons when disabled; production lock enforced.
   - **P10-G7 (Zero User-Visible Response Drift):** 100% SHA-256 match on public read endpoints with shadow ON vs OFF.
   - **Optimizations:** Scoped `PostgresPredictionsAdapter` queries with CTE (`WITH r AS (SELECT * FROM ai.predictionruns ...)`), dropping execution planning time from 79.5ms to 1.5ms.
+- **Note 20: Phase 10 Formal Acceptance & Authorization of Staging Parity Hardening:**
+  - **Verdict:** Phase 10 accepted and certified for STAGING (`phase_10_shadow_reads: STAGING_CERTIFIED`).
+  - **Divergence Classification Taxonomy (5 Categories):**
+    1. Expected identifier or representation normalization (UUID vs numeric fixture ID, ISO date formats, floating-point precision).
+    2. Missing staging row (unmigrated or unseeded staging records like match editorials or player profiles).
+    3. Schema or adapter mapping defect.
+    4. Genuine source-data divergence.
+    5. Test-fixture or stale-staging artifact.
+  - **Required Next Gates (8-Gate Suite for Staging Parity Hardening):**
+    1. `gate_1_endpoint_coverage`: Test all public HTTP response paths, not just repository methods.
+    2. `gate_2_large_sample_parity`: Compare >= 1,000 representative requests per major endpoint (empty, populated, locked, settled, malformed).
+    3. `gate_3_mismatch_closure`: Zero unexplained mismatches; documented normalization rules for all expected differences.
+    4. `gate_4_staging_freshness`: Record PostgreSQL staging snapshot ID and outbox watermark per parity run.
+    5. `gate_5_load_behavior`: Verify comparator backlog, connection pool saturation, and memory growth during sustained traffic.
+    6. `gate_6_restart_safety`: Prove shadow errors, worker restarts, and PG recovery cannot affect SQLite client responses.
+    7. `gate_7_security_audit`: Confirm ledger payloads scrub credentials, auth headers, private user data, and AI reasoning.
+    8. `gate_8_rollback_exercise`: Disable comparator and restore pre-shadow repository path within documented rollback target.
+
 

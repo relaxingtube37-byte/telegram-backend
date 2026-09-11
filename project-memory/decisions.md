@@ -355,3 +355,39 @@
     - SQLite retirement remains strictly `PROHIBITED`.
     - Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant.
 
+- **Decision 38 (2026-09-11): Phase 10 Formal Acceptance & Authorization of Staging Parity Hardening**
+  - **Context:** Formal acceptance review of Phase 10 Staging Shadow-Read Parity Certification.
+  - **Verdict:** ACCEPTED & STAGING_CERTIFIED.
+  - **Governing Authorization State:**
+    ```json
+    {
+      "phase_8_audit_closure": "ACCEPTED",
+      "phase_9_design_review": "IMPLEMENTED_AND_VERIFIED",
+      "phase_9_staging_dual_write": "ACCEPTED",
+      "phase_10_shadow_reads": "STAGING_CERTIFIED",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **Mismatch Interpretation & Taxonomy:** The 31 divergence ledger entries are recognized as empirical divergence tracking (not a verification failure). Before production authorization, all mismatches must be classified into the 5-category taxonomy:
+    1. Expected identifier or representation normalization (UUID vs integer, ISO string format, floating point epsilon).
+    2. Missing staging row (unseeded staging tables/records).
+    3. Schema or adapter mapping defect.
+    4. Genuine source-data divergence.
+    5. Test-fixture or stale-staging artifact.
+  - **Scope Mandates:**
+    - **Approved:** Continue staging parity runs, expand sampling beyond current fixtures, reconcile/classify every mismatch ledger entry, generate endpoint-level parity reports, run sustained staging load and restart/failure tests, retain SQLite as only user-facing read path.
+    - **Strictly Prohibited:** Production shadow traffic, production PostgreSQL connections, PostgreSQL as response source, `DATABASE_ENGINE=postgres` in production, SQLite retirement/archival, any production cutover activity.
+  - **8 Required Gates for Subsequent Cutover Preparation:**
+    1. Endpoint Coverage (test all public HTTP response paths).
+    2. Large-Sample Parity (compare >= 1,000 representative requests per major endpoint).
+    3. Mismatch Closure (reach zero unexplained mismatches; documented normalization rules).
+    4. Staging Freshness (record PostgreSQL snapshot ID and outbox watermark).
+    5. Load Behavior (verify backlog, pool saturation, and memory stability).
+    6. Restart Safety (prove shadow errors, worker restarts, PG recovery cannot affect SQLite).
+    7. Security Audit (confirm ledger scrubs credentials, auth headers, user data, AI reasoning).
+    8. Rollback Exercise (demonstrate rapid disarm and pre-shadow path restoration).
+
+
