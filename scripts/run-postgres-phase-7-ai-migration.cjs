@@ -188,18 +188,31 @@ function runPsqlScript(pgBins, port, sqlContent) {
   const tempSqlFile = path.join(SCRATCH_DIR, `script_${Date.now()}_${Math.random().toString(36).substr(2, 5)}.sql`);
   fs.writeFileSync(tempSqlFile, sqlContent, 'utf8');
   const normalizedPath = tempSqlFile.replace(/\\/g, '/');
-  const cmd = `"${pgBins.psqlPath}" -U postgres -p ${port} -h 127.0.0.1 -d postgres -f "${normalizedPath}"`;
-  const out = execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  const cmd = `"${pgBins.psqlPath}" -U postgres -p ${port} -h 127.0.0.1 -d postgres -v ON_ERROR_STOP=1 -f "${normalizedPath}"`;
   try {
-    fs.unlinkSync(tempSqlFile);
-  } catch (e) {}
-  return out;
+    const out = execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return out;
+  } catch (err) {
+    const stderr = err.stderr ? err.stderr.toString() : '';
+    console.error(`[PSQL SCRIPT ERROR]:\n${stderr.substring(0, 1000)}`);
+    throw err;
+  } finally {
+    try {
+      fs.unlinkSync(tempSqlFile);
+    } catch (e) {}
+  }
 }
 
 function runPsqlFile(pgBins, port, filePath) {
   const normalizedPath = filePath.replace(/\\/g, '/');
-  const cmd = `"${pgBins.psqlPath}" -U postgres -p ${port} -h 127.0.0.1 -d postgres -f "${normalizedPath}"`;
-  return execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  const cmd = `"${pgBins.psqlPath}" -U postgres -p ${port} -h 127.0.0.1 -d postgres -v ON_ERROR_STOP=1 -f "${normalizedPath}"`;
+  try {
+    return execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (err) {
+    const stderr = err.stderr ? err.stderr.toString() : '';
+    console.error(`[PSQL FILE ERROR] in ${filePath}:\n${stderr.substring(0, 1000)}`);
+    throw err;
+  }
 }
 
 // Read JSONL file into array
@@ -275,6 +288,7 @@ async function seedPhase23456Baseline(pgBins, port) {
     path.join(P4_SCRATCH_DIR, 'batch_tier2_2024.sql'),
     path.join(P4_SCRATCH_DIR, 'batch_tier2_2025.sql'),
     path.join(P4_SCRATCH_DIR, 'batch_tier2_2026.sql'),
+    path.join(P4_SCRATCH_DIR, 'batch_qualification_admitted_matches.sql'),
     path.join(P4_SCRATCH_DIR, 'batch_conflicts.sql')
   ];
 
@@ -533,6 +547,17 @@ async function runStagingMode(pgBins) {
     const link = JSON.parse(l);
     if (link.source_name.startsWith('canonical_matches')) {
       cmToMatchId.set(link.source_match_id, link.match_id);
+    }
+  }
+
+  const qualLinksPath = path.join(PROJECT_ROOT, 'scratch', 'postgres-phase-7-ai-migration', 'qualification_match_links.jsonl');
+  if (fs.existsSync(qualLinksPath)) {
+    const qLines = fs.readFileSync(qualLinksPath, 'utf8').trim().split('\n');
+    for (const ql of qLines) {
+      if (!ql.trim()) continue;
+      const qlink = JSON.parse(ql);
+      if (qlink.source_match_id) cmToMatchId.set(qlink.source_match_id, qlink.match_id);
+      if (qlink.rapid_event_id) rapidToMatchId.set(Number(qlink.rapid_event_id), qlink.match_id);
     }
   }
 

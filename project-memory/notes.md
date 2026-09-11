@@ -51,3 +51,13 @@
   - Conflating enriched records with raw baseline telemetry is strictly prohibited across all future reporting.
   - `gold_matches_ready_view` legacy facade remains hard-wired to raw view by default.
 
+- **Note 12: Forensic Resolution of 45 Unstaged Qualification Matches & Expanded Telemetry Accounting:**
+  - Forensic audit categorized the 45 qualification traces into 20 `CANONICAL_RESOLVABLE` and 25 `REMAIN_QUARANTINED`.
+  - The 20 matches possess 100% verified tournament editions and player UUIDs; safely staged into PostgreSQL staging (`matches.matches`) with symmetric participant entries and settled results.
+  - The 25 matches lack authentic player/edition entities in Phase 3/4 registries (e.g. absent Challenger/ITF editions or unindexed players like Kumstat, Penickova); strictly retained in quarantine under `MATCH_NOT_STAGED_IN_POSTGRES` per Zero-Fabrication principles. Zero synthetic players or editions manufactured.
+  - Staging telemetry admitted runs expanded from 290 to **310**; admitted specialist traces expanded from 1,450 to **1,550** (310 × 5).
+  - Quarantined trace bundles reduced from 121 to **101**. Total review queue ledger: **113 items** (101 trace bundles + 12 legacy SQLite demo outputs).
+  - Exact accounting invariant verified:
+    - $411\text{ traces} = 310\text{ admitted} + 101\text{ quarantined}$.
+    - $101\text{ quarantined} = 25\text{ unstaged parent matches} + 72\text{ unresolved vendor fixtures} + 4\text{ missing payload}$.
+    - $113\text{ review items} = 101\text{ quarantined traces} + 12\text{ legacy demo outputs}$.

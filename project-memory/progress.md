@@ -290,9 +290,24 @@
   - **Zero Consumer Regression:** All 26/26 backend diagnostic tests passed; Phase 8 entry gate re-certified 6/6 PASS.
   - **Data Governance Invariant:** Enriched Markov data is formally segregated from authentic raw telemetry; all future baselines and audits must declare raw vs enriched evaluation.
 
+- [x] **Phase 7 Qualification Match Staging & Telemetry Accounting Expansion Certified (`scripts/audit-45-unstaged-qualification-matches.cjs`, `scripts/stage-qualification-matches.cjs`, `scripts/run-postgres-phase-7-ai-migration.cjs`):**
+  - **Forensic Audit of 45 Quarantine Matches:** Analyzed all 45 qualification matches against Phase 3 (`identity.players`) and Phase 4 (`competition.tournament_editions`).
+    - **20 Matches CANONICAL_RESOLVABLE:** Exactly 20 matches possess 100% verified tournament edition UUIDs and winner/loser player UUIDs. Staged into `matches.matches` (`batch_qualification_admitted_matches.sql`) with symmetric participants (`is_winner IS NULL`) and settled match results.
+    - **25 Matches Safely Retained in Quarantine:** 6 winners and 15 losers absent from Phase 3 player registry; 4 Challenger/ITF editions absent from Phase 4; 1 doubles fixture. Strictly preserved in quarantine under `MATCH_NOT_STAGED_IN_POSTGRES` per Zero-Fabrication policy.
+  - **Certified Phase 7 Staging Metrics:**
+    - **Admitted Prediction Runs:** **310** (expanded from 290; exactly +20 runs).
+    - **Admitted Agent Traces:** **1,550** (expanded from 1,450; exactly +100 specialist traces: 310 × 5).
+    - **Quarantined Traces:** **101** (reduced from 121; exactly -20 traces; accounting perfectly balanced: 101 trace bundles + 12 legacy outputs = 113 review ledger items).
+    - **Pass 2 Idempotency:** Exactly +0 rows inserted across all tables; table MD5 hashes bitwise identical (`pred_runs: bb6502b6344a228797a047dd77c37cf4`, `agent_traces: bbcf8835720d4546101d712407564b73`).
+    - **Referential Integrity:** 0 orphan runs (100% resolve to `matches.matches`), 0 orphan agent traces (100% resolve to `ai.prediction_runs`).
+    - **Quality Gates Scorecard:** 12/12 Gates certified PASS (P7-G1 through P7-G12).
+    - **Zero SQLite Mutation:** Source databases bitwise immutable ($\Delta = 0\text{ bytes}$).
+  - **Full Regression Suites:**
+    - `src/test_backend_full.ts`: **26/26 PASS** (100%).
+    - `scripts/verify-phase-8-entry-gate.cjs`: **6/6 PASS** (100%).
+
 ## In Progress / Upcoming
 - [ ] Connect Staging PostgreSQL Disposable Cluster (Port 54350) to shadow comparator harness.
-- [ ] Resolve or record formal status for 45 qualification tournament matches in Phase 4.
 - [ ] Establish documented resolution path for 72 unresolved vendor fixtures without fuzzy force-linking.
 - [ ] Maintain operational freeze on production read paths (`production_cutover: PROHIBITED`).
 - [ ] Ongoing operational monitoring and maintenance.
