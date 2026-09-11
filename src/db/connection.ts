@@ -44,5 +44,7 @@ Logger.success(`SQLite Database connected at: ${activeDbFile}`);
 // Schema must exist before any module prepares SQL against historical_matches.
 import { initSchema } from './schema';
 import { runMigrations } from './migrations';
+import { ensureOutboxSchema } from './outbox/outbox.schema';
 initSchema();
 runMigrations();
+ensureOutboxSchema(db);

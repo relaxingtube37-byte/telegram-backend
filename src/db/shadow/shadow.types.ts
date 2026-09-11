@@ -68,3 +68,33 @@ export interface ShadowComparatorMetrics {
   primaryLatency: LatencyHistogramStats;
   shadowLatency: LatencyHistogramStats;
 }
+
+export type MismatchCategory =
+  | 'NORMALIZATION_EXPECTED'
+  | 'MISSING_STAGING_ROW'
+  | 'SCHEMA_MAPPING_DEFECT'
+  | 'GENUINE_SOURCE_DIVERGENCE'
+  | 'TEST_ARTIFACT';
+
+export interface ClassifiedMismatch {
+  ledgerId: string;
+  domain: ShadowDomain;
+  action: string;
+  field: string;
+  primaryValue: any;
+  shadowValue: any;
+  divergenceType: DivergenceType;
+  category: MismatchCategory;
+  rationale: string;
+}
+
+export interface ClassificationReport {
+  totalLedgerEntries: number;
+  totalFieldMismatches: number;
+  classifiedCounts: Record<MismatchCategory, number>;
+  unexplainedCount: number;
+  isFullyClassified: boolean;
+  generatedAtUtc: string;
+  items: ClassifiedMismatch[];
+}
+

@@ -66,18 +66,26 @@ export class ShadowComparator {
       if (!this.isEnabled()) return;
 
       setImmediate(async () => {
+        // Disarm check at execution time
+        if (!this.isEnabled()) return;
+
         const tShadow0 = performance.now();
         try {
           const shadowResult = await shadowFetcher();
+          // Disarm check after asynchronous shadow query finishes
+          if (!this.isEnabled()) return;
+
           const shadowLatency = performance.now() - tShadow0;
 
           const recordKey = recordKeyExtractor ? recordKeyExtractor(primaryResult) : undefined;
           this.compare(domain, action, primaryResult, shadowResult, primaryLatency, shadowLatency, recordKey);
         } catch (err: any) {
+          if (!this.isEnabled()) return;
           this.suppressedErrorsCount++;
           Logger.debug(`[Phase 10 Shadow Comparator] Suppressed shadow read error in ${domain}.${action}: ${err.message}`);
         }
       });
+
     }).catch(() => {
       // Primary errors bubble up naturally; shadow is skipped
     });
@@ -98,6 +106,10 @@ export class ShadowComparator {
     recordKey = 'root'
   ): ComparisonResult {
     this.totalComparisons++;
+    if (this.primaryLatencies.length >= 2000) {
+      this.primaryLatencies.shift();
+      this.shadowLatencies.shift();
+    }
     this.primaryLatencies.push(primaryLatencyMs);
     this.shadowLatencies.push(shadowLatencyMs);
 
@@ -297,6 +309,9 @@ export class ShadowComparator {
    * Persists mismatch ledger entry to scratch disk and in-memory buffer.
    */
   private static recordMismatch(entry: MismatchLedgerEntry): void {
+    if (this.inMemoryLedger.length >= 50) {
+      this.inMemoryLedger.shift();
+    }
     this.inMemoryLedger.push(entry);
 
     try {

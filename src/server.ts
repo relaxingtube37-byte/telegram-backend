@@ -8,6 +8,7 @@ import { seoRoutes } from './routes/seo.routes';
 import { startBot } from './bot';
 import { ResultSettlerService } from './services/result-settler.service';
 import { PrecomputationService } from './services/precomputation.service';
+import { shadowHttpInterceptor } from './middlewares/shadowHttpInterceptor';
 import { Logger } from './utils/logger';
 
 const app = express();
@@ -16,6 +17,7 @@ const app = express();
 app.use(corsMiddleware);
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(shadowHttpInterceptor);
 
 // Attach routes
 app.use('/', seoRoutes);
