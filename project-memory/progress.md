@@ -434,5 +434,10 @@
   - `production_shadow_reads`: `PROHIBITED`
   - `production_cutover`: `PROHIBITED`
   - `sqlite_retirement`: `PROHIBITED`
-- **Next Phase:** Phase 11 (Cutover Planning & Dual-Run Canary Architecture Design Review).
+- **Active Milestone:** **Phase 11 (Cutover Planning & Dual-Run Canary Architecture Design Review)**:
+  - Specification Document: `docs/phase-11-canary-cutover-spec.md` (Design Review & Pre-Cutover Authorization Framework).
+  - Status: `AUTHORIZED_TO_DRAFT`.
+  - Production Canary Status: `PROHIBITED_PENDING_APPROVAL`.
+  - Defined Prerequisites: Mandatory live Render volume backup & test restore (RISK-1 remediation), Render vs local conflict report, 0/1/5/25/50/100% canary progression with session hash ring, automated circuit breakers (50ms hard ceiling, P95 budget, 5xx trip), and dual-tier rollback runbooks.
+
 

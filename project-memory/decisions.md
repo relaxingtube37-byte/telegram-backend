@@ -411,10 +411,26 @@
     - P10H-G6 (Restart & Recovery Resilience): PASS (Simulated worker crash and error suppression mid-flight caused 0 client errors; primary SQLite returned seamlessly).
     - P10H-G7 (Security Audit & Payload Sanitization): PASS (0 credentials, tokens, or private keys detected in ledger).
     - P10H-G8 (Controlled Rapid Rollback Exercise): PASS (Disarmed in 0.064ms [<10ms target]; factory returned `SqlitePredictionsAdapter`; 0 async jobs post-rollback).
-  - **Invariants Maintained:**
-    - Production reads remain strictly hardcoded to `SQLITE_ONLY`.
-    - Production shadow reads, production PostgreSQL access, `DATABASE_ENGINE=postgres` in production, production cutover, and SQLite retirement remain strictly `PROHIBITED`.
-    - Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant (283,303,936 bytes).
-  - **Next Phase:** Continuous staging monitoring and preparation for Phase 11 (Controlled Production Cutover), which remains blocked pending explicit separate authorization.
+- **Decision 40 (2026-09-11): Phase 11 Canary Cutover Design Review & Pre-Cutover Authorization Framework Authorization**
+  - **Context:** Formal user authorization to draft the Phase 11 specification as an Architecture Design Review and Pre-Cutover Authorization Framework (`docs/phase-11-canary-cutover-spec.md`).
+  - **Verdict:** AUTHORIZED_TO_DRAFT (Design Review only; production canary execution strictly PROHIBITED_PENDING_APPROVAL).
+  - **Governing Authorization State:**
+    ```json
+    {
+      "phase_10_hardening": "STAGING_CERTIFIED_HARDENED",
+      "phase_11_design_review": "AUTHORIZED_TO_DRAFT",
+      "phase_11_production_canary": "PROHIBITED_PENDING_APPROVAL",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **Core Architectural Pillars Defined:**
+    1. **Pre-Cutover Entry Gates (P11-PRE-1 to P11-PRE-7):** Mandatory live Render volume backup, test restore verification, SHA-256 hash registration, and conflict report prior to any production cutover activity (RISK-1 remediation).
+    2. **Deterministic Canary Progression:** 0% (soak) $\to$ 1% (read-only feed) $\to$ 5% (catalog) $\to$ 25% (webapp) $\to$ 50% (peak events) $\to$ 100% (SQLite hot-standby) using non-random MD5 session hashing.
+    3. **Conservative Circuit Breakers:** Immediate soft rollback triggered on any unexpected 5xx, P95 latency delta $> 5\text{ms}$, hard ceiling $> 50\text{ms}$, unexplained mismatch, pool saturation $> 75\%$, heap growth $> 25\text{MB}$, or business metric degradation.
+    4. **Dual-Tier Rollback Protocol:** Tier 1 soft rollback (<10ms programmatic in-memory disarm without restart); Tier 2 hard rollback (service restart, immutable baseline restore, outbox catch-up replay).
+    5. **Strict Governance Invariant:** Drafting of the Phase 11 specification does NOT authorize production traffic routing, production PostgreSQL access, or SQLite retirement. Production reads remain 100% `SQLITE_ONLY`.
 
 

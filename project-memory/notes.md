@@ -159,9 +159,11 @@
   - **P10H-G6 (Restart & Recovery Resilience):** Worker crash simulation cleanly suppressed; primary SQLite response returned without interruption.
   - **P10H-G7 (Security Audit & Payload Sanitization):** 0 sensitive keys, Bearer tokens, or credentials in audit ledger.
   - **P10H-G8 (Controlled Rapid Rollback Exercise):** Disarmed in 0.064ms (<10ms target); factory returned `SqlitePredictionsAdapter`; 0 async jobs executed post-rollback.
-  - **Authoritative Invariants Maintained:**
-    - Production reads strictly hardcoded to SQLite (`data/database.sqlite`).
-    - Authoritative Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant (283,303,936 bytes).
-    - Production shadow reads, production PostgreSQL access, cutover, and SQLite retirement remain strictly **PROHIBITED**.
+- **Note 22: Phase 11 Canary Cutover Architecture Design Review & Pre-Cutover Authorization Framework:**
+  - **Status:** `AUTHORIZED_TO_DRAFT` (Specification drafted in `docs/phase-11-canary-cutover-spec.md`; production canary execution remains strictly `PROHIBITED_PENDING_APPROVAL`).
+  - **Pre-Cutover Prerequisite Requirements:** Live Render volume backup with SHA-256 + test restore + foreign key check (RISK-1 remediation); Render vs local baseline state conflict audit; zero unmigrated rows.
+  - **Canary Routing Matrix:** Phased 0% (soak) $\to$ 1% (read-only feed) $\to$ 5% (catalog) $\to$ 25% (webapp) $\to$ 50% (peak events) $\to$ 100% (SQLite standby) using deterministic MD5 hash ring per session/user.
+  - **Circuit Breaker Triggers:** Immediate soft rollback triggered on any unexpected 5xx, P95 latency delta $> 5\text{ms}$, query time $> 50\text{ms}$, response divergence, pool saturation $> 75\%$, heap growth $> 25\text{MB}$, or business metric degradation.
+  - **Two-Tier Rollback Runbook:** Tier 1 programmatic in-memory disarm (<10ms target, benchmarked at 0.064ms); Tier 2 hard rollback with deployment halt, immutable baseline restore, and outbox catch-up replay.
 
 
