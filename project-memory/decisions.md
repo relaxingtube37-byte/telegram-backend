@@ -493,6 +493,34 @@
     3. **Enriched Human Sign-Off Envelope (`docs/templates/render-live-evidence-bundle-template.json`):** Bound the sign-off schema to commit SHA, target environment (`production_render`), snapshot ID, execution tool version, entire bundle SHA-256 digest, and initialized with mandatory `"signature_status": "UNSIGNED"`.
     4. **Comprehensive Disarm Benchmark Telemetry (`scripts/benchmark-canary-disarm.ts`):** 10,000 iterations under concurrent event loop load tracking full distribution: Min 0.0388ms, Avg 0.0778ms, P50 0.0693ms, P90 0.0914ms, P95 0.1036ms, P99 0.1645ms, Max 3.4476ms; 50,000 in-flight tasks cleanly cancelled; 0 post-disarm errors.
     5. **Strict Operating Constraints:** Zero local data written to Render Production; zero changes to production flags, routing rules, connection strings, or `DATABASE_ENGINE`; `tennis_gold.sqlite` (283,303,936 bytes) and operational SQLite 100% untouched.
+- **Decision 44 (2026-09-11): Phase 11 Staging Pre-Cutover Verification & Dry-Run Execution Certified (6/6 Gates Passed)**
+  - **Context:** Automated execution of the Phase 11 Staging Pre-Cutover Verification & Dry-Run Suite (`scripts/verify-phase-11-staging-dry-run.ts`).
+  - **Verdict:** STAGING_DRY_RUN_CERTIFIED (6/6 Dry-Run Quality Acceptance Gates passed; Status: UNSIGNED; Pre-Cutover Authorization: NOT_GRANTED).
+  - **Binding Authorization Matrix:**
+    ```json
+    {
+      "phase_11_design_review": "DRAFTED_FOR_REVIEW",
+      "phase_11_pre_cutover_authorization": "NOT_GRANTED",
+      "phase_11_production_canary": "PROHIBITED",
+      "production_reads": "SQLITE_ONLY",
+      "production_shadow_reads": "PROHIBITED",
+      "production_cutover": "PROHIBITED",
+      "sqlite_retirement": "PROHIBITED"
+    }
+    ```
+  - **6 Certified Acceptance Gates:**
+    1. **P11-DR-G1 (SQLite VACUUM Backup & PRAGMA Verification):** PASS (519,815,168 bytes, SHA-256 `4fb9c0ec...`, PRAGMA integrity `ok`, FK violations 0, quick_check `ok`).
+    2. **P11-DR-G2 (Sandbox Table Row-Counts & Mutation Rollback):** PASS (Actual row counts logged across 9 tables; smoke transaction rollback verified with 0 state pollution).
+    3. **P11-DR-G3 (Outbox Replay Idempotency & Crash Recovery):** PASS (5/5 duplicate events rejected via unique constraints; 5/5 stale locked jobs recovered after crash; 20/20 events delivered).
+    4. **P11-DR-G4 (Duplicate Settlement Prevention Guard):** PASS (Genuine settlement executed; 2 subsequent duplicate attempts suppressed; telegram posts: 1; bounty calculations: 1; 0 duplicate execution).
+    5. **P11-DR-G5 (Disarm Benchmark SLA & In-Flight Task Cancellation):** PASS (10,000 iterations: p50 0.0693ms, p95 0.1036ms, p99 0.1645ms, max 3.4476ms < 10.0ms; 50,000 tasks cancelled; 0 post-disarm errors).
+    6. **P11-DR-G6 (Official Staging Evidence Bundle Packaging):** PASS (`docs/evidence/phase-11-staging-dry-run-evidence-bundle.json` generated; status `UNSIGNED`; SHA-256 `6e7d27cb...`).
+  - **Governance Invariants Maintained:**
+    - Staging dry-run execution only; zero production impact.
+    - Production reads remain 100% `SQLITE_ONLY`.
+    - Live Render database remains classified as `UNKNOWN_DELTA`.
+    - Pre-cutover authorization remains `NOT_GRANTED`.
+
 
 
 

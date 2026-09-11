@@ -180,6 +180,16 @@
   - **Evidence Envelope:** Initialized with `"signature_status": "UNSIGNED"`, commit SHA, environment, snapshot ID, execution tool version, and bundle content SHA-256 digest.
   - **Benchmark Telemetry:** 10,000 iterations tracking p50 (0.0693ms), p95 (0.1036ms), p99 (0.1645ms), max (3.4476ms), 50,000 cancelled in-flight tasks, and 0 post-disarm errors.
   - **Operating Prohibitions:** Production reads remain strictly `SQLITE_ONLY`. Zero changes to production flags, routing rules, connection strings, or `DATABASE_ENGINE`. Desktop Gold database (`tennis_gold.sqlite`) remains 100% bitwise invariant (283,303,936 bytes).
+- **Note 25: Phase 11 Staging Pre-Cutover Verification & Dry-Run Suite Certified (6/6 Gates PASS):**
+  - **Status:** Formally verified on 2026-09-11 via `scripts/verify-phase-11-staging-dry-run.ts`.
+  - **P11-DR-G1 (SQLite VACUUM Backup):** 519,815,168 bytes backed up in 2,754.73ms; SHA-256 `4fb9c0ec...`; PRAGMA integrity `ok`, FK check 0 violations, quick_check `ok`.
+  - **P11-DR-G2 (Sandbox Table Row Counts & Mutation Rollback):** All 9 production tables audited; sandbox smoke transaction rolled back cleanly with zero database leakage.
+  - **P11-DR-G3 (Outbox Replay Idempotency & Crash Resumption):** 5/5 duplicate events rejected via unique constraints; 5/5 stale locked jobs recovered after worker crash simulation; 20/20 events delivered cleanly.
+  - **P11-DR-G4 (Duplicate Settlement Prevention Guard):** Initial settlement succeeded; 2 subsequent duplicate attempts suppressed (`DUPLICATE_SETTLEMENT_SUPPRESSED`); exactly 1 Telegram post and 1 bounty calculation executed.
+  - **P11-DR-G5 (Disarm Benchmark SLA & In-Flight Cancellation):** 10,000 iterations, p50 0.0693ms, p99 0.1645ms, max 3.4476ms; 50,000 in-flight tasks cancelled; 0 errors.
+  - **P11-DR-G6 (Official Staging Evidence Bundle Packaging):** Staging evidence package generated at `docs/evidence/phase-11-staging-dry-run-evidence-bundle.json` with status `UNSIGNED` and bundle SHA-256 `6e7d27cb...`.
+  - **Governance Invariants:** Pre-cutover authorization remains `NOT_GRANTED`. Production reads remain strictly `SQLITE_ONLY`. Live Render database remains classified as `UNKNOWN_DELTA`.
+
 
 
 

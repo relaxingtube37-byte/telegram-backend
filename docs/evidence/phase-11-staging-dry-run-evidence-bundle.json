@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "bundle_id": "BUNDLE-PHASE-11-STAGING-DRYRUN-20260911154029",
+  "generated_at_utc": "2026-09-11T15:40:29.922Z",
+  "governance_status": "DRAFTED_FOR_REVIEW",
+  "pre_cutover_authorization": "NOT_GRANTED",
+  "production_reads_source": "SQLITE_ONLY",
+  "production_canary_status": "PROHIBITED",
+  "backup_artifact": {
+    "file_path": "G:\\telegram-backend\\scratch\\postgres-phase-11-cutover\\sandbox_render_prod_backup.sqlite",
+    "snapshot_timestamp_utc": "2026-09-11T15:40:29.922Z",
+    "file_size_bytes": 519815168,
+    "sha256_checksum": "4fb9c0ec25bc80cdc048f17bb29478747e43ac5b212f0d456fd17f69102667da",
+    "backup_method": "VACUUM_INTO_NON_BLOCKING"
+  },
+  "pragmas_verification": {
+    "integrity_check": "ok",
+    "foreign_key_check_violations_count": 0,
+    "quick_check": "ok",
+    "verification_timestamp_utc": "2026-09-11T15:40:29.922Z"
+  },
+  "table_row_counts": {
+    "users": 11,
+    "referral_sites": 47,
+    "referral_clicks": 40,
+    "partner_conversions": 18,
+    "predictions": 59,
+    "settings": 4,
+    "historical_matches": 115223,
+    "top_players_cache": 0,
+    "postgres_dual_write_outbox": 0
+  },
+  "test_restore_verification": {
+    "sandbox_target": "G:\\telegram-backend\\scratch\\postgres-phase-11-cutover\\sandbox_render_prod_backup.sqlite",
+    "restored_at_utc": "2026-09-11T15:40:29.922Z",
+    "smoke_queries_status": "PASS",
+    "test_transaction_mutation_status": "PASS_ROLLBACK_VERIFIED",
+    "data_consistency_verified": true,
+    "restored_row_count_exact_match": true
+  },
+  "outbox_replay_idempotency_verification": {
+    "duplicate_events_rejected_count": 5,
+    "worker_crash_recovered_count": 5,
+    "total_delivered_events": 20,
+    "idempotency_compliance": true
+  },
+  "duplicate_settlement_guard_verification": {
+    "settlement_pass1_code": "SETTLED",
+    "settlement_pass2_code": "DUPLICATE_SETTLEMENT_SUPPRESSED",
+    "settlement_pass3_code": "DUPLICATE_SETTLEMENT_SUPPRESSED",
+    "telegram_notifications_sent": 1,
+    "bounty_calculations_run": 1,
+    "duplicate_settlements_suppressed_count": 2,
+    "guard_compliance": true
+  },
+  "dual_write_outbox_state": {
+    "total_events": 0,
+    "pending_count": 0,
+    "processing_count": 0,
+    "failed_count": 0,
+    "dlq_count": 0,
+    "replication_lag_seconds": 0
+  },
+  "render_runtime_disarm_benchmark": {
+    "target_runtime": "staging_node_eventloop",
+    "iterations": 10000,
+    "p50_latency_ms": 0.0693,
+    "p95_latency_ms": 0.1036,
+    "p99_latency_ms": 0.1645,
+    "max_latency_ms": 3.4476,
+    "cancelled_in_flight_tasks_count": 50000,
+    "post_disarm_errors_count": 0,
+    "target_budget_ms": 10,
+    "benchmark_verdict": "PASS"
+  },
+  "bundle_integrity_sha256": "6e7d27cb69a55815b060ffd01b10b31dcd62f849743361576bae794b51bc5627",
+  "human_sign_off": {
+    "signature_status": "UNSIGNED",
+    "environment": "staging",
+    "snapshot_id": "SNAPSHOT-STAGING-DRYRUN-20260911154029",
+    "authorizing_commit_sha": "1edde85bb0d8ff7d7aeff5a97d588fbaa9cb4ab8",
+    "execution_tool_version": "Node.js v24.15.0, better-sqlite3 v11.x, Windows x64",
+    "bundle_content_sha256": "6e7d27cb69a55815b060ffd01b10b31dcd62f849743361576bae794b51bc5627",
+    "lead_engineer_name": null,
+    "security_auditor_name": null,
+    "signed_at_utc": null,
+    "declaration": "I hereby certify that the live Render state has been backed up, cryptographically verified, and audited with zero unexplained divergence. Production reads remain SQLite-only until a separate, explicit canary activation directive is issued."
+  }
+}
