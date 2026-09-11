@@ -241,4 +241,9 @@
   - **Status:** Integrated into readiness dashboard; P11-PRE-4 cleanly signals `PENDING_HUMAN_ACTION` until live Render cluster is created.
   - **Scorecard:** Unchanged at 73% (11/15 PASS), `STAGING_READY`. Production reads strictly `SQLITE_ONLY`.
 
+- **Note 33 — Architecture Clarification: Render is Operational, Not Analytical Warehouse:**
+  - **User Clarification:** The large database (115k+ historical matches, Markov models, deep AI traces, PostgreSQL warehouse) belongs to the desktop application `state football`.
+  - **Backend Scope:** `telegram-backend` on Render is purely a lightweight API for the Telegram bot, user authentication, referrals, and publishing finished predictions. Its entire footprint is only ~3.7 MB.
+  - **Decision:** Render does NOT require a separate managed PostgreSQL database. Render remains permanently on SQLite (`SQLITE_ONLY`), eliminating unnecessary cloud costs, configuration overhead, and cutover risks.
+
 

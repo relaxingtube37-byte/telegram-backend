@@ -630,3 +630,8 @@
     - **Secret Hygiene & Security:** Passwords masked in all logs and reports (`postgresql://user:***@host:port/db`). No credentials stored on disk, git, or memory files.
     - **Evidence Integration:** Emitted `docs/evidence/render-pg-provisioning-report.json`. Wired into `scripts/verify-phase-11-production-readiness.ts`. In absence of connection string, gracefully reports `PENDING_HUMAN_ACTION`.
     - **Governance Maintained:** System remains at **`STAGING_READY` (73% readiness, 11/15 PASS)**. Production reads remain `SQLITE_ONLY`. Canary, cutover, and SQLite retirement remain `PROHIBITED`.
+
+52. **Architecture Clarification & Production Boundary (SQLite Permanent on Render):**
+    - **Core Domain Separation:** Clarified architectural separation between `state football` (Desktop Electron analytical powerhouse with 115k+ historical matches, DTMC Markov models, AI agents) and `telegram-backend` on Render (lightweight 3.7MB operational Telegram/Web API for users, auth, referrals, and published feed).
+    - **No Render PostgreSQL Required:** Render web service does NOT require a managed PostgreSQL cluster or external database. The lightweight SQLite database (`database.sqlite`) is the permanent, optimal engine for the backend runtime.
+    - **Provisioning Track Closed:** Provisioning of external PostgreSQL on Render is unnecessary; production remains permanently on SQLite without unnecessary cost or complexity.
