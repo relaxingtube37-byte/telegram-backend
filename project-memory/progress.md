@@ -354,10 +354,23 @@
     - `npx tsc --noEmit`: 0 TypeScript errors.
     - Source SQLite databases bitwise immutable ($\Delta = 0\text{ bytes}$).
 
+- [x] **Phase 8 Source Immutability Recheck & Audit Closure Certified (7/7 Checks PASS, `scripts/verify-phase-8-audit-closure.ts`, `docs/phase-8-audit-closure-and-verification-archive.md`):**
+  - **Authoritative Desktop Gold Database Path Certified:**
+    - `G:/state football/data/tennis_gold.sqlite`: **283,303,936 bytes** (SHA-256: `2951176b1fc7da0db250b42e53976c67a25aca59bcf0175706599e30e816c086`, $\Delta = 0\text{ bytes}$, `immutability_status: VERIFIED`).
+    - Clarified that `data/tennis_gold.sqlite: 0 bytes` was an unpopulated placeholder in `telegram-backend/data/`.
+    - Primary Backend DB (`G:/telegram-backend/data/database.sqlite`): **545,468,416 bytes** (SHA-256: `4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358`, $\Delta = 0\text{ bytes}$, `immutability_status: VERIFIED`).
+    - Non-existent path (`../state-football/data/tennisgold.sqlite`): `exists: false`, `bytes: null`, `immutability_status: NOT_VERIFIED`.
+  - **Package & Lockfile Integrity Certified:** `pg` 8.23.0 and `@types/pg` 8.23.1 verified with SHA-512 integrity string.
+  - **Live Adapter Reads Executed:** Queries executed against `ai.predictionruns`, `predictions.match_editorials`, `identity.players`, and `matches.matches` on port 54350.
+  - **Circuit Breaker Tested:** PostgreSQL downtime suppressed with 0ms interruption to primary reads (2ms return).
+  - **Mutation Prohibition Asserted:** 9/9 write methods throw `POSTGRES_MUTATION_PROHIBITED`.
+  - **Consolidated Archive Generated:** Full audit evidence consolidated in `docs/phase-8-audit-closure-and-verification-archive.md`.
+
 ## In Progress / Upcoming
 - [ ] Maintain operational freeze on production read paths (`production_reads: SQLITE_ONLY`, `production_cutover: PROHIBITED`).
 - [ ] Prepare Phase 9 Dual-Write Architecture Specification (staging branch harness only; dual-write remains PROHIBITED until authorized).
 - [ ] Ongoing operational monitoring and staging readiness governance.
+
 
 
 

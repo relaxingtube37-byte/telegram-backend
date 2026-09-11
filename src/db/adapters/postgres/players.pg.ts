@@ -45,7 +45,7 @@ export class PostgresPlayersAdapter implements IPlayersRepo {
   async getAll(limit = 100): Promise<PublishedPlayer[]> {
     const pool = this.ensurePool();
     const res = await pool.query(
-      `SELECT player_id, full_name_standard, country_code, gender, created_at, updated_at
+      `SELECT player_id, full_name_standard, country_ioc AS country_code, gender, created_at, updated_at
        FROM identity.players
        ORDER BY full_name_standard ASC
        LIMIT $1`,
@@ -61,7 +61,7 @@ export class PostgresPlayersAdapter implements IPlayersRepo {
   async getFeatured(): Promise<PublishedPlayer[]> {
     const pool = this.ensurePool();
     const res = await pool.query(
-      `SELECT player_id, full_name_standard, country_code, gender, created_at, updated_at
+      `SELECT player_id, full_name_standard, country_ioc AS country_code, gender, created_at, updated_at
        FROM identity.players
        WHERE full_name_standard IN ('Carlos Alcaraz', 'Novak Djokovic', 'Jannik Sinner', 'Daniil Medvedev', 'Aryna Sabalenka', 'Iga Swiatek', 'Coco Gauff')
        ORDER BY full_name_standard ASC`
@@ -72,7 +72,7 @@ export class PostgresPlayersAdapter implements IPlayersRepo {
   async getByPlayerId(playerId: number): Promise<PublishedPlayer | undefined> {
     const pool = this.ensurePool();
     const res = await pool.query(
-      `SELECT player_id, full_name_standard, country_code, gender, created_at, updated_at
+      `SELECT player_id, full_name_standard, country_ioc AS country_code, gender, created_at, updated_at
        FROM identity.players
        WHERE player_id::text = $1
        LIMIT 1`,
@@ -86,7 +86,7 @@ export class PostgresPlayersAdapter implements IPlayersRepo {
     const pool = this.ensurePool();
     const str = String(slugOrId).replace(/-/g, ' ').toLowerCase();
     const res = await pool.query(
-      `SELECT player_id, full_name_standard, country_code, gender, created_at, updated_at
+      `SELECT player_id, full_name_standard, country_ioc AS country_code, gender, created_at, updated_at
        FROM identity.players
        WHERE LOWER(full_name_standard) = $1 OR player_id::text = $2
        LIMIT 1`,

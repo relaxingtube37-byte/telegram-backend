@@ -22,13 +22,22 @@ export class PostgresMatchesAdapter implements IMatchesRepo {
   }
 
   private mapRow(r: any): PlayerMatchIndexRow {
+    let matchDate = '2026-09-01';
+    if (r.match_date) {
+      matchDate = String(r.match_date);
+    } else if (r.scheduled_start_utc) {
+      matchDate = r.scheduled_start_utc instanceof Date
+        ? r.scheduled_start_utc.toISOString().substring(0, 10)
+        : String(r.scheduled_start_utc).substring(0, 10);
+    }
+
     return {
       id: r.id || 1,
       tracked_player_id: r.tracked_player_id || 1,
       historical_match_id: r.historical_match_id || null,
       rapid_event_id: r.rapid_event_id || null,
       match_fingerprint: r.match_fingerprint || r.match_id,
-      match_date: r.match_date || (r.scheduled_start_utc ? r.scheduled_start_utc.substring(0, 10) : '2026-09-01'),
+      match_date: matchDate,
       opponent_name: r.opponent_name || 'Opponent',
       won: r.won ?? 1,
       tour: r.tour || 'ATP',
@@ -40,8 +49,8 @@ export class PostgresMatchesAdapter implements IMatchesRepo {
       has_api_details: 1,
       has_api_statistics: 1,
       has_api_pbp: 1,
-      created_at: r.created_at || new Date().toISOString(),
-      updated_at: r.updated_at || new Date().toISOString()
+      created_at: r.created_at ? (r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at)) : new Date().toISOString(),
+      updated_at: r.updated_at ? (r.updated_at instanceof Date ? r.updated_at.toISOString() : String(r.updated_at)) : new Date().toISOString()
     };
   }
 

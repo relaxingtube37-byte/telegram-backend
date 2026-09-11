@@ -90,3 +90,19 @@
   - **Quality Gates Certified (7/7 PASS):** Verified via `scripts/verify-phase-8-query-conformance.cjs` and documented in `docs/phase-8-query-conformance-and-parity-report.md`.
   - **Zero Regression:** 26/26 backend diagnostic tests PASS in `src/test_backend_full.ts`. Source SQLite databases bitwise immutable ($\Delta = 0\text{ bytes}$).
 
+- **Note 15: Source Immutability Recheck, Desktop Gold Path Resolution & Phase 8 Audit Closure Certification:**
+  - **Discrepancy Resolution:** Identified that previous `data/tennis_gold.sqlite: 0 bytes` was an unpopulated placeholder in `telegram-backend/data/`. The authoritative Desktop Gold Database containing full PBP, set statistics, and telemetry is located at `G:/state football/data/tennis_gold.sqlite` (283,303,936 bytes).
+  - **Cryptographic Immutability Ledger:**
+    - Primary Backend DB (`G:/telegram-backend/data/database.sqlite`): 545,468,416 bytes, SHA-256 `4cc4bc8d2d4f0a4bd8d769601000116b4d2fed8bbbe01db98a9811ae1d08b358`, status: `VERIFIED`.
+    - Desktop Gold DB (`G:/state football/data/tennis_gold.sqlite`): 283,303,936 bytes, SHA-256 `2951176b1fc7da0db250b42e53976c67a25aca59bcf0175706599e30e816c086`, delta = 0, status: `VERIFIED`.
+    - Non-existent path (`../state-football/data/tennisgold.sqlite`): exists: `false`, bytes: `null`, sha256: `null`, status: `NOT_VERIFIED`.
+  - **Audit Closure Verification Suite Certified (7/7 PASS, `scripts/verify-phase-8-audit-closure.ts`):**
+    - `check_1_pg_integrity`: `pg` 8.23.0 & `@types/pg` 8.23.1 verified in package and lockfile.
+    - `check_2_source_immutability`: Bitwise invariance verified across authoritative paths.
+    - `check_3_feature_flag_default`: Production environment strictly defaults to `SQLITE_ONLY`.
+    - `check_4_rollback_circuit_breaker`: PostgreSQL downtime suppressed with 0ms interruption; SQLite primary read returned in 2ms.
+    - `check_5_live_adapter_reads`: Live queries executed against `ai.predictionruns`, `predictions.match_editorials`, `identity.players`, `matches.matches` on port 54350.
+    - `check_6_mutation_prohibition`: 9/9 mutation methods throw exact `POSTGRES_MUTATION_PROHIBITED` error.
+    - `check_7_overall_certification`: Archival package consolidated in `docs/phase-8-audit-closure-and-verification-archive.md`.
+
+

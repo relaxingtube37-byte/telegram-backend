@@ -51,10 +51,10 @@ export class PostgresPredictionsAdapter implements IPredictionsRepo {
       SELECT
         r.run_id,
         r.match_id,
-        r.model_name,
-        r.winner_prediction,
+        COALESCE(r.model_routing_config->>'model', 'gpt-4o') AS model_name,
+        pw.full_name_standard AS winner_prediction,
         r.predicted_winner_id,
-        r.win_probability,
+        (r.win_probability_pct / 100.0) AS win_probability,
         r.confidence_tier,
         r.created_at,
         p1.full_name_standard AS home_name,
@@ -65,6 +65,7 @@ export class PostgresPredictionsAdapter implements IPredictionsRepo {
         res.winner_player_id
       FROM ai.predictionruns r
       LEFT JOIN matches.matches m ON m.match_id = r.match_id
+      LEFT JOIN identity.players pw ON pw.player_id = r.predicted_winner_id
       LEFT JOIN matches.match_participants mp1 ON mp1.match_id = r.match_id AND mp1.side = 1
       LEFT JOIN identity.players p1 ON p1.player_id = mp1.player_id
       LEFT JOIN matches.match_participants mp2 ON mp2.match_id = r.match_id AND mp2.side = 2
