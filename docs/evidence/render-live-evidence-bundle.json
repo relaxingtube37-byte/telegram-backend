@@ -1,0 +1,74 @@
+{
+  "bundle_id": "RENDER-LIVE-EVIDENCE-1789144854454",
+  "audited_at_utc": "2026-09-11T16:40:54.391Z",
+  "render_snapshot": {
+    "file_path": "G:\\telegram-backend\\data\\render_live_snapshot.sqlite",
+    "sha256": "794734996ba038ebbaa49cf539006eee4d6ee7005bfa745057ceb3c96be0d751",
+    "size_bytes": 3866624,
+    "schema_fingerprint": "66e7992a87d358a0ee8c4e25fc581be4",
+    "user_version": 0
+  },
+  "pragma_verification": {
+    "integrity_check": "ok",
+    "quick_check": "ok",
+    "foreign_key_violations": 0
+  },
+  "render_table_row_counts": {
+    "users": 12,
+    "referral_sites": 1,
+    "referral_clicks": 2,
+    "partner_conversions": 0,
+    "predictions": 26,
+    "settings": 2,
+    "historical_matches": 0,
+    "top_players_cache": 0,
+    "postgres_dual_write_outbox": 0
+  },
+  "staging_baseline_counts": {
+    "users": 11,
+    "referral_sites": 47,
+    "referral_clicks": 40,
+    "partner_conversions": 18,
+    "predictions": 59,
+    "settings": 4,
+    "historical_matches": 115223,
+    "top_players_cache": 0,
+    "postgres_dual_write_outbox": 0
+  },
+  "outbox_state": {
+    "total": 0,
+    "pending": 0,
+    "processing": 0,
+    "failed": 0,
+    "dlq": 0,
+    "max_event_id": null
+  },
+  "reconciliation": {
+    "total_delta": 115361,
+    "has_divergence": true,
+    "has_unresolvable_conflict": true,
+    "catch_up_required": true
+  },
+  "gate_verdicts": {
+    "P11-PRE-1": {
+      "status": "PASS",
+      "evidence": "G:\\telegram-backend\\docs\\evidence\\render-live-evidence-bundle.json",
+      "threshold": "integrity_check=ok AND fk_violations=0"
+    },
+    "P11-PRE-2": {
+      "status": "FAIL",
+      "evidence": "G:\\telegram-backend\\docs\\evidence\\render-reconciliation-delta-manifest.json",
+      "threshold": "All delta rows categorized; no RENDER_BEHIND tables"
+    },
+    "P11-PRE-5": {
+      "status": "PASS",
+      "evidence": "outbox_state embedded above",
+      "threshold": "pending=0 AND failed=0 AND dlq=0"
+    }
+  },
+  "governance": {
+    "production_reads": "SQLITE_ONLY",
+    "production_canary": "PROHIBITED",
+    "production_cutover": "PROHIBITED"
+  }
+}

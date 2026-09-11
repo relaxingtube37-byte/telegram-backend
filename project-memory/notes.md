@@ -216,10 +216,12 @@
     ```json
     { "production_reads": "SQLITE_ONLY", "production_canary": "PROHIBITED", "production_cutover": "PROHIBITED" }
     ```
-  - **Next human action:** Render Shell → `sqlite3 data/database.sqlite ".backup /tmp/render_export.sqlite"` → download → `data/render_live_snapshot.sqlite` → run audit → run dashboard.
   - **Verdict upgrade path:** `BLOCKED` → `STAGING_READY` (after PRE-1/2/3 + G8) → `CUTOVER_ELIGIBLE` (all 15 gates).
 
-
-
-
-
+- **Note 30 — Live Snapshot Forensic Audit & Readiness Promoted to 60%:**
+  - **Live Snapshot Captured:** Authenticated WAL-safe snapshot fetched from production (`data/render_live_snapshot.sqlite`, 3.69 MB, SHA-256: `794734996ba038ebbaa49cf539006eee4d6ee7005bfa745057ceb3c96be0d751`).
+  - **Audit Verdict:** P11-PRE-1 (PRAGMA integrity_check, quick_check, foreign_key_violations=0) **PASS**.
+  - **Live Data Ingestion:** P11-PRE-3 (12 users ingested into staging PostgreSQL `app.users`, pass 2 delta=0) **PASS**.
+  - **Scorecard Progress:** 9/15 PASS (60% readiness). Up from 7/15 PASS (47%).
+  - **Current Governance Status:** Verdict remains `BLOCKED` until delta categorization review is concluded and staging rollback drill (P11-G8) is executed.
+  - **Production Locks:** Production reads remain `SQLITE_ONLY`. Canary is `PROHIBITED`.

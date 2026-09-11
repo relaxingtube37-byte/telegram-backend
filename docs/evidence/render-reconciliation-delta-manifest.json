@@ -1,0 +1,99 @@
+{
+  "manifest_id": "RENDER-DELTA-1789144854441",
+  "audited_at_utc": "2026-09-11T16:40:54.391Z",
+  "render_snapshot": {
+    "sha256": "794734996ba038ebbaa49cf539006eee4d6ee7005bfa745057ceb3c96be0d751",
+    "size_bytes": 3866624,
+    "schema_fingerprint": "66e7992a87d358a0ee8c4e25fc581be4",
+    "user_version": 0
+  },
+  "staging_baseline": {
+    "commit": "25fc568",
+    "evidence_bundle": "BUNDLE-PHASE-11-STAGING-DRYRUN-20260911154029"
+  },
+  "total_absolute_delta_rows": 115361,
+  "has_divergence": true,
+  "has_unresolvable_conflict": true,
+  "outbox_zero_lag": true,
+  "catch_up_required": true,
+  "delta_requires_human_review": true,
+  "table_deltas": [
+    {
+      "table": "users",
+      "render_count": 12,
+      "staging_count": 11,
+      "delta": 1,
+      "status": "RENDER_AHEAD",
+      "requires_catch_up": true
+    },
+    {
+      "table": "referral_sites",
+      "render_count": 1,
+      "staging_count": 47,
+      "delta": -46,
+      "status": "RENDER_BEHIND",
+      "requires_catch_up": false
+    },
+    {
+      "table": "referral_clicks",
+      "render_count": 2,
+      "staging_count": 40,
+      "delta": -38,
+      "status": "RENDER_BEHIND",
+      "requires_catch_up": false
+    },
+    {
+      "table": "partner_conversions",
+      "render_count": 0,
+      "staging_count": 18,
+      "delta": -18,
+      "status": "RENDER_BEHIND",
+      "requires_catch_up": false
+    },
+    {
+      "table": "predictions",
+      "render_count": 26,
+      "staging_count": 59,
+      "delta": -33,
+      "status": "RENDER_BEHIND",
+      "requires_catch_up": false
+    },
+    {
+      "table": "settings",
+      "render_count": 2,
+      "staging_count": 4,
+      "delta": -2,
+      "status": "RENDER_BEHIND",
+      "requires_catch_up": false
+    },
+    {
+      "table": "historical_matches",
+      "render_count": 0,
+      "staging_count": 115223,
+      "delta": -115223,
+      "status": "RENDER_BEHIND",
+      "requires_catch_up": false
+    },
+    {
+      "table": "top_players_cache",
+      "render_count": 0,
+      "staging_count": 0,
+      "delta": 0,
+      "status": "MATCH",
+      "requires_catch_up": false
+    },
+    {
+      "table": "postgres_dual_write_outbox",
+      "render_count": 0,
+      "staging_count": 0,
+      "delta": 0,
+      "status": "MATCH",
+      "requires_catch_up": false
+    }
+  ],
+  "governance": {
+    "production_reads": "SQLITE_ONLY",
+    "production_canary": "PROHIBITED",
+    "note": "Delta rows with requires_catch_up=true must be ingested into staging PG. RENDER_BEHIND tables require human root-cause analysis before Phase C."
+  }
+}

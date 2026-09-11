@@ -586,6 +586,16 @@
       }
       ```
 
-
-
-
+49. **Phase 11 Render Live Snapshot Forensic Audit & Staging PG Catch-Up Ingestion:**
+    - **Snapshot Acquisition:** Acquired authoritative WAL-safe SQLite live snapshot from Render production via authenticated backup endpoint (`data/render_live_snapshot.sqlite`, 3,866,624 bytes, SHA-256: `794734996ba038ebbaa49cf539006eee4d6ee7005bfa745057ceb3c96be0d751`).
+    - **Phase B Forensic Audit Results:**
+      - P11-PRE-1: **PASS** (integrity_check=ok, quick_check=ok, foreign_key_violations=0, schema_fingerprint=`66e7992a87d358a0ee8c4e25fc581be4`).
+      - Render Live Inventory: 12 users, 26 predictions, 1 referral site, 2 referral clicks, 0 outbox backlog.
+      - Staging vs. Render Diff Root Cause: Render is ahead by 1 user (`users`: Δ=+1). Staging has 115,223 historical matches from desktop gold ETL which was never intended for lightweight operational bot production.
+    - **Phase C Catch-Up Ingestion Results:**
+      - Ingested Render live users into staging PostgreSQL `app.users` cluster (127.0.0.1:54350).
+      - Pass 2 idempotency delta: +0 rows (ON CONFLICT DO NOTHING verified).
+      - Local SQLite outbox: pending=0, failed=0, dlq=0.
+      - P11-PRE-3: **PASS** (evidence emitted to `docs/evidence/ingest-render-delta-report.json`).
+    - **Readiness Upgrade:** System readiness promoted from 47% (7/15) to **60% (9/15 PASS)**.
+    - **Governance Invariants Maintained:** Production reads remain strictly `SQLITE_ONLY`, zero production canary, zero production mutation.

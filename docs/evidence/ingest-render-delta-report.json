@@ -1,0 +1,26 @@
+{
+  "report_id": "REPORT-INGEST-DELTA-1789145102183",
+  "generated_at_utc": "2026-09-11T16:45:02.183Z",
+  "status": "PASS",
+  "ingested_rows": 12,
+  "unmigrated_rows": 0,
+  "pass2_idempotency_delta": 0,
+  "outbox_status": {
+    "total": 0,
+    "pending": 0,
+    "failed": 0,
+    "dlq": 0,
+    "pass": true
+  },
+  "tables_processed": [
+    {
+      "table": "users",
+      "status": "INGESTED_IDEMPOTENT"
+    }
+  ],
+  "governance": {
+    "target": "Staging PostgreSQL 127.0.0.1:54350",
+    "production_reads": "SQLITE_ONLY",
+    "production_canary": "PROHIBITED"
+  }
+}
