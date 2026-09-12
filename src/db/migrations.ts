@@ -108,6 +108,8 @@ export const runMigrations = () => {
     "ALTER TABLE predictions ADD COLUMN home_id INTEGER;",
     "ALTER TABLE predictions ADD COLUMN away_id INTEGER;",
     "ALTER TABLE historical_matches ADD COLUMN rapid_event_id INTEGER;",
+    "ALTER TABLE users ADD COLUMN referrer_id INTEGER;",
+    "ALTER TABLE users ADD COLUMN referral_code TEXT;",
   ];
 
   for (const sql of migrations) {

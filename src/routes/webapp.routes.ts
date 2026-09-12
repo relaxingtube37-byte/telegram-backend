@@ -35,6 +35,9 @@ const router = Router();
 // GET /api/webapp/players/:playerId/image (Lightweight cached WebP player avatars)
 router.get('/players/:playerId/image', WebController.getPlayerImage);
 
+// GET /api/webapp/users/:telegramId/avatar (Proxied and cached Telegram profile photo)
+router.get('/users/:telegramId/avatar', WebController.getUserAvatar);
+
 // GET /api/webapp/matches/:fixtureId/betting
 router.get('/matches/:fixtureId/betting', AnalysisController.getMatchBetting);
 
@@ -179,6 +182,18 @@ router.post('/auth', async (req: Request, res: Response) => {
 
     const { id: telegramId, first_name, username } = session.user;
 
+    // Capture and record referral / start_param from initData or body if present
+    let startParam = req.body.start_param || req.body.referralCode;
+    if (!startParam && typeof initData === 'string') {
+      try {
+        const p = new URLSearchParams(initData);
+        startParam = p.get('start_param') || undefined;
+      } catch {}
+    }
+    if (startParam) {
+      UsersRepo.recordReferral(telegramId, startParam);
+    }
+
     UsersRepo.touchActivity(telegramId);
     UsersRepo.upsertFromBot(telegramId, {
       first_name: first_name || undefined,
@@ -211,6 +226,7 @@ router.post('/auth', async (req: Request, res: Response) => {
         is_verified: isVerified ? 1 : 0,
         auth_provider: 'telegram',
         registered_site_id: user?.registered_site_id,
+        avatar_url: user?.avatar_url || `/api/webapp/users/${telegramId}/avatar`,
       },
     });
   } catch (err: any) {
