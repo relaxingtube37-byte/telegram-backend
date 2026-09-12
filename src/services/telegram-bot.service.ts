@@ -56,8 +56,12 @@ if (bot) {
   // Command /start
   bot.command('start', async (ctx) => {
     const telegramId = ctx.from?.id;
+    const match = ctx.match?.trim();
     if (telegramId) {
       UsersRepo.touchActivity(telegramId);
+      if (match) {
+        UsersRepo.recordReferral(telegramId, match);
+      }
     }
 
     const firstName = ctx.from?.first_name || 'Champion';

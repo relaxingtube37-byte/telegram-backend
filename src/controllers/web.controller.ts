@@ -30,6 +30,8 @@ import {
   resolveAccessFromRequest,
   loadAccessPolicy,
 } from '../access-policy';
+import { ENV } from '../config/env';
+import { bot } from '../services/telegram-bot.service';
 
 export const WebController = {
   getLandingData: async (req: Request, res: Response) => {
@@ -1269,6 +1271,65 @@ export const WebController = {
       });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
+    }
+  },
+
+  /**
+   * Proxied & cached Telegram user profile photo (keeps BOT_TOKEN secure on server)
+   */
+  getUserAvatar: async (req: Request, res: Response) => {
+    try {
+      const telegramId = parseInt(String(req.params.telegramId || ''), 10);
+      if (!telegramId || isNaN(telegramId)) {
+        return res.status(400).send('Invalid telegramId');
+      }
+
+      const cacheKey = `user_avatar_${telegramId}`;
+      const cachedBuf = BackendDataPoolStore.get<string>(cacheKey);
+      if (cachedBuf) {
+        if (cachedBuf === 'NOT_FOUND') {
+          return res.status(404).send('Avatar not found');
+        }
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        return res.send(Buffer.from(cachedBuf, 'base64'));
+      }
+
+      if (!bot || !ENV.BOT_TOKEN) {
+        return res.status(503).send('Bot service unavailable');
+      }
+
+      const photos = await bot.api.getUserProfilePhotos(telegramId, { limit: 1 }).catch(() => null);
+      if (!photos || photos.total_count === 0 || !photos.photos[0] || photos.photos[0].length === 0) {
+        BackendDataPoolStore.set(cacheKey, 'NOT_FOUND', 3600 * 1000);
+        return res.status(404).send('Avatar not found');
+      }
+
+      // Pick the first photo thumbnail (e.g. 160x160)
+      const photo = photos.photos[0][0];
+      const file = await bot.api.getFile(photo.file_id).catch(() => null);
+      if (!file || !file.file_path) {
+        BackendDataPoolStore.set(cacheKey, 'NOT_FOUND', 3600 * 1000);
+        return res.status(404).send('File not found');
+      }
+
+      const fileUrl = `https://api.telegram.org/file/bot${ENV.BOT_TOKEN}/${file.file_path}`;
+      const resp = await fetch(fileUrl);
+      if (!resp.ok) {
+        return res.status(resp.status).send('Failed to fetch from Telegram');
+      }
+
+      const arrayBuf = await resp.arrayBuffer();
+      const buf = Buffer.from(arrayBuf);
+
+      // Cache image for 24 hours
+      BackendDataPoolStore.set(cacheKey, buf.toString('base64'), 24 * 3600 * 1000);
+
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.send(buf);
+    } catch (err: any) {
+      return res.status(500).send(err.message);
     }
   },
 };

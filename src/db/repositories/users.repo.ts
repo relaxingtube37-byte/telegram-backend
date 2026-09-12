@@ -136,6 +136,40 @@ export const UsersRepo = {
     }
   },
 
+  recordReferral: (telegramId: number, referral: string | number): void => {
+    try {
+      const refStr = String(referral || '').trim();
+      if (!refStr || !telegramId) return;
+
+      const existing = db.prepare('SELECT id, referrer_id, referral_code FROM users WHERE telegram_id = ?').get(telegramId) as any;
+      if (!existing) {
+        UsersRepo.touchActivity(telegramId);
+      }
+
+      // Check if user already has a recorded referrer
+      const current = db.prepare('SELECT referrer_id, referral_code FROM users WHERE telegram_id = ?').get(telegramId) as any;
+      if (current && !current.referrer_id && !current.referral_code) {
+        // Extract numeric ID if pattern is like "ref_123456" or "123456"
+        let parsedId: number | null = null;
+        const matchDigits = refStr.match(/\d+/);
+        if (matchDigits) {
+          const cand = parseInt(matchDigits[0], 10);
+          if (cand > 0 && cand !== telegramId) {
+            parsedId = cand;
+          }
+        }
+
+        db.prepare(`
+          UPDATE users SET 
+            referrer_id = ?,
+            referral_code = ?,
+            last_active_at = datetime('now')
+          WHERE telegram_id = ?
+        `).run(parsedId, refStr, telegramId);
+      }
+    } catch {}
+  },
+
   setPendingSite: (telegramId: number, siteId: number): void => {
     const now = new Date().toISOString();
     const existing = db.prepare('SELECT id, is_verified FROM users WHERE telegram_id = ?').get(telegramId) as any;
