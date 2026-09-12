@@ -31,6 +31,9 @@
     "dist",
     "src/bulk-fetch-ui/**/*",
     "src/scripts/**/*",
+    "src/linker/**/*",
+    "src/controllers/linkerAdmin.controller.ts",
+    "src/routes/linkerAdmin.routes.ts",
     "src/test_*.ts",
     "src/test-patch-validation.ts"
   ]
