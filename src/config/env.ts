@@ -52,4 +52,6 @@ export const ENV = {
   ALLSPORTS_API_KEY: (process.env.ALLSPORTS_API_KEY || '').trim(),
   LOCAL_TENNIS_DATA_DIR: (process.env.LOCAL_TENNIS_DATA_DIR || '').trim(),
   DEFAULT_AFFILIATE_URL: (process.env.DEFAULT_AFFILIATE_URL || process.env.AFFILIATE_1WIN_URL || 'https://r1whtrt.life/betting?open=register&p=5ccv').trim(),
+  NEON_DATABASE_URL: (process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || '').trim(),
 };
+

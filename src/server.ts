@@ -8,6 +8,7 @@ import { seoRoutes } from './routes/seo.routes';
 import { startBot } from './bot';
 import { ResultSettlerService } from './services/result-settler.service';
 import { PrecomputationService } from './services/precomputation.service';
+import { NeonSyncService } from './services/neon-sync.service';
 import { Logger } from './utils/logger';
 
 const app = express();
@@ -29,6 +30,13 @@ app.use(errorHandler);
 app.listen(ENV.PORT, '0.0.0.0', () => {
   Logger.success(`🎾 Unified Tennis AI Backend running on port ${ENV.PORT} [${ENV.NODE_ENV}]`);
   Logger.info(`🌐 Health check: ${ENV.PUBLIC_BASE_URL}/health`);
+
+  // Cloud Database Persistence (Neon PostgreSQL)
+  try {
+    NeonSyncService.start();
+  } catch (err) {
+    Logger.warn?.(`⚠️ Neon Sync service failed to start: ${err}`);
+  }
   
   // Bot polling (non-fatal)
   try {
