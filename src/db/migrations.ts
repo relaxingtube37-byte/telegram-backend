@@ -107,6 +107,8 @@ export const runMigrations = () => {
     "ALTER TABLE predictions ADD COLUMN away_image TEXT;",
     "ALTER TABLE predictions ADD COLUMN home_id INTEGER;",
     "ALTER TABLE predictions ADD COLUMN away_id INTEGER;",
+    "ALTER TABLE predictions ADD COLUMN result_announced_at TEXT;",
+    "ALTER TABLE predictions ADD COLUMN result_channel_message_id INTEGER;",
     "ALTER TABLE historical_matches ADD COLUMN rapid_event_id INTEGER;",
     "ALTER TABLE users ADD COLUMN referrer_id INTEGER;",
     "ALTER TABLE users ADD COLUMN referral_code TEXT;",
@@ -118,6 +120,23 @@ export const runMigrations = () => {
     } catch {
       // Column already exists, safe to ignore
     }
+  }
+
+  // Existing settled channel posts: mark announced so restart/sync does not re-spam.
+  // Only rows that already have a prediction channel message (i.e. were linked for replies).
+  try {
+    const backfill = db.prepare(`
+      UPDATE predictions
+      SET result_announced_at = COALESCE(result_announced_at, published_at, created_at, datetime('now'))
+      WHERE status IN ('WON', 'LOST', 'VOID')
+        AND channel_message_id IS NOT NULL
+        AND result_announced_at IS NULL
+    `).run();
+    if (backfill.changes > 0) {
+      Logger.info(`[Migrations] Backfilled result_announced_at on ${backfill.changes} settled prediction(s)`);
+    }
+  } catch (e: any) {
+    Logger.warn('[Migrations] result_announced_at backfill:', e.message);
   }
 
   // Ensure access_mode setting defaults to REGISTRATION_REQUIRED for proper gating

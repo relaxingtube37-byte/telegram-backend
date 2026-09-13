@@ -78,19 +78,11 @@ if (bot) {
     keyboard.row().url('📢 Join Official VIP Channel', `https://t.me/${ENV.CHANNEL_ID.replace('@', '')}`);
 
     const welcomeMsg = 
-      `👋 <b>Welcome to State Football — Tennis AI Studio, ${firstName}!</b>
-
-` +
-      `🎾 <i>Your autonomous 5-agent AI engine for elite tennis match predictions & value bets.</i>
-
-` +
-      `• <b>Real-time mathematical probability</b>
-` +
-      `• <b>+EV Value bets & Shin de-vig pricing</b>
-` +
-      `• <b>38-metric tactical & fatigue breakdown</b>
-
-` +
+      `👋 <b>Welcome to State Football — Tennis AI Studio, ${firstName}!</b>\n\n` +
+      `🎾 <i>Your autonomous 4-agent AI engine for elite tennis match winner predictions & tactical analysis.</i>\n\n` +
+      `• <b>Real-time mathematical win probability</b>\n` +
+      `• <b>Surface-adjusted dynamic ELO & Shin baselines</b>\n` +
+      `• <b>77-indicator tactical, workload & fatigue breakdown</b>\n\n` +
       `👇 <b>Tap the button below to launch the MiniApp:</b>`;
 
     await ctx.reply(welcomeMsg, {

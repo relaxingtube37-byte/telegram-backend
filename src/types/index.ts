@@ -32,6 +32,10 @@ export interface Prediction {
   status: MatchStatus;
   result_score?: string;
   channel_message_id?: number;
+  /** ISO time when WON/LOST/VOID reply was posted to the channel (dedupe key with fixture_id). */
+  result_announced_at?: string | null;
+  /** Telegram message id of the result reply (optional; for audit). */
+  result_channel_message_id?: number | null;
   published_at?: string;
   created_at?: string;
 }

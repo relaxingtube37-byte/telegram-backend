@@ -126,6 +126,32 @@ export const PredictionsRepo = {
     db.prepare('UPDATE predictions SET channel_message_id = ? WHERE id = ?').run(channelMsgId, id);
   },
 
+  /**
+   * Durable "result already posted to channel" mark, keyed by prediction row
+   * (unique fixture_id). Survives backend restart and backup import/export.
+   */
+  markResultAnnounced: (
+    id: number,
+    announcedAt: string,
+    resultChannelMessageId?: number | null,
+  ): void => {
+    db.prepare(`
+      UPDATE predictions
+      SET result_announced_at = ?,
+          result_channel_message_id = COALESCE(?, result_channel_message_id)
+      WHERE id = ?
+    `).run(announcedAt, resultChannelMessageId ?? null, id);
+  },
+
+  isResultAnnounced: (prediction: { result_announced_at?: string | null; result_channel_message_id?: number | null } | null | undefined): boolean => {
+    if (!prediction) return false;
+    if (prediction.result_announced_at) return true;
+    if (prediction.result_channel_message_id != null && Number(prediction.result_channel_message_id) > 0) {
+      return true;
+    }
+    return false;
+  },
+
   delete: (id: number): boolean => {
     const info = db.prepare('DELETE FROM predictions WHERE id = ?').run(id);
     return info.changes > 0;

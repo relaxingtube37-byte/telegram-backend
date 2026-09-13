@@ -211,11 +211,19 @@ export class ResultSettlerService {
               `[ResultSettler] 🎯 Settled #${fixtureId} (${pred.home_name} vs ${pred.away_name}) -> ${status} [Score: ${scoreStr}]`
             );
 
-            // Notify Telegram channel if message ID is linked
+            // Notify Telegram channel once per fixture (durable result_announced_at)
             if (pred.channel_message_id) {
               try {
-                await ChannelPosterService.updateResult(pred.channel_message_id, status, scoreStr);
-                Logger.info(`[ResultSettler] Channel result update posted for message #${pred.channel_message_id}`);
+                const announce = await ChannelPosterService.announceResultIfNeeded(
+                  { ...pred, status },
+                  status,
+                  scoreStr,
+                );
+                if (announce.posted) {
+                  Logger.info(`[ResultSettler] Channel result update posted for message #${pred.channel_message_id}`);
+                } else if (announce.skipped) {
+                  Logger.info(`[ResultSettler] Channel result skipped (#${fixtureId}): ${announce.reason}`);
+                }
               } catch (channelErr: any) {
                 Logger.warn(`[ResultSettler] Failed to post channel update for #${pred.channel_message_id}: ${channelErr.message}`);
               }
@@ -245,8 +253,9 @@ export class ResultSettlerService {
       return;
     }
 
-    if (!ENV.RAPIDAPI_KEY || ENV.RAPIDAPI_KEY.length < 5) {
-      Logger.warn('[ResultSettler] RAPIDAPI_KEY is not configured. Auto-settler disabled gracefully.');
+    const hasApiKey = Boolean((ENV.ALLSPORTS_API_KEY && ENV.ALLSPORTS_API_KEY.length > 5) || (ENV.RAPIDAPI_KEY && ENV.RAPIDAPI_KEY.length > 5));
+    if (!hasApiKey) {
+      Logger.warn('[ResultSettler] Neither ALLSPORTS_API_KEY nor RAPIDAPI_KEY is configured. Auto-settler disabled gracefully.');
       return;
     }
 

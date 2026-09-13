@@ -208,8 +208,8 @@ export const AdminController = {
       if (!updated) return res.status(404).json({ error: 'Prediction not found' });
 
       const prediction = PredictionsRepo.getById(id);
-      if (prediction && prediction.channel_message_id && (status === 'WON' || status === 'LOST' || status === 'VOID')) {
-        await ChannelPosterService.updateResult(prediction.channel_message_id, status, result_score);
+      if (prediction && (status === 'WON' || status === 'LOST' || status === 'VOID')) {
+        await ChannelPosterService.announceResultIfNeeded(prediction, status, result_score);
       }
 
       res.json({ success: true, predictionId: id, status, result_score });
@@ -230,8 +230,8 @@ export const AdminController = {
           if (success) {
             updatedCount++;
             const pred = PredictionsRepo.getByFixtureId(item.fixture_id);
-            if (pred && pred.channel_message_id && (item.status === 'WON' || item.status === 'LOST' || item.status === 'VOID')) {
-              ChannelPosterService.updateResult(pred.channel_message_id, item.status, item.result_score).catch(() => {});
+            if (pred && (item.status === 'WON' || item.status === 'LOST' || item.status === 'VOID')) {
+              ChannelPosterService.announceResultIfNeeded(pred, item.status, item.result_score).catch(() => {});
             }
           }
         }

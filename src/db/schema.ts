@@ -99,6 +99,8 @@ export const initSchema = () => {
       status TEXT DEFAULT 'UPCOMING',
       result_score TEXT,
       channel_message_id INTEGER,
+      result_announced_at TEXT,
+      result_channel_message_id INTEGER,
       published_at TEXT NOT NULL,
       created_at TEXT NOT NULL
     );

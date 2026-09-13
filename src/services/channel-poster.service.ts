@@ -4,6 +4,7 @@ import { ENV } from '../config/env';
 import { escapeHtml, getSurfaceEmoji } from '../utils/htmlEscaper';
 import { Logger } from '../utils/logger';
 import type { Prediction } from '../types';
+import { PredictionsRepo } from '../db/repositories/predictions.repo';
 
 import { ObservabilityService } from './observability.service';
 
@@ -34,10 +35,10 @@ export const ChannelPosterService = {
         `🏆 <b>${escapeHtml(prediction.tournament_name || 'Tennis Tournament')}</b>${roundStr} (${surfaceEmoji})\n` +
         `────────────────────────\n` +
         `⚔️ <b>${escapeHtml(prediction.home_name)} vs ${escapeHtml(prediction.away_name)}</b>\n\n` +
-        `🤖 <b>5-Agent Specialist Audit:</b> COMPLETE ✅\n` +
+        `🤖 <b>4-Agent Specialist Audit:</b> COMPLETE ✅\n` +
         `🎯 <b>Predicted Winner:</b> <code>${escapeHtml(prediction.predicted_winner)}</code>\n` +
         `⚡ <b>Confidence Level:</b> <code>${escapeHtml(prediction.confidence || 'HIGH')} (${prediction.win_probability || 65}%)</code>\n\n` +
-        `💡 <i>Tap the button below to view the full 5-agent tactical breakdown & live tracking inside the MiniApp!</i>`
+        `💡 <i>Tap the button below to view the full 4-agent tactical breakdown & live tracking inside the MiniApp!</i>`
       );
     }
 
@@ -46,6 +47,11 @@ export const ChannelPosterService = {
       factorsSection =
         `\n⚡ <b>Key Match Factors:</b>\n` +
         topFactors.map(f => `• ${escapeHtml(f)}`).join('\n') + '\n';
+    }
+
+    let devilsAdvocateSection = '';
+    if (prediction.devils_advocate_risk && prediction.devils_advocate_risk.trim()) {
+      devilsAdvocateSection = `\n⚠️ <b>Contrarian Risk (Upset Scenario):</b>\n<i>${escapeHtml(prediction.devils_advocate_risk.trim())}</i>\n`;
     }
 
     let summarySection = '';
@@ -62,6 +68,7 @@ export const ChannelPosterService = {
       (prediction.predicted_score ? `📊 <b>Projected Score:</b> ${escapeHtml(prediction.predicted_score)}\n` : '') +
       `🔒 <b>Confidence:</b> <code>${escapeHtml(prediction.confidence || 'HIGH')}</code>\n` +
       factorsSection +
+      devilsAdvocateSection +
       summarySection +
       `────────────────────────\n` +
       `💡 <i>Explore the full match analytics & live tracking inside the MiniApp!</i>`
@@ -115,10 +122,61 @@ export const ChannelPosterService = {
     }
   },
 
-  updateResult: async (messageId: number, status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED', resultScore?: string): Promise<void> => {
+  /**
+   * Post WON/LOST/VOID reply once per prediction (durable via fixture_id / result_announced_at).
+   * Safe across backend restart and backup import when those columns are restored.
+   */
+  announceResultIfNeeded: async (
+    prediction: Prediction | null | undefined,
+    status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED' | string,
+    resultScore?: string,
+  ): Promise<{ posted: boolean; skipped: boolean; reason?: string; resultMessageId?: number | null }> => {
+    if (!prediction?.id) {
+      return { posted: false, skipped: true, reason: 'missing_prediction' };
+    }
+    if (status !== 'WON' && status !== 'LOST' && status !== 'VOID') {
+      return { posted: false, skipped: true, reason: 'non_terminal_status' };
+    }
+    if (!prediction.channel_message_id) {
+      return { posted: false, skipped: true, reason: 'no_channel_message' };
+    }
+    if (PredictionsRepo.isResultAnnounced(prediction)) {
+      Logger.info(
+        `[ChannelPoster] Skip result announce for fixture #${prediction.fixture_id ?? '?'} ` +
+          `(prediction #${prediction.id}): already announced at ${prediction.result_announced_at}`,
+      );
+      return { posted: false, skipped: true, reason: 'already_announced' };
+    }
+
+    const resultMessageId = await ChannelPosterService.updateResult(
+      prediction.channel_message_id,
+      status,
+      resultScore,
+    );
+
+    // Mark announced only after a successful Telegram send (message id returned).
+    // If channel/bot unavailable, leave unmarked so a later sync can retry once.
+    if (resultMessageId != null) {
+      const announcedAt = new Date().toISOString();
+      PredictionsRepo.markResultAnnounced(prediction.id, announcedAt, resultMessageId);
+      Logger.success(
+        `[ChannelPoster] Result announced for fixture #${prediction.fixture_id ?? '?'} ` +
+          `(prediction #${prediction.id}) replyMsg=${resultMessageId}`,
+      );
+      return { posted: true, skipped: false, resultMessageId };
+    }
+
+    return { posted: false, skipped: false, reason: 'send_failed', resultMessageId: null };
+  },
+
+  updateResult: async (
+    messageId: number,
+    status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED',
+    resultScore?: string,
+  ): Promise<number | null> => {
     const currentChannelId = ENV.CHANNEL_ID;
     if (!bot || !currentChannelId || !messageId || status === 'INTERRUPTED' || (status as any) === 'UPCOMING' || (status as any) === 'LIVE') {
-      return;
+      return null;
     }
 
     const isValidScore = resultScore && 
@@ -142,14 +200,16 @@ export const ChannelPosterService = {
       `📊 <i>Live stats, updated accuracy & upcoming picks are live in the MiniApp!</i>`;
 
     try {
-      await bot.api.sendMessage(currentChannelId, htmlMsg, {
+      const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
         reply_parameters: { message_id: messageId },
         parse_mode: 'HTML',
         reply_markup: keyboard,
       });
       Logger.success(`Replied result update (${status}) to message #${messageId}`);
+      return res.message_id;
     } catch (e: any) {
       Logger.warn('Could not reply result update to channel:', e.message);
+      return null;
     }
   },
 
@@ -243,7 +303,7 @@ export const ChannelPosterService = {
       `⚡ <b>${params.count} new AI match analysis dossier(s) & predictions are live in the MiniApp!</b>\n` +
       matchPreviews +
       `────────────────────────\n` +
-      `💡 <i>Tap the button below to view 5-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>`;
+      `💡 <i>Tap the button below to view 4-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>`;
 
     try {
       const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {

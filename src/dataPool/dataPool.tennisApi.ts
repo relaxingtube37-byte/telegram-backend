@@ -1,15 +1,40 @@
 import { ENV } from '../config/env';
 import { Logger } from '../utils/logger';
 
+const ALLSPORTS_BASE = 'https://prod.api.market/api/v1/recodex/allsportsapi';
 const RAPID_HOST = 'tennisapi1.p.rapidapi.com';
-const INTERVAL_MS = 140; // ~7 req/sec (Safe for RapidAPI plan)
+const INTERVAL_MS = 140; // ~7 req/sec
 
 let lastRequestTime = 0;
 let requestQueue: Promise<any> = Promise.resolve();
 
+function isAllSportsActive(): boolean {
+  return Boolean(ENV.ALLSPORTS_API_KEY && ENV.ALLSPORTS_API_KEY.length > 5);
+}
+
+function getRequestTarget(endpoint: string): { url: string; headers: Record<string, string>; providerName: string } {
+  if (isAllSportsActive()) {
+    return {
+      url: `${ALLSPORTS_BASE}${endpoint}`,
+      headers: {
+        'x-api-market-key': ENV.ALLSPORTS_API_KEY,
+      },
+      providerName: 'AllSports',
+    };
+  }
+  return {
+    url: `https://${RAPID_HOST}${endpoint}`,
+    headers: {
+      'x-rapidapi-key': ENV.RAPIDAPI_KEY,
+      'x-rapidapi-host': RAPID_HOST,
+    },
+    providerName: 'RapidAPI',
+  };
+}
+
 export class BackendTennisApi {
   /**
-   * Paced, rate-limited and auto-retrying fetch for RapidAPI Tennis.
+   * Paced, rate-limited and auto-retrying fetch for Tennis API (AllSports / RapidAPI).
    * Uses an iterative loop inside the queue to avoid recursive promise deadlocks.
    */
   private static async request<T>(endpoint: string, maxRetries = 2): Promise<T | null> {
@@ -26,23 +51,21 @@ export class BackendTennisApi {
             }
             lastRequestTime = Date.now();
 
+            const target = getRequestTarget(endpoint);
+
             try {
-              const url = 'https://' + RAPID_HOST + endpoint;
-              const res = await fetch(url, {
-                headers: {
-                  'x-rapidapi-key': ENV.RAPIDAPI_KEY,
-                  'x-rapidapi-host': RAPID_HOST,
-                },
-                signal: AbortSignal.timeout(4500),
+              const res = await fetch(target.url, {
+                headers: target.headers,
+                signal: AbortSignal.timeout(6000),
               });
 
               if (res.status === 429) {
                 if (attempt < maxRetries) {
-                  Logger.warn(`[TennisAPI RateLimiter] 429 on ${endpoint}. Backing off 1.5s... (attempt ${attempt + 1}/${maxRetries})`);
+                  Logger.warn(`[TennisAPI RateLimiter] 429 on ${endpoint} (${target.providerName}). Backing off 1.5s... (attempt ${attempt + 1}/${maxRetries})`);
                   await new Promise((r) => setTimeout(r, 1500));
                   continue;
                 } else {
-                  Logger.warn(`[TennisAPI RateLimiter] 429 limit reached on ${endpoint}`);
+                  Logger.warn(`[TennisAPI RateLimiter] 429 limit reached on ${endpoint} (${target.providerName})`);
                   resolve(null);
                   return;
                 }
@@ -55,7 +78,7 @@ export class BackendTennisApi {
               }
 
               if (!res.ok) {
-                Logger.warn(`RapidAPI Tennis HTTP ${res.status} on ${endpoint}`);
+                Logger.warn(`[TennisAPI] HTTP ${res.status} on ${endpoint} (${target.providerName})`);
                 resolve(null);
                 return;
               }
@@ -212,13 +235,12 @@ export class BackendTennisApi {
             }
             lastRequestTime = Date.now();
 
+            const target = getRequestTarget(endpoint);
+
             try {
-              const url = 'https://' + RAPID_HOST + endpoint;
-              const res = await fetch(url, {
-                headers: {
-                  'x-rapidapi-key': ENV.RAPIDAPI_KEY,
-                  'x-rapidapi-host': RAPID_HOST,
-                },
+              const res = await fetch(target.url, {
+                headers: target.headers,
+                signal: AbortSignal.timeout(8000),
               });
 
               if (res.status === 429) {

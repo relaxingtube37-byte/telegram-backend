@@ -5,10 +5,10 @@ import { calculateWeightedFatigueLoad } from '../engine/physics/fatigueEngine';
 export interface PlayerRollingForm {
   playerName: string;
   matchesEvaluated: number;
-  last5WinRatePct: number;
-  last10WinRatePct: number;
-  currentStreak: string; // e.g. "+4 W" or "-2 L"
-  setsWinRatePct: number;
+  last5WinRatePct: number | null;
+  last10WinRatePct: number | null;
+  currentStreak: string | null; // e.g. "+4 W" or "-2 L"
+  setsWinRatePct: number | null;
   recentScores: string[];
 }
 
@@ -34,19 +34,19 @@ export interface SafeH2HSummary {
 export interface SurfaceMasteryMetrics {
   surface: string;
   matchesCount: number;
-  winRatePct: number;
-  holdRatePct: number;
-  breakRatePct: number;
-  totalSynergyIndex: number; // Hold% + Break%
+  winRatePct: number | null;
+  holdRatePct: number | null;
+  breakRatePct: number | null;
+  totalSynergyIndex: number | null; // Hold% + Break%
 }
 
 export interface WorkloadExposureMetrics {
-  daysSinceLastMatch: number;
-  restHours: number;
+  daysSinceLastMatch: number | null;
+  restHours: number | null;
   acute7dMatchesCount: number;
   acute7dMinutes: number;
-  energyTankPct: number;
-  compositeFatigueIndex: number;
+  energyTankPct: number | null;
+  compositeFatigueIndex: number | null;
   fatigueStatusLabel: string;
 }
 
@@ -157,10 +157,10 @@ export const MatchAnalyticsService = {
         return {
           playerName: displayName,
           matchesEvaluated: 0,
-          last5WinRatePct: 50.0,
-          last10WinRatePct: 50.0,
-          currentStreak: 'N/A',
-          setsWinRatePct: 50.0,
+          last5WinRatePct: null,
+          last10WinRatePct: null,
+          currentStreak: null,
+          setsWinRatePct: null,
           recentScores: [],
         };
       }
@@ -257,10 +257,10 @@ export const MatchAnalyticsService = {
         return {
           surface: targetSurf,
           matchesCount: 0,
-          winRatePct: 50.0,
-          holdRatePct: 78.0,
-          breakRatePct: 22.0,
-          totalSynergyIndex: 100.0,
+          winRatePct: null,
+          holdRatePct: null,
+          breakRatePct: null,
+          totalSynergyIndex: null,
         };
       }
 
@@ -311,13 +311,13 @@ export const MatchAnalyticsService = {
     const computeWorkload = (matches: any[], nameClean: string): WorkloadExposureMetrics => {
       if (matches.length === 0) {
         return {
-          daysSinceLastMatch: 999,
-          restHours: 999 * 24,
+          daysSinceLastMatch: null,
+          restHours: null,
           acute7dMatchesCount: 0,
           acute7dMinutes: 0,
-          energyTankPct: 100,
-          compositeFatigueIndex: 0.0,
-          fatigueStatusLabel: 'Full (100%)',
+          energyTankPct: null,
+          compositeFatigueIndex: null,
+          fatigueStatusLabel: 'Fresh (Resting)',
         };
       }
 
@@ -493,36 +493,47 @@ export const MatchAnalyticsService = {
     const explanationCards: MatchDeepAnalyticsReport['explanationCards'] = [];
 
     // Card 1: Form & Momentum
-    if (p1RollingForm.last5WinRatePct >= 80) {
+    if (p1RollingForm.last5WinRatePct != null && p1RollingForm.last5WinRatePct >= 80) {
       explanationCards.push({
         title: `${player1Name} in Peak Form`,
         tag: '🔥 Red-Hot Momentum',
-        description: `${player1Name} enters on a strong ${p1RollingForm.currentStreak} run with ${p1RollingForm.last5WinRatePct}% win rate over their last 5 matches.`,
+        description: `${player1Name} enters on a strong ${p1RollingForm.currentStreak || 'winning'} run with ${p1RollingForm.last5WinRatePct}% win rate over their last 5 matches.`,
         confidence: 'HIGH',
       });
-    } else if (p2RollingForm.last5WinRatePct >= 80) {
+    } else if (p2RollingForm.last5WinRatePct != null && p2RollingForm.last5WinRatePct >= 80) {
       explanationCards.push({
         title: `${player2Name} in Peak Form`,
         tag: '🔥 Red-Hot Momentum',
-        description: `${player2Name} has won ${p2RollingForm.last5WinRatePct}% of their last 5 encounters (${p2RollingForm.currentStreak}).`,
+        description: `${player2Name} has won ${p2RollingForm.last5WinRatePct}% of their last 5 encounters (${p2RollingForm.currentStreak || 'winning streak'}).`,
         confidence: 'HIGH',
       });
     }
 
     // Card 2: Surface Specialization
-    if (Math.abs(p1SurfaceMastery.winRatePct - p2SurfaceMastery.winRatePct) >= 15 && (p1SurfaceMastery.matchesCount >= 3 || p2SurfaceMastery.matchesCount >= 3)) {
+    if (
+      p1SurfaceMastery.winRatePct != null &&
+      p2SurfaceMastery.winRatePct != null &&
+      Math.abs(p1SurfaceMastery.winRatePct - p2SurfaceMastery.winRatePct) >= 15 &&
+      (p1SurfaceMastery.matchesCount >= 3 || p2SurfaceMastery.matchesCount >= 3)
+    ) {
       const advPlayer = p1SurfaceMastery.winRatePct > p2SurfaceMastery.winRatePct ? player1Name : player2Name;
       const advRate = Math.max(p1SurfaceMastery.winRatePct, p2SurfaceMastery.winRatePct);
+      const synergy1 = p1SurfaceMastery.totalSynergyIndex ?? 0;
+      const synergy2 = p2SurfaceMastery.totalSynergyIndex ?? 0;
       explanationCards.push({
         title: `${advPlayer} Surface Mastery`,
         tag: `⚡ ${surface} Specialist`,
-        description: `${advPlayer} holds an outstanding ${advRate}% Bayesian-adjusted win rate on ${surface} courts (TSI: ${Math.max(p1SurfaceMastery.totalSynergyIndex, p2SurfaceMastery.totalSynergyIndex)}).`,
+        description: `${advPlayer} holds an outstanding ${advRate}% Bayesian-adjusted win rate on ${surface} courts (TSI: ${Math.max(synergy1, synergy2)}).`,
         confidence: 'HIGH',
       });
     }
 
     // Card 3: Fatigue / Recovery Edge
-    if (Math.abs(p1Workload.energyTankPct - p2Workload.energyTankPct) >= 15) {
+    if (
+      p1Workload.energyTankPct != null &&
+      p2Workload.energyTankPct != null &&
+      Math.abs(p1Workload.energyTankPct - p2Workload.energyTankPct) >= 15
+    ) {
       const fresherPlayer = p1Workload.energyTankPct > p2Workload.energyTankPct ? player1Name : player2Name;
       const tiredPlayer = p1Workload.energyTankPct > p2Workload.energyTankPct ? player2Name : player1Name;
       const energyDiff = Math.abs(p1Workload.energyTankPct - p2Workload.energyTankPct);
