@@ -150,6 +150,28 @@ export const runMigrations = () => {
     Logger.warn('Settings migration check:', e.message);
   }
 
+  // Purge legacy dummy synthetic records
+  try {
+    db.prepare('DELETE FROM referral_sites WHERE id > 1').run();
+    db.prepare(`
+      DELETE FROM predictions 
+      WHERE home_name LIKE 'Player A%' 
+         OR home_name LIKE 'Test Player%' 
+         OR tournament_name IS NULL 
+         OR tournament_name = 'ATP Test Open' 
+         OR tournament_name = 'Demo Open'
+         OR (fixture_id IS NULL AND (home_name = 'Aryna Sabalenka' OR away_name = 'Iga Swiatek'))
+    `).run();
+    db.prepare(`
+      DELETE FROM users 
+      WHERE telegram_id IN (11223344, 99999999, 777888999, 555000111, 444333222, 900100200, 771122334, 778899112, 181436428, 99887766)
+         OR email = 'testplayer@gmail.com'
+         OR first_name = 'Test Player Updated'
+    `).run();
+  } catch (e: any) {
+    Logger.warn('[Migrations] Purge legacy records warning:', e.message);
+  }
+
   // Phase C: attribution + conversion tables + business_action_settings seed
   try {
     db.exec(`
