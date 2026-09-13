@@ -198,11 +198,18 @@ export const VerificationService = {
     let click = correlation ? ReferralClicksRepo.getByClickId(correlation) : undefined;
     let userRef: string | null = click?.user_ref || null;
 
-    // Legacy: correlation is numeric telegram id
+    // Legacy / direct: correlation is numeric telegram id or email
     if (!userRef && correlation) {
       const digits = correlation.replace(/\D/g, '');
       if (digits && digits.length >= 5) {
         userRef = digits;
+      } else if (correlation.includes('@')) {
+        const u = UsersRepo.getByEmail(correlation);
+        if (u?.telegram_id) {
+          userRef = String(u.telegram_id);
+        } else {
+          userRef = correlation;
+        }
       }
     }
 
@@ -288,7 +295,12 @@ export const VerificationService = {
       };
     }
 
-    const telegramId = parseOptionalInt(userRef.replace(/\D/g, ''));
+    let telegramId = parseOptionalInt(userRef.replace(/\D/g, ''));
+    if (!telegramId && userRef.includes('@')) {
+      const u = UsersRepo.getByEmail(userRef);
+      if (u?.telegram_id) telegramId = u.telegram_id;
+    }
+
     if (telegramId && String(telegramId).length >= 5) {
       if (opts.eventType === 'first_deposit') {
         UsersRepo.setDeposited(telegramId);
@@ -300,6 +312,9 @@ export const VerificationService = {
         UsersRepo.setVerified(telegramId, siteId, 'postback');
         Logger.success(`[POSTBACK VERIFIED] User ${telegramId} via "${siteName}" (${opts.eventType})`);
       }
+    } else if (userRef.includes('@')) {
+      UsersRepo.setVerifiedByEmail(userRef, siteId);
+      Logger.success(`[POSTBACK VERIFIED EMAIL] User ${userRef} via "${siteName}" (${opts.eventType})`);
     }
 
     return {

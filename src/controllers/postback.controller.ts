@@ -16,7 +16,7 @@ export const PostbackController = {
     const { siteKey } = req.params;
     const targetKey = String(siteKey || req.query.key || req.query.secret || '');
 
-    // Prefer opaque click_id; fall back to legacy subid / telegram id
+    // Prefer opaque click_id; fall back to legacy subid / telegram id / email
     const correlationId = pick(req, [
       'click_id',
       'subid',
@@ -25,6 +25,7 @@ export const PostbackController = {
       'telegram_id',
       'user_id',
       'ptid',
+      'email',
     ]);
 
     const transactionId = pick(req, ['transaction_id', 'txn_id', 'tx_id', 'order_id', 'payment_id']);

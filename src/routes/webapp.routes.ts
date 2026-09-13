@@ -267,12 +267,13 @@ router.post('/referral/complete', async (req: Request, res: Response) => {
       }
     }
 
+    const site = siteId ? ReferralsRepo.getById(Number(siteId)) : ReferralsRepo.getActive()[0];
     if (effectiveId && effectiveId > 0) {
-      UsersRepo.setTelegramVerified(effectiveId, siteId ? Number(siteId) : undefined);
+      UsersRepo.setPendingSite(effectiveId, site?.id || 1);
     }
-    if (email) {
-      UsersRepo.setVerifiedByEmail(String(email), siteId ? Number(siteId) : undefined);
-    }
+
+    const userRecord = effectiveId ? UsersRepo.getByTelegramId(effectiveId) : null;
+    const isVerified = Boolean(userRecord && userRecord.is_verified === 1);
 
     const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
     const contentFlags = resolveContentFlags();
@@ -283,10 +284,57 @@ router.post('/referral/complete', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      verified: true,
+      verified: isVerified,
+      pending: !isVerified,
+      verify_status: userRecord?.verify_status || (isVerified ? 'verified' : 'pending_postback'),
+      message: isVerified ? 'Verified' : 'Registration initiated. Awaiting 1WIN postback confirmation.',
       access_mode: accessMode,
       content_layers: contentFlags,
       sessionToken: newToken,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/webapp/auth/status - Real-time verification status check for web & mini-app
+router.get('/auth/status', async (req: Request, res: Response) => {
+  try {
+    const access = resolveWebappAccess(req);
+    let effectiveTelegramId = access.telegramId;
+
+    if (!effectiveTelegramId && req.query.telegramId) {
+      const qid = parseInt(String(req.query.telegramId), 10);
+      if (!isNaN(qid) && qid > 0) effectiveTelegramId = qid;
+    }
+    if (!effectiveTelegramId && req.headers['x-telegram-id']) {
+      const hid = parseInt(String(req.headers['x-telegram-id']), 10);
+      if (!isNaN(hid) && hid > 0) effectiveTelegramId = hid;
+    }
+
+    let userRecord = null;
+    if (effectiveTelegramId) {
+      userRecord = UsersRepo.getByTelegramId(effectiveTelegramId);
+    }
+    if (!userRecord && req.query.email) {
+      userRecord = UsersRepo.getByEmail(String(req.query.email));
+      if (userRecord?.telegram_id && !effectiveTelegramId) {
+        effectiveTelegramId = userRecord.telegram_id;
+      }
+    }
+
+    const isVerified = userRecord ? computeIsVerified(access.accessMode, userRecord) : access.isVerified;
+
+    res.json({
+      success: true,
+      verified: isVerified,
+      access_mode: access.accessMode,
+      verify_status: userRecord?.verify_status || (isVerified ? 'verified' : 'none'),
+      user: userRecord ? {
+        telegram_id: userRecord.telegram_id,
+        is_verified: userRecord.is_verified,
+        verify_status: userRecord.verify_status,
+      } : null,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
