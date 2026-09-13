@@ -7,7 +7,7 @@ export const PredictionsRepo = {
   },
 
   getActive: (): any[] => {
-    return db.prepare("SELECT * FROM predictions WHERE status = 'UPCOMING' OR status = 'LIVE' ORDER BY match_date ASC, published_at DESC").all();
+    return db.prepare("SELECT * FROM predictions WHERE status = 'UPCOMING' OR status = 'LIVE' OR status = 'INTERRUPTED' ORDER BY match_date ASC, published_at DESC").all();
   },
 
   getHistory: (limit = 50): any[] => {

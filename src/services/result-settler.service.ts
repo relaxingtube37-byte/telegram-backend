@@ -82,19 +82,87 @@ export class ResultSettlerService {
           const ev = eventData.event;
           const statusType = String(ev.status?.type || '').toLowerCase();
           const statusDesc = String(ev.status?.description || '').toLowerCase();
+          const statusCode = Number(ev.status?.code ?? -1);
+
+          // Extract sets score (e.g. 2-0, 2-1)
+          const hSets = Number(ev.homeScore?.current ?? ev.homeScore?.display ?? 0) || 0;
+          const aSets = Number(ev.awayScore?.current ?? ev.awayScore?.display ?? 0) || 0;
+          const maxSetsWon = Math.max(hSets, aSets);
+
+          // Identify specific termination reasons for unfinished matches
+          const isRetirement =
+            statusCode === 92 ||
+            statusDesc.includes('retired') ||
+            statusDesc.includes('retirement');
+
+          const isWalkover =
+            statusCode === 93 ||
+            statusDesc.includes('walkover');
+
+          const isCanceledOrPostponed =
+            statusType === 'canceled' ||
+            statusType === 'cancelled' ||
+            statusDesc.includes('cancel') ||
+            statusDesc.includes('postpon') ||
+            statusDesc.includes('abandon') ||
+            statusDesc.includes('not played');
 
           const isFinished =
             statusType === 'finished' ||
             statusDesc.includes('finish') ||
             statusDesc.includes('ended') ||
-            statusDesc.includes('retired') ||
-            statusDesc.includes('walkover');
+            isRetirement ||
+            isWalkover;
 
+          // ── CASE 1: UNFINISHED / PREMATURE MATCH TERMINATION -> VOID (NEVER LOST) ──
+          // In tennis: ATP/WTA/Challenger/ITF matches require at least 2 sets won by the winner.
+          // If a match is marked finished but neither player won 2 sets (e.g. 1-0 or 0-1),
+          // or if the match ended by retirement/walkover/cancellation/abandonment:
+          // In sports betting and fair prediction tracking, it MUST be settled as VOID.
+          if (isRetirement || isWalkover || isCanceledOrPostponed || (isFinished && maxSetsWon < 2)) {
+            let voidScore = 'VOID';
+            if (isWalkover) {
+              voidScore = 'W/O';
+            } else if (isRetirement || (isFinished && maxSetsWon < 2)) {
+              const rawScore = (hSets !== 0 || aSets !== 0) ? `${hSets}-${aSets}` : '';
+              voidScore = rawScore ? `${rawScore} (Ret.)` : 'RET';
+            } else if (statusDesc.includes('abandon')) {
+              voidScore = 'ABAND.';
+            } else if (statusDesc.includes('postpon')) {
+              voidScore = 'POSTP.';
+            }
+
+            const ok = PredictionsService.updateResultByFixtureId(fixtureId, 'VOID', voidScore);
+            if (ok) {
+              settledCount++;
+              settledList.push({ fixture_id: fixtureId, status: 'VOID', score: voidScore });
+              Logger.info(
+                `[ResultSettler] 🔄 Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is UNFINISHED/RETIRED -> Settled as VOID [Score: ${voidScore}]`
+              );
+
+              // Notify Telegram channel of VOID outcome
+              if (pred.channel_message_id) {
+                try {
+                  const announce = await ChannelPosterService.announceResultIfNeeded(
+                    { ...pred, status: 'VOID' },
+                    'VOID',
+                    voidScore
+                  );
+                  if (announce.posted) {
+                    Logger.info(`[ResultSettler] Channel VOID result posted for message #${pred.channel_message_id}`);
+                  }
+                } catch (channelErr: any) {
+                  Logger.warn(`[ResultSettler] Failed to post channel VOID update for #${pred.channel_message_id}: ${channelErr.message}`);
+                }
+              }
+            }
+            continue;
+          }
+
+          // ── CASE 2: ACTIVE MATCH NOT YET FINISHED ──
           if (!isFinished) {
-            // Check 1: In Progress / LIVE with genuine triplet scores
+            // Check 2A: In Progress / LIVE with genuine triplet scores
             if (statusType === 'inprogress' || statusDesc.includes('in progress') || statusDesc.includes('live')) {
-              const hSets = ev.homeScore?.display ?? ev.homeScore?.current ?? 0;
-              const aSets = ev.awayScore?.display ?? ev.awayScore?.current ?? 0;
               const hPoints = ev.homeScore?.point ?? '0';
               const aPoints = ev.awayScore?.point ?? '0';
               let hGames = 0;
@@ -111,7 +179,7 @@ export class ResultSettlerService {
               PredictionsService.updateResultByFixtureId(fixtureId, 'LIVE', liveScoreStr);
               Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is LIVE: ${liveScoreStr}`);
             }
-            // Check 2: Interrupted / Suspended / Rain Delay
+            // Check 2B: Interrupted / Suspended / Rain Delay
             else if (
               statusType === 'interrupted' ||
               statusDesc.includes('interrupted') ||
@@ -124,24 +192,11 @@ export class ResultSettlerService {
                 Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is INTERRUPTED`);
               }
             }
-            // Check 3: Canceled / Postponed / Abandoned
-            else if (
-              statusType === 'canceled' ||
-              statusType === 'cancelled' ||
-              statusDesc.includes('cancel') ||
-              statusDesc.includes('postpon') ||
-              statusDesc.includes('abandoned')
-            ) {
-              if (pred.status !== 'VOID') {
-                PredictionsService.updateResultByFixtureId(fixtureId, 'VOID', 'VOID');
-                Logger.info(`[ResultSettler] Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is VOID`);
-              }
-            }
-            // Check 4: Not Started / Upcoming
+            // Check 2C: Not Started / Upcoming
             else if (
               statusType === 'notstarted' ||
               statusDesc.includes('not started') ||
-              Number(ev.status?.code ?? -1) === 0
+              statusCode === 0
             ) {
               if (pred.status !== 'UPCOMING' || pred.result_score) {
                 PredictionsService.updateResultByFixtureId(fixtureId, 'UPCOMING', undefined);
@@ -151,7 +206,7 @@ export class ResultSettlerService {
             continue;
           }
 
-          // Determine winner
+          // ── CASE 3: GENUINELY COMPLETED MATCH (Winner Won >= 2 sets) ──
           let actualWinnerName: string | null = null;
           if (ev.winnerCode === 1) {
             actualWinnerName = ev.homeTeam?.name || pred.home_name;
@@ -163,44 +218,20 @@ export class ResultSettlerService {
             actualWinnerName = ev.awayTeam.name;
           }
 
-          // Determine settlement status
-          let status: 'WON' | 'LOST' | 'VOID' = 'LOST';
-          if (statusDesc.includes('cancelled') || statusDesc.includes('postponed')) {
-            status = 'VOID';
-          } else if (actualWinnerName && pred.predicted_winner) {
-            const won = isWinnerNameMatch(actualWinnerName, pred.predicted_winner);
-            status = won ? 'WON' : 'LOST';
+          // Fail-safe: if match is finished but winner is missing or unknown, VOID it (never false-flag as LOST)
+          if (!actualWinnerName || !pred.predicted_winner) {
+            Logger.warn(`[ResultSettler] Match #${fixtureId} completed without definitive winner. Settling as VOID.`);
+            const scoreStr = `${hSets}-${aSets}`;
+            PredictionsService.updateResultByFixtureId(fixtureId, 'VOID', scoreStr);
+            settledCount++;
+            settledList.push({ fixture_id: fixtureId, status: 'VOID', score: scoreStr });
+            continue;
           }
 
-          // Format match score - strictly sets count only (e.g. 2-0, 2-1)
-          // For walkover/retirement: label the score accordingly
-          const isWalkover = statusDesc.includes('walkover') || statusDesc.includes('retirement') || statusDesc.includes('retired');
-          const hScore = ev.homeScore?.current ?? ev.homeScore?.display ?? '';
-          const aScore = ev.awayScore?.current ?? ev.awayScore?.display ?? '';
-          let scoreStr = hScore !== '' && aScore !== '' ? `${hScore}-${aScore}` : '';
-          if (!scoreStr) {
-            const sets: string[] = [];
-            for (let i = 1; i <= 5; i++) {
-              const hP = ev.homeScore?.[`period${i}`];
-              const aP = ev.awayScore?.[`period${i}`];
-              if (hP !== undefined && aP !== undefined) {
-                sets.push(`${hP}-${aP}`);
-              }
-            }
-            if (sets.length > 0) {
-              let hW = 0, aW = 0;
-              sets.forEach(s => {
-                const [h, a] = s.split('-').map(Number);
-                if (h > a) hW++; else if (a > h) aW++;
-              });
-              scoreStr = `${hW}-${aW}`;
-            }
-          }
-          // Walkover / retirement: if no score recoverable, use descriptive label
-          if (!scoreStr && isWalkover) {
-            scoreStr = statusDesc.includes('walkover') ? 'W/O' : 'RET';
-          }
-          // Leave scoreStr empty if truly unknown — don't fabricate 2-0 or 0-2
+          // Strict winner name verification
+          const won = isWinnerNameMatch(actualWinnerName, pred.predicted_winner);
+          const status: 'WON' | 'LOST' = won ? 'WON' : 'LOST';
+          const scoreStr = `${hSets}-${aSets}`;
 
           // Persist settled outcome in SQLite
           const ok = PredictionsService.updateResultByFixtureId(fixtureId, status, scoreStr);

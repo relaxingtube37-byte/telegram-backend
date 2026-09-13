@@ -281,4 +281,30 @@ export const runMigrations = () => {
   } catch (e: any) {
     Logger.warn('Premature LIVE predictions cleanup migration:', e.message);
   }
+
+  // Auto-correct unfinished / retired / walkover predictions from LOST to VOID
+  try {
+    const res = db.prepare(`
+      UPDATE predictions
+      SET status = 'VOID',
+          result_score = CASE
+            WHEN result_score LIKE '%ret%' OR result_score = '1-0' OR result_score = '0-1' THEN '1-0 (Ret.)'
+            WHEN result_score LIKE '%w/o%' OR result_score LIKE '%walkover%' THEN 'W/O'
+            ELSE COALESCE(result_score, 'VOID')
+          END
+      WHERE (status = 'LOST' OR status = 'WON') AND (
+        fixture_id = 17085122 OR
+        result_score = '1-0' OR
+        result_score = '0-1' OR
+        result_score LIKE '%(Ret%)' OR
+        result_score LIKE '%RET%' OR
+        result_score LIKE '%W/O%'
+      )
+    `).run();
+    if (res.changes > 0) {
+      Logger.info(`[Migrations] Corrected ${res.changes} unfinished/retired prediction(s) from LOST to VOID.`);
+    }
+  } catch (e: any) {
+    Logger.warn('Fix unfinished predictions migration:', e.message);
+  }
 };
