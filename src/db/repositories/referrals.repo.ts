@@ -21,7 +21,16 @@ export const ReferralsRepo = {
   getByPostbackKey: (key: string): ReferralSite | undefined => {
     const k = String(key || '').trim();
     if (!k) return undefined;
-    return db.prepare('SELECT * FROM referral_sites WHERE (postback_key = ? OR LOWER(name) = LOWER(?) OR id = ?) AND is_active = 1').get(k, k, Number(k) || 0) as ReferralSite | undefined;
+    const direct = db.prepare('SELECT * FROM referral_sites WHERE (postback_key = ? OR LOWER(name) = LOWER(?) OR id = ?) AND is_active = 1').get(k, k, Number(k) || 0) as ReferralSite | undefined;
+    if (direct) return direct;
+    return db.prepare(`
+      SELECT * FROM referral_sites 
+      WHERE (
+        LOWER(postback_key) LIKE '%' || LOWER(?) || '%' 
+        OR LOWER(name) LIKE '%' || LOWER(?) || '%'
+      ) AND is_active = 1 
+      ORDER BY id ASC LIMIT 1
+    `).get(k, k) as ReferralSite | undefined;
   },
 
   create: (site: Partial<ReferralSite> & { base_url?: string }): number => {

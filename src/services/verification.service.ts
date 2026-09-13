@@ -213,8 +213,8 @@ export const VerificationService = {
       }
     }
 
-    if (!userRef && site) {
-      const fallbackUser = UsersRepo.getLatestUnverified(site.id);
+    if (!userRef) {
+      const fallbackUser = UsersRepo.getLatestUnverified(site?.id);
       if (fallbackUser) {
         userRef = String(fallbackUser.telegram_id);
         Logger.info(`[POSTBACK FALLBACK] Matched to user ${userRef}`);

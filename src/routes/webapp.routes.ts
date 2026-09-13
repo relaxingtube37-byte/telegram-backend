@@ -583,4 +583,25 @@ router.get('/config', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/webapp/admin/postback-audit - Real-time audit of recent postbacks, clicks, and users
+router.get('/admin/postback-audit', async (req: Request, res: Response) => {
+  try {
+    const dbInstance = require('../db/connection').db;
+    const conversions = dbInstance.prepare('SELECT * FROM partner_conversions ORDER BY id DESC LIMIT 20').all();
+    const clicks = dbInstance.prepare('SELECT * FROM referral_clicks ORDER BY id DESC LIMIT 20').all();
+    const sites = dbInstance.prepare('SELECT id, name, referral_url, postback_key, verify_mode, is_active FROM referral_sites ORDER BY id ASC').all();
+    const latestUsers = dbInstance.prepare('SELECT id, telegram_id, first_name, email, is_verified, verify_status, created_at, last_active_at FROM users ORDER BY last_active_at DESC, id DESC LIMIT 10').all();
+
+    res.json({
+      success: true,
+      sites,
+      conversions,
+      clicks,
+      latestUsers,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export const webappRoutes = router;
