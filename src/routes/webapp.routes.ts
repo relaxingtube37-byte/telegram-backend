@@ -224,6 +224,7 @@ router.post('/auth', async (req: Request, res: Response) => {
         first_name: user?.first_name || first_name,
         username: user?.username || username,
         is_verified: isVerified ? 1 : 0,
+        verify_status: user?.verify_status || (isVerified ? 'verified' : 'telegram_connected'),
         auth_provider: 'telegram',
         registered_site_id: user?.registered_site_id,
         avatar_url: user?.avatar_url || `/api/webapp/users/${telegramId}/avatar`,

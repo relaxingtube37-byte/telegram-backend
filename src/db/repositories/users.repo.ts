@@ -115,20 +115,19 @@ export const UsersRepo = {
     if (!existing) {
       db.prepare(`
         INSERT INTO users (telegram_id, first_name, username, is_verified, verify_status, auth_provider, verified_at, created_at, last_active_at)
-        VALUES (?, ?, ?, 1, 'telegram_verified', 'telegram', ?, ?, ?)
-      `).run(telegramId, profile.first_name || null, profile.username || null, now, now, now);
+        VALUES (?, ?, ?, 0, 'telegram_connected', 'telegram', NULL, ?, ?)
+      `).run(telegramId, profile.first_name || null, profile.username || null, now, now);
     } else {
       db.prepare(`
         UPDATE users SET 
           first_name = COALESCE(?, first_name),
           username = COALESCE(?, username),
-          is_verified = 1,
-          verify_status = CASE WHEN verify_status = 'verified' THEN 'verified' ELSE 'telegram_verified' END,
+          is_verified = CASE WHEN verify_status = 'verified' THEN 1 ELSE 0 END,
+          verify_status = CASE WHEN verify_status = 'verified' THEN 'verified' ELSE 'telegram_connected' END,
           auth_provider = CASE WHEN auth_provider IS NULL OR auth_provider = '' THEN 'telegram' ELSE auth_provider END,
-          verified_at = COALESCE(verified_at, ?),
           last_active_at = ?
         WHERE telegram_id = ?
-      `).run(profile.first_name || null, profile.username || null, now, now, telegramId);
+      `).run(profile.first_name || null, profile.username || null, now, telegramId);
     }
   },
 

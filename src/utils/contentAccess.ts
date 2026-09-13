@@ -101,19 +101,13 @@ export function computeIsVerified(
   if (mode === ACCESS_MODE_FREE) return true;
   if (!user) return false;
   if (mode === ACCESS_MODE_DEPOSIT) {
-    return !!(user.has_deposited || user.is_verified);
+    return !!(user.has_deposited || (user.is_verified && user.verify_status === 'verified'));
   }
-  // Google-only auth is NOT verified — user must also complete Step 2 (partner activation).
-  // Telegram users are verified because they enter via the bot referral flow.
-  // A Google user is verified only when is_verified=1 AND verify_status='verified' (set by referral/complete).
-  if (user.auth_provider === 'google') {
-    return !!(user.is_verified && user.verify_status === 'verified');
-  }
-  return !!(
-    user.is_verified ||
-    user.auth_provider === 'telegram' ||
-    (user.telegram_id && user.telegram_id > 0)
-  );
+  // STRICT 2-STEP POLICY (Both Web & Telegram Mini-App):
+  // Step 1: User connects account (Google or Telegram)
+  // Step 2: User completes partner site registration (1WIN) via /referral/complete
+  // Both steps are strictly mandatory for all access.
+  return !!(user.is_verified && user.verify_status === 'verified');
 }
 
 function extractBearerOrHeaderToken(req: Request): string | undefined {
