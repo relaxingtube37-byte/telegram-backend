@@ -269,6 +269,9 @@ router.post('/referral/complete', async (req: Request, res: Response) => {
     if (effectiveId && effectiveId > 0) {
       UsersRepo.setTelegramVerified(effectiveId, siteId ? Number(siteId) : undefined);
     }
+    if (email) {
+      UsersRepo.setVerifiedByEmail(String(email), siteId ? Number(siteId) : undefined);
+    }
 
     const accessMode = normalizeAccessMode(SettingsRepo.get('access_mode'));
     const contentFlags = resolveContentFlags();
@@ -315,9 +318,16 @@ router.post('/auth/web', async (req: Request, res: Response) => {
 
     if (accessMode === 'FREE') {
       isVerified = true;
-    } else if (payload.telegramId) {
-      userRecord = UsersRepo.getByTelegramId(payload.telegramId);
-      isVerified = computeIsVerified(accessMode, userRecord);
+    } else {
+      let targetId = payload.telegramId;
+      if (!targetId && payload.webId && payload.webId.startsWith('tg_')) {
+        const parsed = parseInt(payload.webId.slice(3), 10);
+        if (!isNaN(parsed)) targetId = parsed;
+      }
+      if (targetId) {
+        userRecord = UsersRepo.getByTelegramId(targetId);
+        isVerified = computeIsVerified(accessMode, userRecord);
+      }
     }
 
     payload.createdAt = Date.now();
@@ -336,7 +346,10 @@ router.post('/auth/web', async (req: Request, res: Response) => {
             telegram_id: userRecord.telegram_id,
             first_name: userRecord.first_name,
             username: userRecord.username,
+            email: userRecord.email,
+            avatar_url: userRecord.avatar_url,
             is_verified: userRecord.is_verified,
+            verify_status: userRecord.verify_status,
           }
         : null,
     });
@@ -473,6 +486,7 @@ router.post('/auth/google', async (req: Request, res: Response) => {
         avatar_url: userRecord.avatar_url || gUser.picture,
         auth_provider: 'google',
         is_verified: isVerified ? 1 : 0,
+        verify_status: userRecord.verify_status,
       },
     });
   } catch (err: any) {

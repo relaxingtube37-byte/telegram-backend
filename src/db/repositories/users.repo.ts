@@ -240,4 +240,18 @@ export const UsersRepo = {
       `).run(telegramId, siteId || null, now, now, now);
     }
   },
+
+  setVerifiedByEmail: (email: string, siteId?: number): void => {
+    const now = new Date().toISOString();
+    db.prepare(`
+      UPDATE users SET 
+        is_verified = 1,
+        verify_status = 'verified',
+        verify_source = 'webapp_activation',
+        verified_at = COALESCE(verified_at, ?),
+        registered_site_id = COALESCE(?, registered_site_id),
+        last_active_at = ?
+      WHERE LOWER(email) = LOWER(?)
+    `).run(now, siteId || null, now, email);
+  },
 };
