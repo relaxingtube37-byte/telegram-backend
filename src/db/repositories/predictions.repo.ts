@@ -152,6 +152,7 @@ export const PredictionsRepo = {
     return false;
   },
 
+
   delete: (id: number): boolean => {
     const info = db.prepare('DELETE FROM predictions WHERE id = ?').run(id);
     return info.changes > 0;
@@ -160,4 +161,20 @@ export const PredictionsRepo = {
   clearAll: (): void => {
     db.prepare('DELETE FROM predictions').run();
   },
+
+  /**
+   * Patch specific fields of a prediction row.
+   * Only whitelisted fields are allowed to prevent accidental data corruption.
+   */
+  patch: (id: number, fields: Partial<Pick<Prediction, 'tournament_name' | 'round_name' | 'surface' | 'match_date'>>): boolean => {
+    const allowed = ['tournament_name', 'round_name', 'surface', 'match_date'] as const;
+    const entries = (Object.keys(fields) as (typeof allowed[number])[])
+      .filter(k => allowed.includes(k) && fields[k] !== undefined);
+    if (entries.length === 0) return false;
+    const setClauses = entries.map(k => `${k} = ?`).join(', ');
+    const values = entries.map(k => fields[k] ?? null);
+    const info = db.prepare(`UPDATE predictions SET ${setClauses} WHERE id = ?`).run(...values, id);
+    return info.changes > 0;
+  },
 };
+

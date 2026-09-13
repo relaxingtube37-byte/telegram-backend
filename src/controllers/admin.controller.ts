@@ -286,6 +286,24 @@ export const AdminController = {
     }
   },
 
+  patchPrediction: async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(String(req.params.id), 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+      const { tournament_name, round_name, surface, match_date } = req.body;
+      const fields: Record<string, string | undefined> = {};
+      if (tournament_name !== undefined) fields.tournament_name = String(tournament_name);
+      if (round_name !== undefined) fields.round_name = String(round_name);
+      if (surface !== undefined) fields.surface = String(surface);
+      if (match_date !== undefined) fields.match_date = String(match_date);
+      const success = PredictionsRepo.patch(id, fields as any);
+      const updated = PredictionsRepo.getById(id);
+      res.json({ success, id, prediction: updated });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   batchDeletePredictions: async (req: Request, res: Response) => {
     try {
       const { ids } = req.body;

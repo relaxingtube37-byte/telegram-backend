@@ -36,6 +36,7 @@ router.post('/referrals', AdminController.saveSite);
 router.delete('/referrals/:id', AdminController.deleteSite);
 
 router.delete('/predictions/:id', AdminController.deletePrediction);
+router.patch('/predictions/:id', AdminController.patchPrediction);
 router.post('/predictions/batch-delete', AdminController.batchDeletePredictions);
 
 router.get('/settings', AdminController.getSettings);
