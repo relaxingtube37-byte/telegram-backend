@@ -307,4 +307,19 @@ export const runMigrations = () => {
   } catch (e: any) {
     Logger.warn('Fix unfinished predictions migration:', e.message);
   }
+
+  // Ensure 1WIN referral partner URL is set to the user's authentic affiliate link
+  try {
+    const userAffiliateUrl = (process.env.AFFILIATE_1WIN_URL || process.env.DEFAULT_AFFILIATE_URL || 'https://r1whtrt.life/betting?open=register&p=5ccv').trim();
+    const res = db.prepare(`
+      UPDATE referral_sites
+      SET referral_url = ?, is_active = 1
+      WHERE id = 1 OR LOWER(name) LIKE '%1win%'
+    `).run(userAffiliateUrl);
+    if (res.changes > 0) {
+      Logger.info(`[Migrations] Set 1WIN affiliate destination URL to: ${userAffiliateUrl}`);
+    }
+  } catch (e: any) {
+    Logger.warn('1WIN affiliate URL migration note:', e.message);
+  }
 };

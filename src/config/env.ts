@@ -51,4 +51,5 @@ export const ENV = {
   RAPIDAPI_KEY: (process.env.RAPIDAPI_KEY || '3b98e0a4e3mshfb887513c847f6bp1602e4jsnaa6342ccddfa').trim(),
   ALLSPORTS_API_KEY: (process.env.ALLSPORTS_API_KEY || '').trim(),
   LOCAL_TENNIS_DATA_DIR: (process.env.LOCAL_TENNIS_DATA_DIR || '').trim(),
+  DEFAULT_AFFILIATE_URL: (process.env.DEFAULT_AFFILIATE_URL || process.env.AFFILIATE_1WIN_URL || 'https://r1whtrt.life/betting?open=register&p=5ccv').trim(),
 };

@@ -560,7 +560,7 @@ export const initSchema = () => {
       `).run(
         '1win',
         '',
-        'https://r1wvvyb.life/betting?open=register&p=5ccv',
+        'https://r1whtrt.life/betting?open=register&p=5ccv',
         '',
         '',
         '',
