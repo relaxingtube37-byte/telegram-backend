@@ -38,9 +38,7 @@ export const UsersRepo = {
           first_name = COALESCE(?, first_name),
           avatar_url = COALESCE(?, avatar_url),
           google_id = COALESCE(?, google_id),
-          is_verified = 1,
           verify_status = CASE WHEN verify_status = 'verified' THEN 'verified' ELSE 'google_verified' END,
-          verified_at = COALESCE(verified_at, ?),
           auth_provider = CASE WHEN auth_provider IS NULL OR auth_provider = '' THEN 'google' ELSE auth_provider END,
           last_active_at = ?
         WHERE id = ?
@@ -49,7 +47,6 @@ export const UsersRepo = {
         profile.name || null,
         profile.picture || null,
         profile.googleId,
-        now,
         now,
         existing.id
       );
@@ -69,14 +66,13 @@ export const UsersRepo = {
           created_at,
           last_active_at
         )
-        VALUES (?, ?, ?, 'google', ?, ?, 1, 'google_verified', ?, ?, ?)
+        VALUES (?, ?, ?, 'google', ?, ?, 0, 'google_verified', NULL, ?, ?)
       `).run(
         profile.syntheticId,
         profile.name || null,
         profile.email,
         profile.googleId,
         profile.picture || null,
-        now,
         now,
         now
       );

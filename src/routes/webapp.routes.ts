@@ -237,7 +237,7 @@ router.post('/auth', async (req: Request, res: Response) => {
 // POST /api/webapp/referral/complete - Explicit user activation/registration completion
 router.post('/referral/complete', async (req: Request, res: Response) => {
   try {
-    const { telegramId, siteId, sessionToken } = req.body || {};
+    const { telegramId, siteId, sessionToken, googleId, email } = req.body || {};
     let effectiveId = telegramId ? Number(telegramId) : null;
 
     if (!effectiveId && sessionToken) {
@@ -253,6 +253,16 @@ router.post('/referral/complete', async (req: Request, res: Response) => {
       const session = validateTelegramInitData(initDataHeader);
       if (session.valid && session.user?.id) {
         effectiveId = session.user.id;
+      }
+    }
+
+    // Support Google users: look them up by googleId or email to get their synthetic telegram_id
+    if (!effectiveId && (googleId || email)) {
+      let googleUser: any = null;
+      if (googleId) googleUser = UsersRepo.getByGoogleId(String(googleId));
+      if (!googleUser && email) googleUser = UsersRepo.getByEmail(String(email));
+      if (googleUser?.telegram_id) {
+        effectiveId = googleUser.telegram_id;
       }
     }
 
@@ -278,6 +288,7 @@ router.post('/referral/complete', async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // POST /api/webapp/auth/web - Cryptographically signed session for standalone web visitors
 router.post('/auth/web', async (req: Request, res: Response) => {

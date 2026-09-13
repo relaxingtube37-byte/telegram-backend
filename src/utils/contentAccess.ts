@@ -95,7 +95,7 @@ export function normalizeAccessMode(raw?: string | null): string {
 
 export function computeIsVerified(
   accessMode: string,
-  user: { is_verified?: number; has_deposited?: number; auth_provider?: string; email?: string; telegram_id?: number } | null | undefined
+  user: { is_verified?: number; has_deposited?: number; auth_provider?: string; email?: string; telegram_id?: number; verify_status?: string } | null | undefined
 ): boolean {
   const mode = normalizeAccessMode(accessMode);
   if (mode === ACCESS_MODE_FREE) return true;
@@ -103,11 +103,15 @@ export function computeIsVerified(
   if (mode === ACCESS_MODE_DEPOSIT) {
     return !!(user.has_deposited || user.is_verified);
   }
+  // Google-only auth is NOT verified — user must also complete Step 2 (partner activation).
+  // Telegram users are verified because they enter via the bot referral flow.
+  // A Google user is verified only when is_verified=1 AND verify_status='verified' (set by referral/complete).
+  if (user.auth_provider === 'google') {
+    return !!(user.is_verified && user.verify_status === 'verified');
+  }
   return !!(
     user.is_verified ||
-    user.auth_provider === 'google' ||
     user.auth_provider === 'telegram' ||
-    user.email ||
     (user.telegram_id && user.telegram_id > 0)
   );
 }
