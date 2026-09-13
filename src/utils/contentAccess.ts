@@ -167,6 +167,10 @@ export function resolveWebappAccess(req: Request): ResolvedWebappAccess {
   if (telegramId) {
     user = UsersRepo.getByTelegramId(telegramId);
   }
+  if (!user && webId && webId.startsWith('tg_')) {
+    const id = parseInt(webId.slice(3), 10);
+    if (!isNaN(id)) user = UsersRepo.getByTelegramId(id);
+  }
 
   const isVerified = computeIsVerified(accessMode, user);
 
@@ -187,8 +191,8 @@ function truncateSummary(text: string | undefined, maxLen = 220): string | undef
 }
 
 /**
- * Public teaser fields always kept for guests (odds + likely winner + meta).
- * Deep AI / bets / factors gated by content flags and verification.
+ * Public teaser fields always kept for guests (teams + tournament + odds + status).
+ * Deep AI / predictions / winner / probabilities strictly redacted until full 2-step verification.
  */
 export function redactPrediction(
   prediction: Prediction,
@@ -203,38 +207,24 @@ export function redactPrediction(
     };
   }
 
-  const canSummary = contentFlags.guest_can_see_summary;
-  const canAi = contentFlags.guest_can_see_ai_full;
-  const canStats = contentFlags.guest_can_see_stats;
-
   const out: Prediction & { content_locked?: boolean; content_layers?: ContentLayerFlags } = {
     ...prediction,
     content_locked: true,
     content_layers: contentFlags,
+    predicted_winner: 'LOCKED',
+    win_probability: undefined,
+    confidence: undefined,
+    predicted_score: undefined,
+    key_factors: undefined,
+    devils_advocate_risk: undefined,
+    best_bet_selection: undefined,
+    best_bet_market: undefined,
+    best_bet_ev: undefined,
+    best_bet_rationale: undefined,
+    alt_bet_selection: undefined,
+    alt_bet_market: undefined,
+    ai_summary: undefined,
   };
-
-  if (!canAi) {
-    out.key_factors = undefined;
-    out.devils_advocate_risk = undefined;
-    out.best_bet_selection = undefined;
-    out.best_bet_market = undefined;
-    out.best_bet_ev = undefined;
-    out.best_bet_rationale = undefined;
-    out.alt_bet_selection = undefined;
-    out.alt_bet_market = undefined;
-    if (!canSummary) {
-      out.ai_summary = undefined;
-    } else {
-      out.ai_summary = truncateSummary(prediction.ai_summary);
-    }
-  }
-
-  if (!canStats) {
-    // predicted_score is mild analysis — keep for teaser trust; strip only if no summary either
-    if (!canSummary) {
-      out.predicted_score = undefined;
-    }
-  }
 
   return out;
 }

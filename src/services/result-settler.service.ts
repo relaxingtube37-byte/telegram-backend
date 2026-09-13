@@ -167,7 +167,7 @@ export class ResultSettlerService {
           let status: 'WON' | 'LOST' | 'VOID' = 'LOST';
           if (statusDesc.includes('cancelled') || statusDesc.includes('postponed')) {
             status = 'VOID';
-          } else if (actualWinnerName) {
+          } else if (actualWinnerName && pred.predicted_winner) {
             const won = isWinnerNameMatch(actualWinnerName, pred.predicted_winner);
             status = won ? 'WON' : 'LOST';
           }

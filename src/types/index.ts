@@ -12,9 +12,9 @@ export interface Prediction {
   away_name: string;
   home_odds?: string;
   away_odds?: string;
-  predicted_winner: string;
-  win_probability: number;
-  confidence: string;
+  predicted_winner?: string;
+  win_probability?: number;
+  confidence?: string;
   predicted_score?: string;
   best_bet_selection?: string;
   best_bet_market?: string;
