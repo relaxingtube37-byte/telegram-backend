@@ -696,26 +696,72 @@ export const WebController = {
         if (found && found.player_id) {
           resolvedId = String(found.player_id);
         } else {
-          // If not in database, search via RapidAPI Tennis API
+          // If not in database, search via Tennis API (AllSports / RapidAPI)
           try {
-            let searchRes = await BackendTennisApi.searchPlayers(decoded);
-            let matched = searchRes && Array.isArray(searchRes.results)
-              ? searchRes.results.find((r: any) => r.entity && r.entity.id && !r.entity.name?.includes(' - '))
-              : null;
+            const norm = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const queryNorm = norm(clean);
+            const qTokens = queryNorm.split(/\s+/).filter(Boolean);
 
-            if (!matched && parts.length > 1) {
-              const lastName = parts[parts.length - 1];
-              searchRes = await BackendTennisApi.searchPlayers(lastName);
-              if (searchRes && Array.isArray(searchRes.results)) {
-                matched = searchRes.results.find((r: any) => {
-                  if (!r.entity || !r.entity.id || r.entity.name?.includes(' - ')) return false;
-                  return (r.entity.name || '').toLowerCase().includes(lastName.toLowerCase());
+            const matchCandidate = (candidates: any[], tokens: string[]) => {
+              if (!Array.isArray(candidates) || tokens.length === 0) return null;
+              const lastName = tokens[tokens.length - 1];
+              const firstName = tokens[0];
+
+              // 1. Exact match: candidate name tokens contain ALL query tokens
+              let m = candidates.find((r: any) => {
+                if (!r.entity || !r.entity.id || r.entity.type !== 1) return false;
+                const candTokens = norm(r.entity.name).split(/[^a-z0-9]+/).filter(Boolean);
+                return tokens.every(q => candTokens.includes(q));
+              });
+              if (m) return m;
+
+              // 2. Initial match: candidate contains last name and begins with first name initial
+              if (tokens.length > 1) {
+                m = candidates.find((r: any) => {
+                  if (!r.entity || !r.entity.id || r.entity.type !== 1) return false;
+                  const candTokens = norm(r.entity.name).split(/[^a-z0-9]+/).filter(Boolean);
+                  return candTokens.includes(lastName) && candTokens.some(t => t.startsWith(firstName[0]));
                 });
+                if (m) return m;
+              }
+
+              return null;
+            };
+
+            // Search by single terms (search endpoint rejects terms with spaces)
+            const searchTerms = qTokens.filter(t => t.length >= 2);
+            const termsToSearch = searchTerms.length > 1
+              ? [searchTerms[searchTerms.length - 1], searchTerms[0]]
+              : searchTerms;
+
+            let matched: any = null;
+            for (const term of termsToSearch) {
+              const searchRes = await BackendTennisApi.searchPlayers(term);
+              if (searchRes && Array.isArray(searchRes.results)) {
+                matched = matchCandidate(searchRes.results, qTokens);
+                if (matched) break;
               }
             }
 
             if (matched && matched.entity?.id) {
               resolvedId = String(matched.entity.id);
+              try {
+                const candName = matched.entity.name || decoded;
+                const slug = norm(candName).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const now = new Date().toISOString();
+                db.prepare(`
+                  INSERT OR IGNORE INTO players (player_id, slug, full_name, short_name, gender, created_at, updated_at)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)
+                `).run(
+                  Number(matched.entity.id),
+                  slug,
+                  candName,
+                  matched.entity.shortName || candName,
+                  matched.entity.gender || 'M',
+                  now,
+                  now
+                );
+              } catch {}
             }
           } catch {}
         }
