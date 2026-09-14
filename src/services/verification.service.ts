@@ -185,12 +185,23 @@ export const VerificationService = {
     rawPayload: Record<string, unknown>;
   }) => {
     let site = opts.targetKey ? ReferralsRepo.getByPostbackKey(opts.targetKey) : undefined;
-    if (!site) {
+    if (!site && opts.targetKey) {
+      site = ReferralsRepo.getActive().find(s => s.postback_key === opts.targetKey || s.name.toLowerCase() === opts.targetKey.toLowerCase());
+    }
+    if (!site && !opts.targetKey) {
       site = ReferralsRepo.getActive()[0];
     }
-    const siteId = site ? site.id : undefined;
-    const partnerKey = (site?.postback_key || site?.name || opts.targetKey || 'unknown').trim() || 'unknown';
-    const siteName = site ? site.name : 'Default Partner';
+    if (!site) {
+      Logger.warn(`[POSTBACK REJECTED] Unknown or invalid partner site key: "${opts.targetKey}"`);
+      return {
+        success: false,
+        error: 'Invalid or unknown partner site key',
+      };
+    }
+
+    const siteId = site.id;
+    const partnerKey = (site.postback_key || site.name || opts.targetKey || 'unknown').trim() || 'unknown';
+    const siteName = site.name || 'Default Partner';
 
     const correlation = String(opts.correlationId || '').trim();
     const transactionId = String(opts.transactionId || '').trim() || null;
@@ -213,12 +224,14 @@ export const VerificationService = {
       }
     }
 
+    // Security Hardening: Never verify an arbitrary latest unverified user when correlation is missing/invalid!
     if (!userRef) {
-      const fallbackUser = UsersRepo.getLatestUnverified(site?.id);
-      if (fallbackUser) {
-        userRef = String(fallbackUser.telegram_id);
-        Logger.info(`[POSTBACK FALLBACK] Matched to user ${userRef}`);
-      }
+      Logger.warn(`[POSTBACK UNMATCHED] No valid user_ref or click_id found for correlation="${correlation}" on partner="${partnerKey}"`);
+      return {
+        success: false,
+        error: 'Unmatched postback correlation: missing or invalid click_id/user_ref',
+        site: siteName,
+      };
     }
 
     const dedupeKey = buildConversionDedupeKey({

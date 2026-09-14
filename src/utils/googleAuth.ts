@@ -57,8 +57,8 @@ export async function verifyGoogleIdToken(
 
   const trimmedToken = idToken.trim();
 
-  // 1. Check for mock/testing token (enables reliable offline test suite)
-  if (trimmedToken.startsWith('mock_google_')) {
+  // 1. Check for mock/testing token (strictly restricted to test environments)
+  if (process.env.NODE_ENV === 'test' && trimmedToken.startsWith('mock_google_')) {
     const parts = trimmedToken.split('_');
     const mockId = parts[2] || '10987654321';
     const mockEmail = parts[3] ? `${parts[3]}@gmail.com` : 'user@gmail.com';
