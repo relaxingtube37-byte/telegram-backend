@@ -309,6 +309,7 @@ export const ChannelPosterService = {
       tournament_name?: string;
     }>;
     title?: string;
+    channelTitle?: string;
     headerText?: string;
     footerText?: string;
     includePicks?: boolean;
@@ -319,9 +320,7 @@ export const ChannelPosterService = {
 
     const isTeaser = params.includePicks !== true;
     const targetUrl = resolveWebAppUrl();
-    const btnLabel = isTeaser
-      ? `🚀 🎾 Open MiniApp & Unlock Predictions (${params.count} Matches)`
-      : `🚀 🎾 Open MiniApp & View Analyses (${params.count} Matches)`;
+    const btnLabel = `🚀 🎾 Open MiniApp & View Analyses (${params.count} Matches)`;
     const keyboard = new InlineKeyboard().url(btnLabel, targetUrl);
 
     let matchPreviews = '';
@@ -361,14 +360,13 @@ export const ChannelPosterService = {
             const home = m.home || m.home_name || 'Home';
             const away = m.away || m.away_name || 'Away';
             const timeRaw = m.time ? String(m.time).trim() : '';
-            const formattedTime = timeRaw ? (timeRaw.toUpperCase().includes('UTC') ? timeRaw : `${timeRaw} UTC`) : '';
-            const time = formattedTime ? ` ⏰ <code>${escapeHtml(formattedTime)}</code>` : '';
+            const time = timeRaw ? ` ⏰ <code>${escapeHtml(timeRaw)}</code>` : '';
             lines.push(`• <b>${escapeHtml(home)} vs ${escapeHtml(away)}</b>${time}`);
             if (params.includePicks === true) {
               const pick = m.best_bet || m.winner;
               const odds = m.odds ? ` | Odds: <b>${escapeHtml(String(m.odds))}</b>` : '';
               if (pick && pick !== 'PASS' && pick !== 'NO_BET') {
-                lines.push(`  🎯 <i>Pick: <b>${escapeHtml(pick)}</b>${odds}</i>`);
+                lines.push(`  🎯 <i>Lean: <b>${escapeHtml(pick)}</b>${odds}</i>`);
               }
             }
           }
@@ -378,17 +376,42 @@ export const ChannelPosterService = {
       }
     }
 
-    const titleHeader = params.title || `🎾 <b>TENNIS AI MATCH PREDICTIONS & DOSSIERS</b>`;
-    const subHeader = params.headerText || `⚡ <b>${params.count} new AI match analysis dossier(s) & predictions are live in the MiniApp!</b>`;
+    // Resolve channel name dynamically or from parameters
+    let channelName = (params.channelTitle || '').trim();
+    if (!channelName && ENV.CHANNEL_TITLE) {
+      channelName = ENV.CHANNEL_TITLE;
+    }
+    if (!channelName && bot && currentChannelId) {
+      try {
+        const chat = await bot.api.getChat(currentChannelId);
+        if ('title' in chat && chat.title) {
+          channelName = chat.title;
+        } else if ('username' in chat && chat.username) {
+          channelName = `@${chat.username}`;
+        }
+      } catch {}
+    }
+    if (!channelName && ENV.CHANNEL_URL) {
+      const handle = ENV.CHANNEL_URL.split('/').pop();
+      if (handle) channelName = `@${handle}`;
+    }
+    if (!channelName) {
+      channelName = 'BetBaz Tennis AI';
+    }
+
+    const channelHeader = `📢 <b>${escapeHtml(channelName)}</b>\n`;
+    const titleHeader = params.title || `🎾 <b>TENNIS AI MATCH ANALYSIS & DOSSIERS</b>`;
+    const subHeader = params.headerText || `⚡ <b>${params.count} New AI Match Tactical Dossiers are live in the MiniApp:</b>`;
     const defaultFooter = isTeaser
-      ? `🔒 <b>All AI Winner Picks, High-Probability Bets & Odds are locked inside the MiniApp!</b>\n` +
-        `💡 <i>Tap the button below to register & unlock 4-agent tactical breakdowns, win probabilities & live tracking!</i>\n` +
+      ? `📊 <b>4-Agent Tactical Dossiers, Win Probabilities & Form Analysis are available in the MiniApp.</b>\n` +
+        `👇 <b>Tap the button below to open the MiniApp & view all match analyses:</b>\n` +
         `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`
       : `💡 <i>Tap the button below to view 4-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>\n` +
         `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`;
     const footer = params.footerText || defaultFooter;
 
     const htmlMsg =
+      `${channelHeader}` +
       `${titleHeader}\n` +
       `────────────────────────\n` +
       `${subHeader}\n` +

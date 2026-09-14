@@ -26,6 +26,8 @@ export const ENV = {
   PORT: parseInt(process.env.PORT || '8080', 10),
   BOT_TOKEN: (process.env.BOT_TOKEN || '').trim(),
   CHANNEL_ID: (process.env.CHANNEL_ID || '').trim(),
+  CHANNEL_TITLE: (process.env.CHANNEL_TITLE || process.env.CHANNEL_NAME || '').trim(),
+  CHANNEL_URL: (process.env.CHANNEL_URL || '').trim(),
   BOT_USERNAME: ((process.env.BOT_USERNAME || '').replace(/^@/, '').trim() && (process.env.BOT_USERNAME || '').replace(/^@/, '').trim() !== 'tennis_prediction_bot') 
     ? (process.env.BOT_USERNAME || '').replace(/^@/, '').trim() 
     : 'admdinbetbetforbot',
