@@ -187,18 +187,37 @@ export class NeonSyncService {
 
     const client = await pool.connect();
     try {
-      // 0. Purge legacy dummy synthetic records locally
+      // 0. Purge legacy dummy synthetic records both on Neon PostgreSQL and locally
       try {
-        db.prepare('DELETE FROM referral_sites WHERE id > 1').run();
-        db.prepare(`
+        const purgePredsSql = `
           DELETE FROM predictions 
           WHERE home_name LIKE 'Player A%' 
              OR home_name LIKE 'Test Player%' 
+             OR home_name LIKE 'Player %'
+             OR away_name LIKE 'Player B%'
+             OR away_name LIKE 'Test Player%'
+             OR away_name LIKE 'Player %'
              OR tournament_name IS NULL 
              OR tournament_name = 'ATP Test Open' 
              OR tournament_name = 'Demo Open'
+             OR tournament_name = 'Test Tournament'
+             OR fixture_id IN (999001, 999002, 998811, 999123, 98765432, 88776655, 88001122, 99008877)
+             OR (fixture_id < 100000)
              OR (fixture_id IS NULL AND (home_name = 'Aryna Sabalenka' OR away_name = 'Iga Swiatek'))
-        `).run();
+        `;
+        // Execute on Neon PostgreSQL
+        await client.query(purgePredsSql);
+        await client.query('DELETE FROM referral_sites WHERE id > 1');
+        await client.query(`
+          DELETE FROM users 
+          WHERE telegram_id IN (11223344, 99999999, 777888999, 555000111, 444333222, 900100200, 771122334, 778899112, 181436428, 99887766)
+             OR email = 'testplayer@gmail.com'
+             OR first_name = 'Test Player Updated'
+        `);
+
+        // Execute locally in SQLite
+        db.prepare('DELETE FROM referral_sites WHERE id > 1').run();
+        db.prepare(purgePredsSql).run();
         db.prepare(`
           DELETE FROM users 
           WHERE telegram_id IN (11223344, 99999999, 777888999, 555000111, 444333222, 900100200, 771122334, 778899112, 181436428, 99887766)
@@ -366,7 +385,9 @@ export class NeonSyncService {
       // 3. Push predictions
       const localPreds = db.prepare('SELECT * FROM predictions').all() as any[];
       for (const p of localPreds) {
-        if (!p.fixture_id) continue;
+        if (!p.fixture_id || Number(p.fixture_id) < 100000) continue;
+        if (!p.tournament_name || p.tournament_name.includes('Test') || p.tournament_name === 'Demo Open') continue;
+        if (p.home_name?.startsWith('Player ') || p.home_name?.startsWith('Test Player')) continue;
         await client.query(`
           INSERT INTO predictions (
             fixture_id, tournament_name, round_name, surface, match_date,
