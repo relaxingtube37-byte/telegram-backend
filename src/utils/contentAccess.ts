@@ -236,23 +236,17 @@ export function redactDeepAnalytics(
     locked: true,
     matchInfo: report.matchInfo,
     teaser: {
-      p1RollingForm: {
-        ...report.p1RollingForm,
-        recentScores: [],
-        last10WinRatePct: report.p1RollingForm.last5WinRatePct,
-      },
-      p2RollingForm: {
-        ...report.p2RollingForm,
-        recentScores: [],
-        last10WinRatePct: report.p2RollingForm.last5WinRatePct,
-      },
-      h2hSummary: {
-        totalPreMatchEncounters: report.h2hSummary.totalPreMatchEncounters,
-        p1Wins: report.h2hSummary.p1Wins,
-        p2Wins: report.h2hSummary.p2Wins,
-        surfaceH2H: [],
-        recentEncounters: [],
-      },
+      p1RollingForm: report.p1RollingForm,
+      p2RollingForm: report.p2RollingForm,
+      h2hSummary: report.h2hSummary,
+      p1SurfaceMastery: report.p1SurfaceMastery,
+      p2SurfaceMastery: report.p2SurfaceMastery,
+      p1Workload: report.p1Workload,
+      p2Workload: report.p2Workload,
+      p1Clutch: report.p1Clutch,
+      p2Clutch: report.p2Clutch,
+      matchupGaps: report.matchupGaps,
+      explanationCards: report.explanationCards,
     },
   };
 }
