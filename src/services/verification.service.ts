@@ -184,12 +184,39 @@ export const VerificationService = {
     eventType: PartnerEventType;
     rawPayload: Record<string, unknown>;
   }) => {
+    const correlation = String(opts.correlationId || '').trim();
+    const transactionId = String(opts.transactionId || '').trim() || null;
+
+    let click = correlation ? ReferralClicksRepo.getByClickId(correlation) : undefined;
+    let userRef: string | null = click?.user_ref || null;
+
     let site = opts.targetKey ? ReferralsRepo.getByPostbackKey(opts.targetKey) : undefined;
     if (!site && opts.targetKey) {
-      site = ReferralsRepo.getActive().find(s => s.postback_key === opts.targetKey || s.name.toLowerCase() === opts.targetKey.toLowerCase());
+      site = ReferralsRepo.getActive().find(s => {
+        const target = opts.targetKey.toLowerCase();
+        const pbk = (s.postback_key || '').toLowerCase();
+        const sname = s.name.toLowerCase();
+        return (
+          pbk === target ||
+          sname === target ||
+          (pbk && (target.includes(pbk) || pbk.includes(target))) ||
+          (sname && (target.includes(sname) || sname.includes(target)))
+        );
+      });
     }
-    if (!site && !opts.targetKey) {
-      site = ReferralsRepo.getActive()[0];
+    // If site was not matched via URL key, resolve it directly from the authentic registered click record!
+    if (!site && click?.site_id) {
+      site = ReferralsRepo.getById(click.site_id);
+      if (site) {
+        Logger.info(`[POSTBACK RESOLVED] Site resolved from click record ${correlation} -> ${site.name} (id: ${site.id})`);
+      }
+    }
+    // Fallback: If only 1 active partner site exists on the platform, resolve to it
+    if (!site) {
+      const active = ReferralsRepo.getActive();
+      if (active.length === 1) {
+        site = active[0];
+      }
     }
     if (!site) {
       Logger.warn(`[POSTBACK REJECTED] Unknown or invalid partner site key: "${opts.targetKey}"`);
@@ -203,17 +230,10 @@ export const VerificationService = {
     const partnerKey = (site.postback_key || site.name || opts.targetKey || 'unknown').trim() || 'unknown';
     const siteName = site.name || 'Default Partner';
 
-    const correlation = String(opts.correlationId || '').trim();
-    const transactionId = String(opts.transactionId || '').trim() || null;
-
-    let click = correlation ? ReferralClicksRepo.getByClickId(correlation) : undefined;
-    let userRef: string | null = click?.user_ref || null;
-
-    // Legacy / direct: correlation is numeric telegram id or email
-    if (!userRef && correlation) {
-      const digits = correlation.replace(/\D/g, '');
-      if (digits && digits.length >= 5) {
-        userRef = digits;
+    // Legacy / direct: correlation is numeric telegram id or email (never convert a clk_ string into telegram ID)
+    if (!userRef && correlation && !correlation.startsWith('clk_')) {
+      if (/^\d{5,15}$/.test(correlation)) {
+        userRef = correlation;
       } else if (correlation.includes('@')) {
         const u = UsersRepo.getByEmail(correlation);
         if (u?.telegram_id) {

@@ -23,14 +23,17 @@ export const ReferralsRepo = {
     if (!k) return undefined;
     const direct = db.prepare('SELECT * FROM referral_sites WHERE (postback_key = ? OR LOWER(name) = LOWER(?) OR id = ?) AND is_active = 1').get(k, k, Number(k) || 0) as ReferralSite | undefined;
     if (direct) return direct;
-    return db.prepare(`
-      SELECT * FROM referral_sites 
-      WHERE (
-        LOWER(postback_key) LIKE '%' || LOWER(?) || '%' 
-        OR LOWER(name) LIKE '%' || LOWER(?) || '%'
-      ) AND is_active = 1 
-      ORDER BY id ASC LIMIT 1
-    `).get(k, k) as ReferralSite | undefined;
+
+    const active = ReferralsRepo.getActive();
+    const kLower = k.toLowerCase();
+    return active.find(s => {
+      const pbk = (s.postback_key || '').toLowerCase().trim();
+      const sname = (s.name || '').toLowerCase().trim();
+      return (
+        (pbk && (kLower.includes(pbk) || pbk.includes(kLower))) ||
+        (sname && (kLower.includes(sname) || sname.includes(kLower)))
+      );
+    });
   },
 
   create: (site: Partial<ReferralSite> & { base_url?: string }): number => {

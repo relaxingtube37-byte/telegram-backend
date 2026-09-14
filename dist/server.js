@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const env_1 = require("./config/env");
 const cors_1 = require("./middlewares/cors");
+const rateLimiter_1 = require("./middlewares/rateLimiter");
 const errorHandler_1 = require("./middlewares/errorHandler");
 const routes_1 = require("./routes");
 const go_routes_1 = require("./routes/go.routes");
@@ -15,8 +16,13 @@ const result_settler_service_1 = require("./services/result-settler.service");
 const neon_sync_service_1 = require("./services/neon-sync.service");
 const logger_1 = require("./utils/logger");
 const app = (0, express_1.default)();
+// Security checks at startup
+(0, env_1.validateSecurityEnvironment)();
+// Trust first proxy hop (essential for Cloudflare & Render edge headers like cf-connecting-ip)
+app.set('trust proxy', 1);
 // Attach middlewares
 app.use(cors_1.corsMiddleware);
+app.use(rateLimiter_1.webappLimiter);
 app.use(express_1.default.json({ limit: '15mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 // Attach routes

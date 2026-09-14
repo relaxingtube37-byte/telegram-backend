@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { VerificationService, detectPartnerEventType } from '../services/verification.service';
+import { ReferralClicksRepo } from '../db/repositories/referralClicks.repo';
+import { NeonSyncService } from '../services/neon-sync.service';
 import { Logger } from '../utils/logger';
 
 function isUnsubstitutedMacro(val: string): boolean {
@@ -95,6 +97,34 @@ export const PostbackController = {
       body: req.body,
       received_via: 'postback',
     };
+
+    // If click_id was received but not found in local SQLite, check Neon PostgreSQL
+    if (correlationId.startsWith('clk_') && !ReferralClicksRepo.getByClickId(correlationId)) {
+      const pool = NeonSyncService.getPool();
+      if (pool) {
+        try {
+          const cRes = await pool.query('SELECT * FROM referral_clicks WHERE click_id = $1 LIMIT 1', [correlationId]);
+          if (cRes.rows.length > 0) {
+            const c = cRes.rows[0];
+            ReferralClicksRepo.create({
+              click_id: c.click_id,
+              site_id: c.site_id,
+              partner_key: c.partner_key || '1win',
+              user_ref: c.user_ref,
+              session_ref: c.session_ref,
+              match_id: c.match_id,
+              fixture_id: c.fixture_id,
+              page_context: c.page_context,
+              action_type: c.action_type || 'registration',
+              destination_url: c.destination_url || '',
+            });
+            Logger.info(`[POSTBACK CLICK RESTORED] Restored click ${correlationId} from Neon DB`);
+          }
+        } catch (e: any) {
+          Logger.warn(`[POSTBACK CLICK RESTORE] Failed to check Neon: ${e.message}`);
+        }
+      }
+    }
 
     const result = VerificationService.handlePostbackDetailed({
       targetKey,

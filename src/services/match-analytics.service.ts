@@ -102,6 +102,15 @@ function cleanName(name: string): string {
   return (tokens.length > 0 ? tokens[tokens.length - 1] : normalized).toLowerCase();
 }
 
+export function normalizeSurface(s: string): string {
+  const lower = (s || '').toLowerCase();
+  if (lower.includes('hard')) return 'Hard';
+  if (lower.includes('clay')) return 'Clay';
+  if (lower.includes('grass')) return 'Grass';
+  if (lower.includes('carpet')) return 'Carpet';
+  return 'Hard';
+}
+
 export const MatchAnalyticsService = {
   /**
    * Generates a 100% cutoff-safe, comprehensive analytical dossier for any two players
@@ -252,7 +261,8 @@ export const MatchAnalyticsService = {
 
     // Helper: Compute Surface Mastery
     const computeSurfaceMastery = (matches: any[], nameClean: string, targetSurf: string): SurfaceMasteryMetrics => {
-      const surfMatches = matches.filter(m => (m.surface || '').toLowerCase() === targetSurf.toLowerCase());
+      const canonicalTarget = normalizeSurface(targetSurf).toLowerCase();
+      const surfMatches = matches.filter(m => normalizeSurface(m.surface || '').toLowerCase() === canonicalTarget);
       if (surfMatches.length === 0) {
         return {
           surface: targetSurf,

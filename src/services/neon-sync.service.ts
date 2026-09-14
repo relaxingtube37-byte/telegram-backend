@@ -241,7 +241,8 @@ export class NeonSyncService {
           ON CONFLICT(id) DO UPDATE SET
             referral_url = excluded.referral_url,
             is_active = excluded.is_active,
-            promo_code = excluded.promo_code;
+            promo_code = excluded.promo_code,
+            postback_key = excluded.postback_key;
         `);
         for (const s of sites.rows) {
           stmt.run(
@@ -354,7 +355,8 @@ export class NeonSyncService {
           ON CONFLICT (id) DO UPDATE SET
             referral_url = EXCLUDED.referral_url,
             is_active = EXCLUDED.is_active,
-            promo_code = EXCLUDED.promo_code;
+            promo_code = EXCLUDED.promo_code,
+            postback_key = EXCLUDED.postback_key;
         `, [
           s.id, s.name, s.logo_url, s.referral_url, s.app_url,
           s.promo_code, s.bonus_text, s.steps_text, s.is_active,
