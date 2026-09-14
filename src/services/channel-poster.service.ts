@@ -38,7 +38,8 @@ export const ChannelPosterService = {
         `🤖 <b>4-Agent Specialist Audit:</b> COMPLETE ✅\n` +
         `🎯 <b>Predicted Winner:</b> <code>${escapeHtml(prediction.predicted_winner)}</code>\n` +
         `⚡ <b>Confidence Level:</b> <code>${escapeHtml(prediction.confidence || 'HIGH')} (${prediction.win_probability || 65}%)</code>\n\n` +
-        `💡 <i>Tap the button below to view the full 4-agent tactical breakdown & live tracking inside the MiniApp!</i>`
+        `💡 <i>Tap the button below to view the full 4-agent tactical breakdown & live tracking inside the MiniApp!</i>\n` +
+        `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`
       );
     }
 
@@ -71,7 +72,8 @@ export const ChannelPosterService = {
       devilsAdvocateSection +
       summarySection +
       `────────────────────────\n` +
-      `💡 <i>Explore the full match analytics & live tracking inside the MiniApp!</i>`
+      `💡 <i>Explore the full match analytics & live tracking inside the MiniApp!</i>\n` +
+      `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`
     );
   },
 
@@ -152,6 +154,12 @@ export const ChannelPosterService = {
       prediction.channel_message_id,
       status,
       resultScore,
+      {
+        homeName: prediction.home_name,
+        awayName: prediction.away_name,
+        predictedWinner: prediction.predicted_winner,
+        tournamentName: prediction.tournament_name,
+      },
     );
 
     // Mark announced only after a successful Telegram send (message id returned).
@@ -173,6 +181,12 @@ export const ChannelPosterService = {
     messageId: number,
     status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED',
     resultScore?: string,
+    matchInfo?: {
+      homeName?: string;
+      awayName?: string;
+      predictedWinner?: string;
+      tournamentName?: string;
+    },
   ): Promise<number | null> => {
     const currentChannelId = ENV.CHANNEL_ID;
     if (!bot || !currentChannelId || !messageId || status === 'INTERRUPTED' || (status as any) === 'UPCOMING' || (status as any) === 'LIVE') {
@@ -190,14 +204,22 @@ export const ChannelPosterService = {
       ? `❌ <b>MATCH RESULT: LOST</b>`
       : `🔄 <b>MATCH RESULT: VOID / CANCELLED</b>`;
 
+    let matchDetailStr = '';
+    if (matchInfo?.homeName && matchInfo?.awayName) {
+      const tourStr = matchInfo.tournamentName ? `🏆 <i>${escapeHtml(matchInfo.tournamentName)}</i>\n` : '';
+      const vsStr = `🎾 <b>${escapeHtml(matchInfo.homeName)} vs ${escapeHtml(matchInfo.awayName)}</b>\n`;
+      const pickStr = matchInfo.predictedWinner ? `🎯 Pick: <b>${escapeHtml(matchInfo.predictedWinner)}</b>\n` : '';
+      matchDetailStr = `\n${tourStr}${vsStr}${pickStr}`;
+    }
+
     const targetUrl = resolveWebAppUrl();
     const keyboard = new InlineKeyboard().url('🚀 📱 View Live Stats in MiniApp', targetUrl);
 
     const htmlMsg = 
-      `${resultBadge}${scoreStr}
-
-` +
-      `📊 <i>Live stats, updated accuracy & upcoming picks are live in the MiniApp!</i>`;
+      `${resultBadge}${scoreStr}\n` +
+      matchDetailStr +
+      `\n📊 <i>Live stats, updated accuracy & upcoming picks are live in the MiniApp!</i>\n` +
+      `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`;
 
     try {
       const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
@@ -254,7 +276,8 @@ export const ChannelPosterService = {
 
 ` +
       `${matchLines}` +
-      `💡 <i>All live matches & tomorrow's VIP picks are available in the MiniApp!</i>`;
+      `💡 <i>All live matches & tomorrow's VIP picks are available in the MiniApp!</i>\n` +
+      `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`;
 
     try {
       const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
@@ -271,49 +294,104 @@ export const ChannelPosterService = {
 
   publishBatchCountAnnouncement: async (params: {
     count: number;
-    matches?: Array<{ home?: string; away?: string; tourn?: string; home_name?: string; away_name?: string; tournament?: string; tournament_name?: string }>;
+    matches?: Array<{
+      home?: string;
+      away?: string;
+      tourn?: string;
+      time?: string;
+      winner?: string;
+      best_bet?: string;
+      odds?: string | number;
+      surface?: string;
+      home_name?: string;
+      away_name?: string;
+      tournament?: string;
+      tournament_name?: string;
+    }>;
     title?: string;
+    headerText?: string;
+    footerText?: string;
+    includePicks?: boolean;
+    mode?: 'summary_list' | 'count_only';
   }): Promise<number | null> => {
     const currentChannelId = ENV.CHANNEL_ID;
     if (!bot || !currentChannelId || params.count <= 0) return null;
 
     const targetUrl = resolveWebAppUrl();
-    const keyboard = new InlineKeyboard().url(`🚀 🎾 Open MiniApp & View All ${params.count} Matches`, targetUrl);
+    const keyboard = new InlineKeyboard().url(`🚀 🎾 Open MiniApp & View Analyses (${params.count} Matches)`, targetUrl);
 
     let matchPreviews = '';
     if (Array.isArray(params.matches) && params.matches.length > 0) {
-      matchPreviews = '\n🏆 <b>Featured Matches Added:</b>\n' +
-        params.matches.slice(0, 5).map(m => {
-          const home = m.home || m.home_name || 'Home';
-          const away = m.away || m.away_name || 'Away';
-          const tourn = m.tourn || m.tournament || m.tournament_name || '';
-          return `• <b>${escapeHtml(home)} vs ${escapeHtml(away)}</b>${tourn ? ` <i>(${escapeHtml(tourn)})</i>` : ''}`;
-        }).join('\n');
-      
-      const remaining = params.count - Math.min(params.matches.length, 5);
-      if (remaining > 0) {
-        matchPreviews += `\n<i>... and ${remaining} more match(es)</i>`;
+      if (params.mode === 'count_only') {
+        matchPreviews = '\n🏆 <b>Featured Matches Added:</b>\n' +
+          params.matches.slice(0, 5).map(m => {
+            const home = m.home || m.home_name || 'Home';
+            const away = m.away || m.away_name || 'Away';
+            const tourn = m.tourn || m.tournament || m.tournament_name || '';
+            return `• <b>${escapeHtml(home)} vs ${escapeHtml(away)}</b>${tourn ? ` <i>(${escapeHtml(tourn)})</i>` : ''}`;
+          }).join('\n');
+
+        const remaining = params.count - Math.min(params.matches.length, 5);
+        if (remaining > 0) {
+          matchPreviews += `\n<i>... and ${remaining} more match(es)</i>`;
+        }
+        matchPreviews += '\n';
+      } else {
+        // Tournament-grouped summary list (Single Digest)
+        const groups = new Map<string, Array<any>>();
+        for (const m of params.matches) {
+          const rawTourn = m.tourn || m.tournament || m.tournament_name || '🎾 International Tennis';
+          const tName = rawTourn.trim();
+          if (!groups.has(tName)) groups.set(tName, []);
+          groups.get(tName)!.push(m);
+        }
+
+        const lines: string[] = ['\n📋 <b>Featured Matches & AI Predictions:</b>'];
+        const groupEntries = Array.from(groups.entries());
+        for (const [tournName, list] of groupEntries) {
+          lines.push(`\n🏆 <b>${escapeHtml(tournName)}</b>`);
+          for (const m of list) {
+            const home = m.home || m.home_name || 'Home';
+            const away = m.away || m.away_name || 'Away';
+            const time = m.time ? ` ⏰ <code>${escapeHtml(m.time)}</code>` : '';
+            lines.push(`• <b>${escapeHtml(home)} vs ${escapeHtml(away)}</b>${time}`);
+            if (params.includePicks !== false) {
+              const pick = m.best_bet || m.winner;
+              const odds = m.odds ? ` | Odds: <b>${escapeHtml(String(m.odds))}</b>` : '';
+              if (pick && pick !== 'PASS' && pick !== 'NO_BET') {
+                lines.push(`  🎯 <i>Pick: <b>${escapeHtml(pick)}</b>${odds}</i>`);
+              }
+            }
+          }
+        }
+        lines.push('');
+        matchPreviews = lines.join('\n');
       }
-      matchPreviews += '\n';
     }
 
+    const titleHeader = params.title || `🎾 <b>TENNIS AI MATCH PREDICTIONS & DOSSIERS</b>`;
+    const subHeader = params.headerText || `⚡ <b>${params.count} new AI match analysis dossier(s) & predictions are live in the MiniApp!</b>`;
+    const footer = params.footerText || 
+      `💡 <i>Tap the button below to view 4-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>\n` +
+      `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`;
+
     const htmlMsg =
-      `🎾 <b>NEW AI MATCH ANALYSES ADDED</b>\n` +
+      `${titleHeader}\n` +
       `────────────────────────\n` +
-      `⚡ <b>${params.count} new AI match analysis dossier(s) & predictions are live in the MiniApp!</b>\n` +
+      `${subHeader}\n` +
       matchPreviews +
       `────────────────────────\n` +
-      `💡 <i>Tap the button below to view 4-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>`;
+      `${footer}`;
 
     try {
       const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
         parse_mode: 'HTML',
         reply_markup: keyboard,
       });
-      Logger.success(`Published batch count announcement (${params.count} matches) to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
+      Logger.success(`Published batch announcement (${params.count} matches) to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
       return res.message_id;
     } catch (err: any) {
-      Logger.error('Failed to post batch count announcement to Telegram Channel:', err.message);
+      Logger.error('Failed to post batch announcement to Telegram Channel:', err.message);
       return null;
     }
   },

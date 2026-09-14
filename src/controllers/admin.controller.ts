@@ -263,12 +263,16 @@ export const AdminController = {
 
   publishBatchAnnouncement: async (req: Request, res: Response) => {
     try {
-      const { count, matches, title } = req.body;
+      const { count, matches, title, headerText, footerText, includePicks, mode } = req.body;
       const numCount = Number(count) || (Array.isArray(matches) ? matches.length : 0);
       const messageId = await ChannelPosterService.publishBatchCountAnnouncement({
         count: numCount,
         matches: Array.isArray(matches) ? matches : [],
         title,
+        headerText,
+        footerText,
+        includePicks,
+        mode,
       });
       res.json({ success: !!messageId, messageId, count: numCount });
     } catch (err: any) {

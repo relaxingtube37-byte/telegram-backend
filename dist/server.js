@@ -12,6 +12,7 @@ const go_routes_1 = require("./routes/go.routes");
 const seo_routes_1 = require("./routes/seo.routes");
 const bot_1 = require("./bot");
 const result_settler_service_1 = require("./services/result-settler.service");
+const neon_sync_service_1 = require("./services/neon-sync.service");
 const logger_1 = require("./utils/logger");
 const app = (0, express_1.default)();
 // Attach middlewares
@@ -28,6 +29,13 @@ app.use(errorHandler_1.errorHandler);
 app.listen(env_1.ENV.PORT, '0.0.0.0', () => {
     logger_1.Logger.success(`🎾 Unified Tennis AI Backend running on port ${env_1.ENV.PORT} [${env_1.ENV.NODE_ENV}]`);
     logger_1.Logger.info(`🌐 Health check: ${env_1.ENV.PUBLIC_BASE_URL}/health`);
+    // Cloud Database Persistence (Neon PostgreSQL)
+    try {
+        neon_sync_service_1.NeonSyncService.start();
+    }
+    catch (err) {
+        logger_1.Logger.warn?.(`⚠️ Neon Sync service failed to start: ${err}`);
+    }
     // Bot polling (non-fatal)
     try {
         (0, bot_1.startBot)();
