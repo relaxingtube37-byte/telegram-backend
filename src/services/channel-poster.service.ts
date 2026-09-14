@@ -317,8 +317,12 @@ export const ChannelPosterService = {
     const currentChannelId = ENV.CHANNEL_ID;
     if (!bot || !currentChannelId || params.count <= 0) return null;
 
+    const isTeaser = params.includePicks !== true;
     const targetUrl = resolveWebAppUrl();
-    const keyboard = new InlineKeyboard().url(`🚀 🎾 Open MiniApp & View Analyses (${params.count} Matches)`, targetUrl);
+    const btnLabel = isTeaser
+      ? `🚀 🎾 Open MiniApp & Unlock Predictions (${params.count} Matches)`
+      : `🚀 🎾 Open MiniApp & View Analyses (${params.count} Matches)`;
+    const keyboard = new InlineKeyboard().url(btnLabel, targetUrl);
 
     let matchPreviews = '';
     if (Array.isArray(params.matches) && params.matches.length > 0) {
@@ -346,16 +350,21 @@ export const ChannelPosterService = {
           groups.get(tName)!.push(m);
         }
 
-        const lines: string[] = ['\n📋 <b>Featured Matches & AI Predictions:</b>'];
+        const listHeader = isTeaser
+          ? '\n📋 <b>Featured Matches (AI Analyzed & Ready):</b>'
+          : '\n📋 <b>Featured Matches & AI Predictions:</b>';
+        const lines: string[] = [listHeader];
         const groupEntries = Array.from(groups.entries());
         for (const [tournName, list] of groupEntries) {
           lines.push(`\n🏆 <b>${escapeHtml(tournName)}</b>`);
           for (const m of list) {
             const home = m.home || m.home_name || 'Home';
             const away = m.away || m.away_name || 'Away';
-            const time = m.time ? ` ⏰ <code>${escapeHtml(m.time)}</code>` : '';
+            const timeRaw = m.time ? String(m.time).trim() : '';
+            const formattedTime = timeRaw ? (timeRaw.toUpperCase().includes('UTC') ? timeRaw : `${timeRaw} UTC`) : '';
+            const time = formattedTime ? ` ⏰ <code>${escapeHtml(formattedTime)}</code>` : '';
             lines.push(`• <b>${escapeHtml(home)} vs ${escapeHtml(away)}</b>${time}`);
-            if (params.includePicks !== false) {
+            if (params.includePicks === true) {
               const pick = m.best_bet || m.winner;
               const odds = m.odds ? ` | Odds: <b>${escapeHtml(String(m.odds))}</b>` : '';
               if (pick && pick !== 'PASS' && pick !== 'NO_BET') {
@@ -371,9 +380,13 @@ export const ChannelPosterService = {
 
     const titleHeader = params.title || `🎾 <b>TENNIS AI MATCH PREDICTIONS & DOSSIERS</b>`;
     const subHeader = params.headerText || `⚡ <b>${params.count} new AI match analysis dossier(s) & predictions are live in the MiniApp!</b>`;
-    const footer = params.footerText || 
-      `💡 <i>Tap the button below to view 4-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>\n` +
-      `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`;
+    const defaultFooter = isTeaser
+      ? `🔒 <b>All AI Winner Picks, High-Probability Bets & Odds are locked inside the MiniApp!</b>\n` +
+        `💡 <i>Tap the button below to register & unlock 4-agent tactical breakdowns, win probabilities & live tracking!</i>\n` +
+        `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`
+      : `💡 <i>Tap the button below to view 4-agent tactical breakdowns, win probabilities & live tracking inside the MiniApp!</i>\n` +
+        `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`;
+    const footer = params.footerText || defaultFooter;
 
     const htmlMsg =
       `${titleHeader}\n` +
