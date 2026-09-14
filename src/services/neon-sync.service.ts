@@ -208,22 +208,26 @@ export class NeonSyncService {
         // Execute on Neon PostgreSQL
         await client.query(purgePredsSql);
         await client.query('DELETE FROM referral_sites WHERE id > 1');
-        await client.query(`
+        const purgeUsersSql = `
           DELETE FROM users 
-          WHERE telegram_id IN (11223344, 99999999, 777888999, 555000111, 444333222, 900100200, 771122334, 778899112, 181436428, 99887766)
+          WHERE telegram_id IN (
+            11223344, 99999999, 777888999, 555000111, 444333222, 
+            900100200, 771122334, 778899112, 181436428, 99887766,
+            99999, 8196898460650840, 907716999852, 434391463085576, 
+            9506962061492124, 2296456773, 630659173439
+          )
              OR email = 'testplayer@gmail.com'
+             OR email = 'alireza@gmail.com'
              OR first_name = 'Test Player Updated'
-        `);
+             OR first_name = 'Google Test User'
+             OR ((first_name IS NULL OR first_name = '' OR first_name = 'null') AND email IS NULL)
+        `;
+        await client.query(purgeUsersSql);
 
         // Execute locally in SQLite
         db.prepare('DELETE FROM referral_sites WHERE id > 1').run();
         db.prepare(purgePredsSql).run();
-        db.prepare(`
-          DELETE FROM users 
-          WHERE telegram_id IN (11223344, 99999999, 777888999, 555000111, 444333222, 900100200, 771122334, 778899112, 181436428, 99887766)
-             OR email = 'testplayer@gmail.com'
-             OR first_name = 'Test Player Updated'
-        `).run();
+        db.prepare(purgeUsersSql).run();
       } catch (e: any) {
         Logger.warn?.(`[NeonSync] Purge legacy records warning: ${e.message}`);
       }
@@ -361,6 +365,9 @@ export class NeonSyncService {
       // 2. Push users
       const localUsers = db.prepare('SELECT * FROM users').all() as any[];
       for (const u of localUsers) {
+        if (!u.telegram_id || u.telegram_id === 99999 || String(u.telegram_id) === '99999') continue;
+        if (u.first_name === 'Google Test User' || u.email === 'alireza@gmail.com') continue;
+        if ((!u.first_name || u.first_name === 'null' || u.first_name.trim() === '') && !u.email) continue;
         await client.query(`
           INSERT INTO users (
             telegram_id, first_name, email, auth_provider, google_id,

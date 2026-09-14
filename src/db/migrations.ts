@@ -164,9 +164,17 @@ export const runMigrations = () => {
     `).run();
     db.prepare(`
       DELETE FROM users 
-      WHERE telegram_id IN (11223344, 99999999, 777888999, 555000111, 444333222, 900100200, 771122334, 778899112, 181436428, 99887766)
+      WHERE telegram_id IN (
+        11223344, 99999999, 777888999, 555000111, 444333222, 
+        900100200, 771122334, 778899112, 181436428, 99887766,
+        99999, 8196898460650840, 907716999852, 434391463085576, 
+        9506962061492124, 2296456773, 630659173439
+      )
          OR email = 'testplayer@gmail.com'
+         OR email = 'alireza@gmail.com'
          OR first_name = 'Test Player Updated'
+         OR first_name = 'Google Test User'
+         OR ((first_name IS NULL OR first_name = '' OR first_name = 'null') AND email IS NULL)
     `).run();
   } catch (e: any) {
     Logger.warn('[Migrations] Purge legacy records warning:', e.message);
