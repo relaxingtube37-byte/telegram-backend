@@ -152,7 +152,7 @@ export const AdminController = {
         best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
         alt_bet_selection, alt_bet_market, key_factors, devils_advocate_risk,
         ai_summary, home_image, away_image, home_id, away_id,
-        post_to_channel, is_teaser, status, published_at, created_at
+        post_to_channel, postToChannel, is_teaser, isTeaser, status, published_at, created_at
       } = req.body;
 
       if (!home_name || !away_name || !predicted_winner) {
@@ -177,8 +177,12 @@ export const AdminController = {
       let channelMsgId: number | null = null;
       let postedToChannel = false;
 
-      if (post_to_channel !== false) {
-        const isTeaserMode = is_teaser === true;
+      // Robust check for whether to post this individual prediction to the Telegram channel
+      const postFlag = post_to_channel !== undefined ? post_to_channel : postToChannel;
+      const shouldPost = postFlag !== false && postFlag !== 'false' && postFlag !== 0;
+
+      if (shouldPost) {
+        const isTeaserMode = is_teaser === true || isTeaser === true;
         channelMsgId = await ChannelPosterService.publishPrediction(prediction, isTeaserMode);
         if (channelMsgId) {
           postedToChannel = true;
