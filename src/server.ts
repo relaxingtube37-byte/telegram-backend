@@ -1,6 +1,7 @@
 import express from 'express';
-import { ENV } from './config/env';
+import { ENV, validateSecurityEnvironment } from './config/env';
 import { corsMiddleware } from './middlewares/cors';
+import { webappLimiter } from './middlewares/rateLimiter';
 import { errorHandler } from './middlewares/errorHandler';
 import { apiRouter } from './routes';
 import { goRoutes } from './routes/go.routes';
@@ -13,8 +14,15 @@ import { Logger } from './utils/logger';
 
 const app = express();
 
+// Security checks at startup
+validateSecurityEnvironment();
+
+// Trust first proxy hop (essential for Cloudflare & Render edge headers like cf-connecting-ip)
+app.set('trust proxy', 1);
+
 // Attach middlewares
 app.use(corsMiddleware);
+app.use(webappLimiter);
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true }));
 

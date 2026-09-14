@@ -29,6 +29,7 @@ import {
   resolveWebappAccess,
   parseWebsiteConfig,
 } from '../utils/contentAccess';
+import { authLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
@@ -168,7 +169,7 @@ router.get('/referrals', async (req: Request, res: Response) => {
 });
 
 // POST /api/webapp/auth - Cryptographically validated Telegram WebApp session
-router.post('/auth', async (req: Request, res: Response) => {
+router.post('/auth', authLimiter, async (req: Request, res: Response) => {
   try {
     const { initData } = req.body;
     if (!initData) {
@@ -236,7 +237,7 @@ router.post('/auth', async (req: Request, res: Response) => {
 });
 
 // POST /api/webapp/referral/complete - Explicit user activation/registration completion
-router.post('/referral/complete', async (req: Request, res: Response) => {
+router.post('/referral/complete', authLimiter, async (req: Request, res: Response) => {
   try {
     const { telegramId, siteId, sessionToken, googleId, email } = req.body || {};
     let effectiveId = telegramId ? Number(telegramId) : null;
@@ -343,7 +344,7 @@ router.get('/auth/status', async (req: Request, res: Response) => {
 
 
 // POST /api/webapp/auth/web - Cryptographically signed session for standalone web visitors
-router.post('/auth/web', async (req: Request, res: Response) => {
+router.post('/auth/web', authLimiter, async (req: Request, res: Response) => {
   try {
     const { sessionToken } = req.body || {};
     const secret = getWebSessionSecret();
@@ -408,7 +409,7 @@ router.post('/auth/web', async (req: Request, res: Response) => {
 });
 
 // POST /api/webapp/auth/telegram-widget - Verify Telegram Login Widget payload and link to web session
-router.post('/auth/telegram-widget', async (req: Request, res: Response) => {
+router.post('/auth/telegram-widget', authLimiter, async (req: Request, res: Response) => {
   try {
     const { authData, sessionToken } = req.body || {};
     if (!authData) {
@@ -472,7 +473,7 @@ router.post('/auth/telegram-widget', async (req: Request, res: Response) => {
 });
 
 // POST /api/webapp/auth/google - Verify Google ID Token (Google One Tap / Sign-In) and link to web session
-router.post('/auth/google', async (req: Request, res: Response) => {
+router.post('/auth/google', authLimiter, async (req: Request, res: Response) => {
   try {
     const { idToken, sessionToken } = req.body || {};
     if (!idToken) {

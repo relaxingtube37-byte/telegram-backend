@@ -9,6 +9,7 @@ export const KNOWN_WEAK_ADMIN_SECRETS = [
   'state_tennis_secret_2026',
   'sofascore-tennis-admin-secret-2026',
   'change-this-secret-key-12345',
+  'ptin-local-dev-admin-key',
 ] as const;
 
 const WEAK_ADMIN_SECRET_SET = new Set<string>(KNOWN_WEAK_ADMIN_SECRETS);
@@ -19,6 +20,24 @@ export function isAdminSecretUsable(secret: string): boolean {
   if (WEAK_ADMIN_SECRET_SET.has(trimmed)) return false;
   if (trimmed.length < 12) return false;
   return true;
+}
+
+export function validateSecurityEnvironment(): void {
+  const isProd = (process.env.NODE_ENV || 'development') === 'production';
+  if (isProd) {
+    const adminSec = (process.env.ADMIN_SECRET || '').trim();
+    if (!isAdminSecretUsable(adminSec)) {
+      console.error(
+        '\n🚨 [SECURITY FATAL] Running in PRODUCTION with a missing, weak, or default ADMIN_SECRET!' +
+        '\n🚨 All /api/admin endpoints will reject requests until a strong secret (>= 12 characters) is configured in your Render environment variables.\n'
+      );
+    }
+    if (!process.env.BOT_TOKEN) {
+      console.warn(
+        '\n⚠️ [SECURITY WARNING] Running in PRODUCTION without BOT_TOKEN configured. Telegram bot services will not start.\n'
+      );
+    }
+  }
 }
 
 export const ENV = {
