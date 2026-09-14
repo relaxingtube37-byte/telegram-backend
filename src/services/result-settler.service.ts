@@ -41,7 +41,7 @@ export function isWinnerNameMatch(actual: string, predicted: string): boolean {
 export class ResultSettlerService {
   private static timer: NodeJS.Timeout | null = null;
   private static isRunning = false;
-  private static defaultIntervalMs = 5 * 60 * 1000; // 5 minutes
+  private static defaultIntervalMs = 5 * 1000; // 5 seconds
 
   /**
    * Evaluates and settles all active (UPCOMING / LIVE) predictions.
