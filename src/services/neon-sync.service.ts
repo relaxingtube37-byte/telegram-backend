@@ -516,7 +516,9 @@ export class NeonSyncService {
         } catch {
           payloadJson = item.payload;
         }
+        const isPaperVersion = payloadJson?.version === '2.0.0-paper' || Boolean(payloadJson?.player_one?.radar_axes);
         const updatedAt = item.updated_at ? new Date(item.updated_at) : new Date();
+
         await client.query(`
           INSERT INTO match_pro_intelligence (
             fixture_id, home_name, away_name, tour, surface, payload, updated_at
@@ -528,8 +530,8 @@ export class NeonSyncService {
             surface = EXCLUDED.surface,
             payload = EXCLUDED.payload,
             updated_at = EXCLUDED.updated_at
-          WHERE match_pro_intelligence.updated_at IS NULL 
-             OR EXCLUDED.updated_at >= match_pro_intelligence.updated_at;
+          WHERE ($8::boolean = true)
+             OR (match_pro_intelligence.payload->>'version' != '2.0.0-paper' AND EXCLUDED.updated_at >= match_pro_intelligence.updated_at);
         `, [
           item.fixture_id,
           item.home_name,
@@ -537,7 +539,8 @@ export class NeonSyncService {
           item.tour || 'ATP',
           item.surface || 'Hard',
           JSON.stringify(payloadJson),
-          updatedAt
+          updatedAt,
+          isPaperVersion
         ]);
       }
     } catch (err: any) {
@@ -613,6 +616,7 @@ export class NeonSyncService {
   public static async getProIntelligence(fixtureId: number): Promise<any | null> {
     // 1. Try local SQLite first (sub-millisecond)
     let resolvedFixtureId = fixtureId;
+    let localRow: any = null;
     try {
       let row = db.prepare('SELECT * FROM match_pro_intelligence WHERE fixture_id = ?').get(fixtureId) as any;
       if (!row) {
@@ -623,12 +627,14 @@ export class NeonSyncService {
           row = db.prepare('SELECT * FROM match_pro_intelligence WHERE fixture_id = ?').get(resolvedFixtureId) as any;
         }
       }
+      localRow = row;
       if (row && row.payload) {
         try {
-          return typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
-        } catch {
-          return row.payload;
-        }
+          const parsed = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+          if (parsed && (parsed.version === '2.0.0-paper' || parsed.player_one?.radar_axes)) {
+            return parsed;
+          }
+        } catch {}
       }
     } catch {}
 
@@ -660,6 +666,13 @@ export class NeonSyncService {
         }
       } catch (e: any) {
         Logger.warn?.(`[NeonSync] Error fetching pro intelligence from Neon: ${e.message}`);
+      }
+    }
+    if (localRow && localRow.payload) {
+      try {
+        return typeof localRow.payload === 'string' ? JSON.parse(localRow.payload) : localRow.payload;
+      } catch {
+        return localRow.payload;
       }
     }
     return null;
