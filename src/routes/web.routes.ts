@@ -4,6 +4,7 @@ import { AnalysisController } from '../controllers/analysis.controller';
 import { AnalyticsController } from '../controllers/analytics.controller';
 import { requireAdminAuth } from '../middlewares/adminAuth';
 import { TrackedPlayerController } from '../controllers/trackedPlayer.controller';
+import { NeonSyncService } from '../services/neon-sync.service';
 
 const router = Router();
 
@@ -57,4 +58,24 @@ router.get('/matches/:eventId/stats', WebController.getEventStatsAndOdds);
 router.get('/matches/:fixtureId/analytics', AnalyticsController.getMatchAnalytics);
 router.get('/matches/:idOrSlug/editorial', AnalysisController.getMatchEditorial);
 
+router.get('/matches/:fixtureId/pro-intelligence', async (req, res) => {
+  try {
+    const fixtureId = Number(req.params.fixtureId);
+    if (!fixtureId) return res.status(400).json({ error: 'Invalid fixtureId' });
+
+    const data = await NeonSyncService.getProIntelligence(fixtureId);
+    if (!data) {
+      return res.status(404).json({ error: 'Pro intelligence not available yet for this match' });
+    }
+    res.json({
+      status: 'SUCCESS',
+      fixtureId,
+      data,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export const webRoutes = router;
+

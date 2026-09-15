@@ -608,8 +608,17 @@ export class NeonSyncService {
    */
   public static async getProIntelligence(fixtureId: number): Promise<any | null> {
     // 1. Try local SQLite first (sub-millisecond)
+    let resolvedFixtureId = fixtureId;
     try {
-      const row = db.prepare('SELECT * FROM match_pro_intelligence WHERE fixture_id = ?').get(fixtureId) as any;
+      let row = db.prepare('SELECT * FROM match_pro_intelligence WHERE fixture_id = ?').get(fixtureId) as any;
+      if (!row) {
+        // Check if fixtureId is an internal prediction id
+        const pred = db.prepare('SELECT fixture_id FROM predictions WHERE id = ? OR fixture_id = ?').get(fixtureId, fixtureId) as any;
+        if (pred && pred.fixture_id) {
+          resolvedFixtureId = Number(pred.fixture_id);
+          row = db.prepare('SELECT * FROM match_pro_intelligence WHERE fixture_id = ?').get(resolvedFixtureId) as any;
+        }
+      }
       if (row && row.payload) {
         try {
           return typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
@@ -625,7 +634,10 @@ export class NeonSyncService {
       try {
         const client = await pool.connect();
         try {
-          const res = await client.query('SELECT * FROM match_pro_intelligence WHERE fixture_id = $1 LIMIT 1', [fixtureId]);
+          let res = await client.query('SELECT * FROM match_pro_intelligence WHERE fixture_id = $1 LIMIT 1', [resolvedFixtureId]);
+          if (res.rows.length === 0 && resolvedFixtureId !== fixtureId) {
+            res = await client.query('SELECT * FROM match_pro_intelligence WHERE fixture_id = $1 LIMIT 1', [fixtureId]);
+          }
           if (res.rows.length > 0) {
             const r = res.rows[0];
             const parsed = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
