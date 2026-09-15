@@ -516,24 +516,28 @@ export class NeonSyncService {
         } catch {
           payloadJson = item.payload;
         }
+        const updatedAt = item.updated_at ? new Date(item.updated_at) : new Date();
         await client.query(`
           INSERT INTO match_pro_intelligence (
             fixture_id, home_name, away_name, tour, surface, payload, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
           ON CONFLICT (fixture_id) DO UPDATE SET
             home_name = EXCLUDED.home_name,
             away_name = EXCLUDED.away_name,
             tour = EXCLUDED.tour,
             surface = EXCLUDED.surface,
             payload = EXCLUDED.payload,
-            updated_at = NOW();
+            updated_at = EXCLUDED.updated_at
+          WHERE match_pro_intelligence.updated_at IS NULL 
+             OR EXCLUDED.updated_at >= match_pro_intelligence.updated_at;
         `, [
           item.fixture_id,
           item.home_name,
           item.away_name,
           item.tour || 'ATP',
           item.surface || 'Hard',
-          JSON.stringify(payloadJson)
+          JSON.stringify(payloadJson),
+          updatedAt
         ]);
       }
     } catch (err: any) {

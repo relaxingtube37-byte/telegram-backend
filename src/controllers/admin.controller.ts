@@ -191,6 +191,23 @@ export const AdminController = {
         }
       }
 
+      // Automatically persist pro intelligence if supplied with the prediction
+      const incomingProIntel = req.body.pro_intelligence || req.body.proIntelligence;
+      if (incomingProIntel && prediction.fixture_id) {
+        try {
+          await NeonSyncService.saveProIntelligence(
+            prediction.fixture_id,
+            prediction.home_name,
+            prediction.away_name,
+            prediction.tournament_name?.toUpperCase().includes('WTA') ? 'WTA' : 'ATP',
+            prediction.surface || 'Hard',
+            incomingProIntel
+          );
+        } catch (e: any) {
+          Logger.warn?.(`[AdminController] Could not auto-save pro intelligence for fixture #${prediction.fixture_id}: ${e.message}`);
+        }
+      }
+
       res.json({
         success: true,
         predictionId,
