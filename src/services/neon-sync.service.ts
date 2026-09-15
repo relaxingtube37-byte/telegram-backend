@@ -170,6 +170,19 @@ export class NeonSyncService {
           key TEXT PRIMARY KEY,
           value TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS match_pro_intelligence (
+          fixture_id INTEGER PRIMARY KEY,
+          home_name TEXT NOT NULL,
+          away_name TEXT NOT NULL,
+          tour TEXT DEFAULT 'ATP',
+          surface TEXT DEFAULT 'Hard',
+          payload JSONB NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_match_pro_intel_fix ON match_pro_intelligence(fixture_id);
       `);
       Logger.success('[NeonSync] ☁️ Neon PostgreSQL schema verified.');
     } finally {
@@ -325,7 +338,36 @@ export class NeonSyncService {
         }
       }
 
-      Logger.info(`[NeonSync] 🔄 Restored ${users.rows.length} users, ${preds.rows.length} predictions from Neon.`);
+      // 4. Pull match_pro_intelligence
+      const proIntels = await client.query('SELECT * FROM match_pro_intelligence');
+      if (proIntels.rows.length > 0) {
+        const intelStmt = db.prepare(`
+          INSERT INTO match_pro_intelligence (
+            fixture_id, home_name, away_name, tour, surface, payload, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(fixture_id) DO UPDATE SET
+            home_name = excluded.home_name,
+            away_name = excluded.away_name,
+            tour = excluded.tour,
+            surface = excluded.surface,
+            payload = excluded.payload,
+            updated_at = excluded.updated_at;
+        `);
+        for (const row of proIntels.rows) {
+          const payloadStr = typeof row.payload === 'string' ? row.payload : JSON.stringify(row.payload);
+          intelStmt.run(
+            row.fixture_id,
+            row.home_name || '',
+            row.away_name || '',
+            row.tour || 'ATP',
+            row.surface || 'Hard',
+            payloadStr,
+            row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString()
+          );
+        }
+      }
+
+      Logger.info(`[NeonSync] 🔄 Restored ${users.rows.length} users, ${preds.rows.length} predictions, ${proIntels.rows.length} pro_intels from Neon.`);
     } catch (err: any) {
       Logger.warn?.(`[NeonSync] Pull error: ${err.message}`);
     } finally {
@@ -464,12 +506,147 @@ export class NeonSyncService {
           cv.dedupe_key, cv.user_ref, cv.status, cv.raw_payload, cv.received_at
         ]);
       }
+      // 6. Push match_pro_intelligence
+      const localIntels = db.prepare('SELECT * FROM match_pro_intelligence').all() as any[];
+      for (const item of localIntels) {
+        if (!item.fixture_id || !item.payload) continue;
+        let payloadJson: any = {};
+        try {
+          payloadJson = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+        } catch {
+          payloadJson = item.payload;
+        }
+        await client.query(`
+          INSERT INTO match_pro_intelligence (
+            fixture_id, home_name, away_name, tour, surface, payload, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+          ON CONFLICT (fixture_id) DO UPDATE SET
+            home_name = EXCLUDED.home_name,
+            away_name = EXCLUDED.away_name,
+            tour = EXCLUDED.tour,
+            surface = EXCLUDED.surface,
+            payload = EXCLUDED.payload,
+            updated_at = NOW();
+        `, [
+          item.fixture_id,
+          item.home_name,
+          item.away_name,
+          item.tour || 'ATP',
+          item.surface || 'Hard',
+          JSON.stringify(payloadJson)
+        ]);
+      }
     } catch (err: any) {
       Logger.warn?.(`[NeonSync] Push error: ${err.message}`);
     } finally {
       if (client) client.release();
       this.isSyncing = false;
     }
+  }
+
+  /**
+   * Saves pre-calculated match pro intelligence to local SQLite and immediately to Neon cloud.
+   */
+  public static async saveProIntelligence(
+    fixtureId: number,
+    homeName: string,
+    awayName: string,
+    tour: string,
+    surface: string,
+    payload: any
+  ): Promise<boolean> {
+    const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    const now = new Date().toISOString();
+
+    // 1. Save in local SQLite
+    try {
+      db.prepare(`
+        INSERT INTO match_pro_intelligence (fixture_id, home_name, away_name, tour, surface, payload, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(fixture_id) DO UPDATE SET
+          home_name = excluded.home_name,
+          away_name = excluded.away_name,
+          tour = excluded.tour,
+          surface = excluded.surface,
+          payload = excluded.payload,
+          updated_at = excluded.updated_at;
+      `).run(fixtureId, homeName, awayName, tour, surface, payloadStr, now);
+    } catch (e: any) {
+      Logger.warn?.(`[NeonSync] Error saving pro intelligence to SQLite: ${e.message}`);
+    }
+
+    // 2. Push directly to Neon if available
+    const pool = this.getPool();
+    if (pool) {
+      try {
+        const client = await pool.connect();
+        try {
+          await client.query(`
+            INSERT INTO match_pro_intelligence (
+              fixture_id, home_name, away_name, tour, surface, payload, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+            ON CONFLICT (fixture_id) DO UPDATE SET
+              home_name = EXCLUDED.home_name,
+              away_name = EXCLUDED.away_name,
+              tour = EXCLUDED.tour,
+              surface = EXCLUDED.surface,
+              payload = EXCLUDED.payload,
+              updated_at = NOW();
+          `, [fixtureId, homeName, awayName, tour, surface, payloadStr]);
+        } finally {
+          client.release();
+        }
+      } catch (e: any) {
+        Logger.warn?.(`[NeonSync] Error saving pro intelligence to Neon: ${e.message}`);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Retrieves match pro intelligence from local cache or Neon cloud.
+   */
+  public static async getProIntelligence(fixtureId: number): Promise<any | null> {
+    // 1. Try local SQLite first (sub-millisecond)
+    try {
+      const row = db.prepare('SELECT * FROM match_pro_intelligence WHERE fixture_id = ?').get(fixtureId) as any;
+      if (row && row.payload) {
+        try {
+          return typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+        } catch {
+          return row.payload;
+        }
+      }
+    } catch {}
+
+    // 2. Fallback to Neon if not in local cache
+    const pool = this.getPool();
+    if (pool) {
+      try {
+        const client = await pool.connect();
+        try {
+          const res = await client.query('SELECT * FROM match_pro_intelligence WHERE fixture_id = $1 LIMIT 1', [fixtureId]);
+          if (res.rows.length > 0) {
+            const r = res.rows[0];
+            const parsed = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+            // Cache locally for instant subsequent reads
+            try {
+              db.prepare(`
+                INSERT INTO match_pro_intelligence (fixture_id, home_name, away_name, tour, surface, payload, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(fixture_id) DO UPDATE SET payload = excluded.payload;
+              `).run(r.fixture_id, r.home_name || '', r.away_name || '', r.tour || 'ATP', r.surface || 'Hard', JSON.stringify(parsed), new Date().toISOString());
+            } catch {}
+            return parsed;
+          }
+        } finally {
+          client.release();
+        }
+      } catch (e: any) {
+        Logger.warn?.(`[NeonSync] Error fetching pro intelligence from Neon: ${e.message}`);
+      }
+    }
+    return null;
   }
 
   /**

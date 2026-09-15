@@ -253,6 +253,18 @@ export const initSchema = () => {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS match_pro_intelligence (
+      fixture_id INTEGER PRIMARY KEY,
+      home_name TEXT NOT NULL,
+      away_name TEXT NOT NULL,
+      tour TEXT DEFAULT 'ATP',
+      surface TEXT DEFAULT 'Hard',
+      payload TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_match_pro_intel_fix ON match_pro_intelligence(fixture_id);
+
     CREATE INDEX IF NOT EXISTS idx_pool_cache_namespace ON pool_cache(namespace);
     CREATE INDEX IF NOT EXISTS idx_pool_cache_expires ON pool_cache(expires_at);
 

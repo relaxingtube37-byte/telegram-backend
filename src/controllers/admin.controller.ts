@@ -9,6 +9,7 @@ import { StatsService } from '../services/stats.service';
 import { PlayersService } from '../services/players.service';
 import { BackupService } from '../services/backup.service';
 import { ResultSettlerService } from '../services/result-settler.service';
+import { NeonSyncService } from '../services/neon-sync.service';
 import { Logger } from '../utils/logger';
 import { bot } from '../services/telegram-bot.service';
 import { ENV } from '../config/env';
@@ -536,6 +537,41 @@ export const AdminController = {
         message: `Settler run completed: ${result.settled} of ${result.checked} active prediction(s) settled.`,
         ...result,
       });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
+  saveProIntelligence: async (req: Request, res: Response) => {
+    try {
+      const fixtureId = Number(req.params.fixtureId);
+      if (!fixtureId) return res.status(400).json({ error: 'Valid fixtureId is required' });
+      const { homeName, awayName, tour, surface, payload } = req.body;
+      const targetPayload = payload || req.body;
+      if (!targetPayload) return res.status(400).json({ error: 'Payload is required' });
+
+      await NeonSyncService.saveProIntelligence(
+        fixtureId,
+        homeName || targetPayload?.player1?.name || '',
+        awayName || targetPayload?.player2?.name || '',
+        tour || targetPayload?.meta?.tour || 'ATP',
+        surface || targetPayload?.meta?.surface || 'Hard',
+        targetPayload
+      );
+
+      res.json({ success: true, fixtureId });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
+  getProIntelligence: async (req: Request, res: Response) => {
+    try {
+      const fixtureId = Number(req.params.fixtureId);
+      if (!fixtureId) return res.status(400).json({ error: 'Valid fixtureId is required' });
+      const data = await NeonSyncService.getProIntelligence(fixtureId);
+      if (!data) return res.status(404).json({ error: 'Pro intelligence not found for fixture' });
+      res.json({ success: true, fixtureId, data });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
     }

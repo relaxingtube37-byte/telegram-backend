@@ -1,5 +1,31 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request } from 'express';
+import { timingSafeEqual } from 'crypto';
+import { ENV, isAdminSecretUsable } from '../config/env';
+
+/**
+ * Checks if the request carries a cryptographically valid ADMIN_SECRET.
+ * If valid, the request originates from an authorized tool (e.g. State Football engine)
+ * and bypasses rate limits to allow high-throughput sync and control.
+ */
+export function isAuthorizedAdminRequest(req: Request): boolean {
+  const configured = (ENV.ADMIN_SECRET || '').trim();
+  if (!configured || !isAdminSecretUsable(configured)) return false;
+
+  const headerSecret = (req.headers['x-admin-secret'] || '').toString().trim();
+  const authHeader = (req.headers.authorization || '').toString().trim();
+  const bearerSecret = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const querySecret = (req.query?.secret || '').toString().trim();
+
+  const candidate = (headerSecret || bearerSecret || querySecret).trim();
+  if (!candidate) return false;
+
+  const pBuf = Buffer.from(candidate, 'utf8');
+  const eBuf = Buffer.from(configured, 'utf8');
+  if (pBuf.length !== eBuf.length) return false;
+
+  return timingSafeEqual(pBuf, eBuf);
+}
 
 /**
  * Extracts and normalizes client IP for rate limiting.
@@ -38,7 +64,7 @@ export const webappLimiter = rateLimit({
     error: 'Too many requests from this IP. Please try again later.',
     retryAfterMinutes: 15,
   },
-  skip: (req) => isTestEnv() || req.path === '/health',
+  skip: (req) => isTestEnv() || req.path === '/health' || isAuthorizedAdminRequest(req),
 });
 
 /**
@@ -74,7 +100,7 @@ export const adminLimiter = rateLimit({
     error: 'Too many admin requests. Access restricted by rate limiter.',
     retryAfterMinutes: 15,
   },
-  skip: () => isTestEnv(),
+  skip: (req) => isTestEnv() || isAuthorizedAdminRequest(req),
 });
 
 /**

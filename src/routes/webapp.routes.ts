@@ -8,6 +8,7 @@ import { SettingsRepo } from '../db/repositories/settings.repo';
 import { AnalysisController } from '../controllers/analysis.controller';
 import { WebController } from '../controllers/web.controller';
 import { MatchAnalyticsService } from '../services/match-analytics.service';
+import { NeonSyncService } from '../services/neon-sync.service';
 import { PredictionsRepo } from '../db/repositories/predictions.repo';
 import {
   validateTelegramInitData,
@@ -97,6 +98,29 @@ router.get('/matches/:fixtureId/analytics', async (req: Request, res: Response) 
       access_mode: access.accessMode,
       content_layers: access.contentFlags,
       fixture_id: fixtureId,
+      data,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/webapp/matches/:fixtureId/pro-intelligence — Neon-backed proprietary match intelligence & decagon skills
+router.get('/matches/:fixtureId/pro-intelligence', async (req: Request, res: Response) => {
+  try {
+    const fixtureId = Number(req.params.fixtureId);
+    if (!fixtureId) return res.status(400).json({ error: 'Invalid fixtureId' });
+
+    const data = await NeonSyncService.getProIntelligence(fixtureId);
+    if (!data) {
+      return res.status(404).json({ error: 'Pro intelligence not available yet for this match' });
+    }
+    const access = resolveWebappAccess(req);
+    res.json({
+      status: 'SUCCESS',
+      fixtureId,
+      verified: access.isVerified,
+      access_mode: access.accessMode,
       data,
     });
   } catch (err: any) {

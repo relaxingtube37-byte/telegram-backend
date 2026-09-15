@@ -54,5 +54,7 @@ router.post('/players/bulk-sync', AdminController.publishWebPlayersBulk);
 router.delete('/players/:playerId', AdminController.deletePlayer);
 router.post('/players/featured', AdminController.toggleFeaturedPlayer);
 router.post('/website/config', AdminController.saveWebsiteConfig);
+router.post('/matches/:fixtureId/pro-intelligence', AdminController.saveProIntelligence);
+router.get('/matches/:fixtureId/pro-intelligence', AdminController.getProIntelligence);
 
 export const adminRoutes = router;
