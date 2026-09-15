@@ -39,4 +39,8 @@ export const PredictionsService = {
   updateResultByFixtureId: (fixtureId: number, status: string, resultScore?: string): boolean => {
     return PredictionsRepo.updateResultByFixtureId(fixtureId, status, resultScore);
   },
+
+  updateMatchDateByFixtureId: (fixtureId: number, matchDate: string): boolean => {
+    return PredictionsRepo.updateMatchDateByFixtureId(fixtureId, matchDate);
+  },
 };

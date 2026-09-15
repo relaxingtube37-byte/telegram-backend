@@ -57,7 +57,7 @@ const LIVE_TTL = 45 * 1000;
 const ODDS_TTL = 3 * 60 * 1000;
 
 export async function fetchDailyEventsForTour(matchDate: string, tour: 'ATP' | 'WTA'): Promise<any[]> {
-  const cacheKey = PersistentPoolService.buildKey('daily_events', [matchDate, tour]);
+  const cacheKey = PersistentPoolService.buildKey('daily_events', [matchDate]);
   const cached = await PersistentPoolService.getOrFetch(
     cacheKey,
     'daily_events',

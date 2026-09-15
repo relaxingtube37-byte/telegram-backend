@@ -3,7 +3,7 @@
  * ⏱️ AUTONOMOUS RESULT SETTLER SERVICE (BACKGROUND WORKER)
  * ════════════════════════════════════════════════════════════════════════════
  * Operates independently on the backend without requiring Football State desktop.
- * Periodically checks all UPCOMING / LIVE predictions against RapidAPI Tennis:
+ * Periodically checks all UPCOMING / LIVE predictions against AllSports API (api.market):
  * 1. Detects finished matches, retirements, or walkovers.
  * 2. Settles prediction status (WON / LOST / VOID) and saves actual score.
  * 3. Keeps win-rate and accuracy stats up-to-date in real-time.
@@ -41,7 +41,7 @@ export function isWinnerNameMatch(actual: string, predicted: string): boolean {
 export class ResultSettlerService {
   private static timer: NodeJS.Timeout | null = null;
   private static isRunning = false;
-  private static defaultIntervalMs = 5 * 1000; // 5 seconds
+  private static defaultIntervalMs = 60 * 1000; // 60 seconds (1 minute interval to preserve API quota)
 
   /**
    * Evaluates and settles all active (UPCOMING / LIVE) predictions.
@@ -60,26 +60,102 @@ export class ResultSettlerService {
     this.isRunning = true;
     try {
       const activePredictions: Prediction[] = PredictionsRepo.getActive();
-      const eligible = activePredictions.filter(
-        (p) => p.fixture_id && (p.status === 'UPCOMING' || p.status === 'LIVE')
-      );
-
-      if (eligible.length === 0) {
+      if (activePredictions.length === 0) {
         return { checked: 0, settled: 0, settledList: [] };
       }
 
-      Logger.info(`[ResultSettler] Checking outcomes for ${eligible.length} active prediction(s)...`);
+      // 🌐 1. Fetch ALL in-progress live events globally in ONE single HTTP request!
+      const liveData = await BackendTennisApi.getLiveEvents();
+      const liveMap = new Map<number, any>();
+      if (liveData && Array.isArray(liveData.events)) {
+        for (const ev of liveData.events) {
+          if (ev && ev.id) liveMap.set(Number(ev.id), ev);
+        }
+      }
+
+      const now = new Date();
+      const nowMs = now.getTime();
+      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
       let settledCount = 0;
       const settledList: { fixture_id: number; status: string; score: string }[] = [];
 
-      for (const pred of eligible) {
-        const fixtureId = pred.fixture_id!;
+      for (const pred of activePredictions) {
+        const fixtureId = pred.fixture_id;
+        if (!fixtureId) continue;
+
         try {
+          // ── PATH A: Match is CURRENTLY in the Global Live Feed (0 extra API calls!) ──
+          if (liveMap.has(fixtureId)) {
+            const ev = liveMap.get(fixtureId)!;
+
+            // 🕒 Check time shift if startTimestamp exists
+            if (ev.startTimestamp && typeof ev.startTimestamp === 'number' && ev.startTimestamp > 0) {
+              const apiStartIso = new Date(ev.startTimestamp * 1000).toISOString();
+              const currentMs = pred.match_date ? new Date(pred.match_date).getTime() : 0;
+              const newMs = ev.startTimestamp * 1000;
+              if (Math.abs(newMs - currentMs) > 2 * 60 * 1000) {
+                PredictionsService.updateMatchDateByFixtureId(fixtureId, apiStartIso);
+                pred.match_date = apiStartIso;
+              }
+            }
+
+            const hSets = Number(ev.homeScore?.current ?? ev.homeScore?.display ?? 0) || 0;
+            const aSets = Number(ev.awayScore?.current ?? ev.awayScore?.display ?? 0) || 0;
+            const hPoints = ev.homeScore?.point ?? '0';
+            const aPoints = ev.awayScore?.point ?? '0';
+            let hGames = 0;
+            let aGames = 0;
+            for (let i = 1; i <= 5; i++) {
+              const hp = ev.homeScore?.[`period${i}`];
+              const ap = ev.awayScore?.[`period${i}`];
+              if (hp !== undefined && ap !== undefined) {
+                hGames = hp;
+                aGames = ap;
+              }
+            }
+            const liveScoreStr = `${hSets}-${aSets}   ${hPoints}-${aPoints}    ${hGames}-${aGames}`;
+            if (pred.status !== 'LIVE' || pred.result_score !== liveScoreStr) {
+              PredictionsService.updateResultByFixtureId(fixtureId, 'LIVE', liveScoreStr);
+              pred.status = 'LIVE';
+              pred.result_score = liveScoreStr;
+              Logger.info(`[ResultSettler] 🔴 Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) is LIVE: ${liveScoreStr}`);
+            }
+            continue; // Successfully handled from global live batch with 0 extra API calls!
+          }
+
+          // ── PATH B: Match is NOT in Live Feed ──────────────────────────────────
+          // Case B1: Match was LIVE or INTERRUPTED, and just left the live feed -> It FINISHED!
+          // Case B2: Match was UPCOMING, scheduled for today/past, and start time passed > 2.5 hours ago (walkover/canceled)
+          const isPreviouslyActive = pred.status === 'LIVE' || pred.status === 'INTERRUPTED';
+          const rawDate = (pred.match_date || '').trim();
+          const dateOnly = rawDate.split('T')[0].split(' ')[0];
+          const parsedTime = Date.parse(rawDate.includes('T') ? rawDate : rawDate.replace(' ', 'T'));
+          const isOverdueUpcoming = pred.status === 'UPCOMING' && dateOnly <= todayIso && !isNaN(parsedTime) && (nowMs > parsedTime + 2.5 * 60 * 60 * 1000);
+
+          if (!isPreviouslyActive && !isOverdueUpcoming) {
+            // Future upcoming match waiting for start -> ZERO requests needed!
+            continue;
+          }
+
+          // Individual event details ONLY fetched for matches that need completion/settlement confirmation
           const eventData = await BackendTennisApi.getEventDetails(fixtureId);
           if (!eventData || !eventData.event) continue;
 
           const ev = eventData.event;
+
+          // 🕒 Rescheduling & Postponement Detection: update match_date if tournament shifted the time
+          if (ev.startTimestamp && typeof ev.startTimestamp === 'number' && ev.startTimestamp > 0) {
+            const apiStartIso = new Date(ev.startTimestamp * 1000).toISOString();
+            const currentMs = pred.match_date ? new Date(pred.match_date).getTime() : 0;
+            const newMs = ev.startTimestamp * 1000;
+            if (Math.abs(newMs - currentMs) > 2 * 60 * 1000) {
+              PredictionsService.updateMatchDateByFixtureId(fixtureId, apiStartIso);
+              pred.match_date = apiStartIso;
+              Logger.info(`[ResultSettler] 🕒 Match #${fixtureId} (${pred.home_name} vs ${pred.away_name}) schedule shifted to: ${apiStartIso}`);
+            }
+          }
+
           const statusType = String(ev.status?.type || '').toLowerCase();
           const statusDesc = String(ev.status?.description || '').toLowerCase();
           const statusCode = Number(ev.status?.code ?? -1);
@@ -262,7 +338,7 @@ export class ResultSettlerService {
       }
 
       return {
-        checked: eligible.length,
+        checked: activePredictions.length,
         settled: settledCount,
         settledList,
       };

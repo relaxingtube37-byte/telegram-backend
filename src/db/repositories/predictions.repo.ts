@@ -132,6 +132,12 @@ export const PredictionsRepo = {
     return info.changes > 0;
   },
 
+  updateMatchDateByFixtureId: (fixtureId: number, matchDate: string): boolean => {
+    const stmt = db.prepare('UPDATE predictions SET match_date = ? WHERE fixture_id = ?');
+    const info = stmt.run(matchDate, fixtureId);
+    return info.changes > 0;
+  },
+
   updateChannelMessageId: (id: number, channelMsgId: number): void => {
     db.prepare('UPDATE predictions SET channel_message_id = ? WHERE id = ?').run(channelMsgId, id);
   },

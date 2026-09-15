@@ -318,6 +318,7 @@ export class NeonSyncService {
             ?, ?, ?
           )
           ON CONFLICT(fixture_id) DO UPDATE SET
+            match_date = excluded.match_date,
             status = excluded.status,
             result_score = excluded.result_score,
             result_announced_at = excluded.result_announced_at,
@@ -460,6 +461,7 @@ export class NeonSyncService {
             $32, $33
           )
           ON CONFLICT (fixture_id) DO UPDATE SET
+            match_date = EXCLUDED.match_date,
             status = EXCLUDED.status,
             result_score = EXCLUDED.result_score,
             result_announced_at = EXCLUDED.result_announced_at;

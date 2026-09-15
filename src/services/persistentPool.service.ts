@@ -123,6 +123,8 @@ export class PersistentPoolService {
     });
   }
 
+  private static inFlightRequests = new Map<string, Promise<{ data: any; fromCache: boolean; fetched: boolean }>>();
+
   static async getOrFetch<T>(
     cacheKey: string,
     namespace: PoolNamespace,
@@ -134,17 +136,30 @@ export class PersistentPoolService {
       return { data: cached, fromCache: true, fetched: false };
     }
 
-    const fresh = await fetcher();
-    if (!isEmptyPayload(fresh)) {
-      this.set(cacheKey, namespace, fresh, options);
-      return { data: fresh as T, fromCache: false, fetched: true };
+    if (!options?.forceRefresh && this.inFlightRequests.has(cacheKey)) {
+      return this.inFlightRequests.get(cacheKey)! as Promise<{ data: T | null; fromCache: boolean; fetched: boolean }>;
     }
 
-    if (options?.cacheNullAsMiss) {
-      this.markNoData(cacheKey, namespace, options);
-    }
+    const promise = (async () => {
+      try {
+        const fresh = await fetcher();
+        if (!isEmptyPayload(fresh)) {
+          this.set(cacheKey, namespace, fresh, options);
+          return { data: fresh as T, fromCache: false, fetched: true };
+        }
 
-    return { data: null, fromCache: false, fetched: true };
+        if (options?.cacheNullAsMiss) {
+          this.markNoData(cacheKey, namespace, options);
+        }
+
+        return { data: null, fromCache: false, fetched: true };
+      } finally {
+        this.inFlightRequests.delete(cacheKey);
+      }
+    })();
+
+    this.inFlightRequests.set(cacheKey, promise);
+    return promise;
   }
 
   static getStats() {
