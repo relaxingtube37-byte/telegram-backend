@@ -22,6 +22,16 @@ export const PredictionsRepo = {
     return db.prepare('SELECT * FROM predictions WHERE fixture_id = ?').get(fixtureId);
   },
 
+  findActiveByTeams: (home: string, away: string): any => {
+    return db.prepare(`
+      SELECT * FROM predictions
+      WHERE (lower(home_name) = lower(?) AND lower(away_name) = lower(?))
+         OR (lower(home_name) LIKE lower(?) AND lower(away_name) LIKE lower(?))
+      ORDER BY id DESC
+      LIMIT 1
+    `).get(home, away, `%${home}%`, `%${away}%`);
+  },
+
   create: (p: Prediction): number => {
     if (p.fixture_id) {
       const existing = PredictionsRepo.getByFixtureId(p.fixture_id);

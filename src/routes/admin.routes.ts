@@ -21,6 +21,7 @@ router.post('/predictions/sync-results', AdminController.syncFixtureResults);
 router.post('/predictions/sync-fixture-results', AdminController.syncFixtureResults);
 router.post('/predictions/batch-summary', AdminController.publishBatchSummary);
 router.post('/predictions/batch-announcement', AdminController.publishBatchAnnouncement);
+router.post('/predictions/batch-result', AdminController.batchUpdateResults);
 
 router.get('/users', AdminController.getUsers);
 router.post('/users/verify', AdminController.toggleUserVerify);

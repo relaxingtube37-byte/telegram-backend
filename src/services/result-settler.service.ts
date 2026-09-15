@@ -141,19 +141,17 @@ export class ResultSettlerService {
               );
 
               // Notify Telegram channel of VOID outcome
-              if (pred.channel_message_id) {
-                try {
-                  const announce = await ChannelPosterService.announceResultIfNeeded(
-                    { ...pred, status: 'VOID' },
-                    'VOID',
-                    voidScore
-                  );
-                  if (announce.posted) {
-                    Logger.info(`[ResultSettler] Channel VOID result posted for message #${pred.channel_message_id}`);
-                  }
-                } catch (channelErr: any) {
-                  Logger.warn(`[ResultSettler] Failed to post channel VOID update for #${pred.channel_message_id}: ${channelErr.message}`);
+              try {
+                const announce = await ChannelPosterService.announceResultIfNeeded(
+                  { ...pred, status: 'VOID' },
+                  'VOID',
+                  voidScore
+                );
+                if (announce.posted) {
+                  Logger.info(`[ResultSettler] Channel VOID result posted for fixture #${fixtureId}`);
                 }
+              } catch (channelErr: any) {
+                Logger.warn(`[ResultSettler] Failed to post channel VOID update for #${fixtureId}: ${channelErr.message}`);
               }
             }
             continue;
@@ -243,21 +241,19 @@ export class ResultSettlerService {
             );
 
             // Notify Telegram channel once per fixture (durable result_announced_at)
-            if (pred.channel_message_id) {
-              try {
-                const announce = await ChannelPosterService.announceResultIfNeeded(
-                  { ...pred, status },
-                  status,
-                  scoreStr,
-                );
-                if (announce.posted) {
-                  Logger.info(`[ResultSettler] Channel result update posted for message #${pred.channel_message_id}`);
-                } else if (announce.skipped) {
-                  Logger.info(`[ResultSettler] Channel result skipped (#${fixtureId}): ${announce.reason}`);
-                }
-              } catch (channelErr: any) {
-                Logger.warn(`[ResultSettler] Failed to post channel update for #${pred.channel_message_id}: ${channelErr.message}`);
+            try {
+              const announce = await ChannelPosterService.announceResultIfNeeded(
+                { ...pred, status },
+                status,
+                scoreStr,
+              );
+              if (announce.posted) {
+                Logger.info(`[ResultSettler] Channel result update posted for fixture #${fixtureId}`);
+              } else if (announce.skipped) {
+                Logger.info(`[ResultSettler] Channel result skipped (#${fixtureId}): ${announce.reason}`);
               }
+            } catch (channelErr: any) {
+              Logger.warn(`[ResultSettler] Failed to post channel update for #${fixtureId}: ${channelErr.message}`);
             }
           }
         } catch (err: any) {

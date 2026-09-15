@@ -213,8 +213,9 @@ export const AdminController = {
       if (!updated) return res.status(404).json({ error: 'Prediction not found' });
 
       const prediction = PredictionsRepo.getById(id);
-      if (prediction && (status === 'WON' || status === 'LOST' || status === 'VOID')) {
-        await ChannelPosterService.announceResultIfNeeded(prediction, status, result_score);
+      const normStatus = String(status).toUpperCase().trim();
+      if (prediction && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(normStatus)) {
+        await ChannelPosterService.announceResultIfNeeded(prediction, normStatus, result_score);
       }
 
       res.json({ success: true, predictionId: id, status, result_score });
@@ -235,14 +236,58 @@ export const AdminController = {
           if (success) {
             updatedCount++;
             const pred = PredictionsRepo.getByFixtureId(item.fixture_id);
-            if (pred && (item.status === 'WON' || item.status === 'LOST' || item.status === 'VOID')) {
-              ChannelPosterService.announceResultIfNeeded(pred, item.status, item.result_score).catch(() => {});
+            const normStatus = String(item.status).toUpperCase().trim();
+            if (pred && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(normStatus)) {
+              ChannelPosterService.announceResultIfNeeded(pred, normStatus, item.result_score).catch(() => {});
             }
           }
         }
       }
 
       res.json({ success: true, updatedCount });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  batchUpdateResults: async (req: Request, res: Response) => {
+    try {
+      const { items, postBatchSummary, batchTitle } = req.body;
+      if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'items array is required' });
+      }
+
+      let count = 0;
+      const targetPredictions: any[] = [];
+
+      for (const item of items) {
+        if (!item.id || !item.status) continue;
+        const updated = PredictionsService.updateResult(item.id, item.status, item.result_score);
+        if (updated) {
+          count++;
+          const pred = PredictionsRepo.getById(item.id);
+          if (pred) {
+            targetPredictions.push(pred);
+            const normStatus = String(item.status).toUpperCase().trim();
+            if (['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(normStatus)) {
+              ChannelPosterService.announceResultIfNeeded(pred, normStatus, item.result_score).catch(err => {
+                Logger.warn(`[BatchResult] Failed to announce #${item.id}: ${err.message}`);
+              });
+            }
+          }
+        }
+      }
+
+      let summaryMessageId: number | null = null;
+      if (postBatchSummary !== false && targetPredictions.length > 0) {
+        try {
+          summaryMessageId = await ChannelPosterService.publishBatchSummary(targetPredictions, batchTitle);
+        } catch (e: any) {
+          Logger.warn(`[BatchResult] Failed to publish batch summary: ${e.message}`);
+        }
+      }
+
+      res.json({ success: true, count, summaryMessageId });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -280,6 +325,21 @@ export const AdminController = {
         includePicks,
         mode,
       });
+
+      // If announcement posted successfully, link this messageId to the batch's predictions
+      if (messageId && Array.isArray(matches) && matches.length > 0) {
+        for (const m of matches) {
+          const h = m.home || m.home_name;
+          const a = m.away || m.away_name;
+          if (h && a) {
+            const pred = PredictionsRepo.findActiveByTeams(h, a);
+            if (pred && !pred.channel_message_id) {
+              PredictionsRepo.updateChannelMessageId(pred.id, messageId);
+            }
+          }
+        }
+      }
+
       res.json({ success: !!messageId, messageId, count: numCount });
     } catch (err: any) {
       res.status(500).json({ error: err.message });

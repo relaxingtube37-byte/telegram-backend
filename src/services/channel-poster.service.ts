@@ -125,7 +125,7 @@ export const ChannelPosterService = {
   },
 
   /**
-   * Post WON/LOST/VOID reply once per prediction (durable via fixture_id / result_announced_at).
+   * Post WON/LOST/VOID/INTERRUPTED reply or standalone message once per prediction.
    * Safe across backend restart and backup import when those columns are restored.
    */
   announceResultIfNeeded: async (
@@ -136,11 +136,9 @@ export const ChannelPosterService = {
     if (!prediction?.id) {
       return { posted: false, skipped: true, reason: 'missing_prediction' };
     }
-    if (status !== 'WON' && status !== 'LOST' && status !== 'VOID') {
+    const normStatus = (status || '').toUpperCase().trim();
+    if (normStatus !== 'WON' && normStatus !== 'LOST' && normStatus !== 'VOID' && normStatus !== 'INTERRUPTED') {
       return { posted: false, skipped: true, reason: 'non_terminal_status' };
-    }
-    if (!prediction.channel_message_id) {
-      return { posted: false, skipped: true, reason: 'no_channel_message' };
     }
     if (PredictionsRepo.isResultAnnounced(prediction)) {
       Logger.info(
@@ -152,7 +150,7 @@ export const ChannelPosterService = {
 
     const resultMessageId = await ChannelPosterService.updateResult(
       prediction.channel_message_id,
-      status,
+      normStatus as any,
       resultScore,
       {
         homeName: prediction.home_name,
@@ -169,7 +167,7 @@ export const ChannelPosterService = {
       PredictionsRepo.markResultAnnounced(prediction.id, announcedAt, resultMessageId);
       Logger.success(
         `[ChannelPoster] Result announced for fixture #${prediction.fixture_id ?? '?'} ` +
-          `(prediction #${prediction.id}) replyMsg=${resultMessageId}`,
+          `(prediction #${prediction.id}) msgId=${resultMessageId}`,
       );
       return { posted: true, skipped: false, resultMessageId };
     }
@@ -178,8 +176,8 @@ export const ChannelPosterService = {
   },
 
   updateResult: async (
-    messageId: number,
-    status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED',
+    messageId?: number | null,
+    status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED' | string = 'VOID',
     resultScore?: string,
     matchInfo?: {
       homeName?: string;
@@ -189,7 +187,8 @@ export const ChannelPosterService = {
     },
   ): Promise<number | null> => {
     const currentChannelId = ENV.CHANNEL_ID;
-    if (!bot || !currentChannelId || !messageId || status === 'INTERRUPTED' || (status as any) === 'UPCOMING' || (status as any) === 'LIVE') {
+    const normStatus = (status || '').toUpperCase().trim();
+    if (!bot || !currentChannelId || normStatus === 'UPCOMING' || normStatus === 'LIVE') {
       return null;
     }
 
@@ -198,10 +197,12 @@ export const ChannelPosterService = {
       /\d/.test(resultScore);
     const scoreStr = isValidScore ? ` (${escapeHtml(resultScore.trim())})` : '';
 
-    const resultBadge = status === 'WON' 
+    const resultBadge = normStatus === 'WON' 
       ? `🎯 <b>MATCH RESULT: WON!</b> ✅`
-      : status === 'LOST' 
+      : normStatus === 'LOST' 
       ? `❌ <b>MATCH RESULT: LOST</b>`
+      : normStatus === 'INTERRUPTED'
+      ? `⏸ <b>MATCH RESULT: INTERRUPTED / RETIRED</b>`
       : `🔄 <b>MATCH RESULT: VOID / CANCELLED</b>`;
 
     let matchDetailStr = '';
@@ -221,16 +222,31 @@ export const ChannelPosterService = {
       `\n📊 <i>Live stats, updated accuracy & upcoming picks are live in the MiniApp!</i>\n` +
       `🌐 <b><a href="https://ptin-AI.com">ptin-AI.com</a></b>`;
 
+    // 1. If messageId exists (> 0), try to reply to the original message
+    if (messageId && Number(messageId) > 0) {
+      try {
+        const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
+          reply_parameters: { message_id: Number(messageId) },
+          parse_mode: 'HTML',
+          reply_markup: keyboard,
+        });
+        Logger.success(`Replied result update (${normStatus}) to message #${messageId}`);
+        return res.message_id;
+      } catch (e: any) {
+        Logger.warn(`Could not reply to message #${messageId}, falling back to standalone post: ${e.message}`);
+      }
+    }
+
+    // 2. Standalone channel post (when no messageId or reply failed)
     try {
       const res = await bot.api.sendMessage(currentChannelId, htmlMsg, {
-        reply_parameters: { message_id: messageId },
         parse_mode: 'HTML',
         reply_markup: keyboard,
       });
-      Logger.success(`Replied result update (${status}) to message #${messageId}`);
+      Logger.success(`Published standalone result update (${normStatus}) to channel ${currentChannelId}, Msg ID: ${res.message_id}`);
       return res.message_id;
-    } catch (e: any) {
-      Logger.warn('Could not reply result update to channel:', e.message);
+    } catch (err: any) {
+      Logger.error(`Failed to post result update (${normStatus}) to channel: ${err.message}`);
       return null;
     }
   },
