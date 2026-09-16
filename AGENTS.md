@@ -20,6 +20,12 @@
 18. Prefer correctness and clarity over cleverness.
 19. If a task is large, break it into phases.
 20. After completing a task, summarize what changed and what remains.
+21. Multilingual By Design: Any code touching user-facing text, dynamic AI content, backend endpoints, or SEO/metadata must be natively multilingual (en, fa, ar, tr, pt):
+    - UI: Never hardcode strings; register keys in `translations.ts`, use `useTranslation()`, and support dynamic RTL/LTR.
+    - AI Generation: Produce and store multilingual bundles (`{ en, fa, tr, pt, ar }`) adhering to the tactical glossary.
+    - Endpoints: Always support `?lang=`, project to the requested language, and return `default_lang: 'en'` fallback.
+    - SEO & SSR: Preserve Latin player names intact, clamp titles <= 60 chars, provide 6 hreflang tags, and conditionally load fonts.
+
 
 # Memory File Rules
 
