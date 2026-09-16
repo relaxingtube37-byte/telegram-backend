@@ -7,6 +7,7 @@ const router = Router();
 router.get('/match/:idOrSlug', (req: Request, res: Response) => {
   try {
     const idOrSlug = String(req.params.idOrSlug);
+    const lang = req.query.lang as string | undefined;
     const matchData = SeoRendererService.findMatch(idOrSlug);
 
     if (!matchData) {
@@ -17,7 +18,7 @@ router.get('/match/:idOrSlug', (req: Request, res: Response) => {
     const proto = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
     const baseUrl = `${proto}://${host}`;
 
-    const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl);
+    const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl, lang);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     return res.status(200).send(html);
@@ -31,6 +32,7 @@ router.get('/match', (req: Request, res: Response, next: NextFunction) => {
   const matchParam = String(req.query.match || '').trim();
   if (!matchParam) return next();
 
+  const lang = req.query.lang as string | undefined;
   const matchData = SeoRendererService.findMatch(matchParam);
   if (!matchData) {
     return res.status(404).send(`<!DOCTYPE html><html><head><title>Match Not Found | Ptin AI</title></head><body><h1>Match Not Found</h1></body></html>`);
@@ -40,7 +42,7 @@ router.get('/match', (req: Request, res: Response, next: NextFunction) => {
   const proto = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
   const baseUrl = `${proto}://${host}`;
 
-  const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl);
+  const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl, lang);
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   return res.status(200).send(html);
@@ -53,6 +55,7 @@ router.get('/seo/match', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Missing match or slug parameter' });
   }
 
+  const lang = req.query.lang as string | undefined;
   const matchData = SeoRendererService.findMatch(matchParam);
   if (!matchData) {
     return res.status(404).json({ error: 'Match not found' });
@@ -62,7 +65,7 @@ router.get('/seo/match', (req: Request, res: Response) => {
   const proto = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
   const baseUrl = `${proto}://${host}`;
 
-  const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl);
+  const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl, lang);
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   return res.status(200).send(html);
 });
@@ -70,6 +73,7 @@ router.get('/seo/match', (req: Request, res: Response) => {
 // Intercept root GET /?match=... for search engines and social bots, or serve generic homepage
 router.get('/', (req: Request, res: Response, next: NextFunction) => {
   const matchParam = String(req.query.match || '').trim();
+  const lang = req.query.lang as string | undefined;
   const host = req.get('host') || 'ptin-ai.com';
   const proto = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
   const baseUrl = `${proto}://${host}`;
@@ -77,7 +81,7 @@ router.get('/', (req: Request, res: Response, next: NextFunction) => {
   if (matchParam) {
     const matchData = SeoRendererService.findMatch(matchParam);
     if (matchData) {
-      const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl);
+      const html = SeoRendererService.renderHtml(matchData.prediction, matchData.slug, baseUrl, lang);
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
       return res.status(200).send(html);
@@ -86,7 +90,7 @@ router.get('/', (req: Request, res: Response, next: NextFunction) => {
 
   // If client accepts HTML, serve generic homepage metadata
   if (req.accepts('html')) {
-    const html = SeoRendererService.renderHomepageHtml(baseUrl);
+    const html = SeoRendererService.renderHomepageHtml(baseUrl, lang);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=300');
     return res.status(200).send(html);
