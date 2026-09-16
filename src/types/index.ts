@@ -1,6 +1,9 @@
 export type { MatchStatus, AccessMode } from '../config/constants';
 import type { MatchStatus, AccessMode } from '../config/constants';
 
+export type MultilingualText = Record<string, string>;
+export type MultilingualArray = Record<string, string[]>;
+
 export interface Prediction {
   id?: number;
   fixture_id?: number;
@@ -19,12 +22,13 @@ export interface Prediction {
   best_bet_selection?: string;
   best_bet_market?: string;
   best_bet_ev?: string;
-  best_bet_rationale?: string;
+  best_bet_rationale?: string | MultilingualText;
   alt_bet_selection?: string;
   alt_bet_market?: string;
-  key_factors?: string[];
-  devils_advocate_risk?: string;
-  ai_summary?: string;
+  alt_bet_rationale?: string | MultilingualText;
+  key_factors?: string[] | MultilingualArray;
+  devils_advocate_risk?: string | MultilingualText;
+  ai_summary?: string | MultilingualText;
   home_image?: string;
   away_image?: string;
   home_id?: number;

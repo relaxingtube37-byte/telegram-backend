@@ -89,6 +89,7 @@ export const initSchema = () => {
       best_bet_rationale TEXT,
       alt_bet_selection TEXT,
       alt_bet_market TEXT,
+      alt_bet_rationale TEXT,
       key_factors TEXT,
       devils_advocate_risk TEXT,
       ai_summary TEXT,

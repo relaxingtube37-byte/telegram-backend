@@ -32,6 +32,12 @@ import {
 } from '../utils/contentAccess';
 import { authLimiter } from '../middlewares/rateLimiter';
 
+import {
+  resolveRequestedLang,
+  projectPredictionToLanguage,
+  DEFAULT_LANG,
+} from '../utils/multilingualProjection';
+
 const router = Router();
 
 // GET /api/webapp/players/:playerId/image (Lightweight cached WebP player avatars)
@@ -53,6 +59,7 @@ router.get('/matches/deep-analytics', async (req: Request, res: Response) => {
     if (!p1 || !p2) {
       return res.status(400).json({ error: 'Parameters p1 and p2 are required.' });
     }
+    const lang = resolveRequestedLang(req.query.lang);
     const access = resolveWebappAccess(req);
     const report = MatchAnalyticsService.generateDeepAnalytics(
       String(p1),
@@ -63,6 +70,8 @@ router.get('/matches/deep-analytics', async (req: Request, res: Response) => {
     const data = redactDeepAnalytics(report, access);
     res.json({
       status: 'SUCCESS',
+      lang,
+      default_lang: DEFAULT_LANG,
       verified: access.isVerified,
       access_mode: access.accessMode,
       content_layers: access.contentFlags,
@@ -73,8 +82,8 @@ router.get('/matches/deep-analytics', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/webapp/matches/:fixtureId/analytics — deep analytics by published fixture
-router.get('/matches/:fixtureId/analytics', async (req: Request, res: Response) => {
+// Handler for match deep analytics by published fixture
+const handleMatchDeepAnalytics = async (req: Request, res: Response) => {
   try {
     const fixtureId = Number(req.params.fixtureId);
     if (!fixtureId) return res.status(400).json({ error: 'Invalid fixtureId' });
@@ -84,6 +93,7 @@ router.get('/matches/:fixtureId/analytics', async (req: Request, res: Response) 
       return res.status(404).json({ error: 'Match not found for fixture' });
     }
 
+    const lang = resolveRequestedLang(req.query.lang);
     const access = resolveWebappAccess(req);
     const report = MatchAnalyticsService.generateDeepAnalytics(
       prediction.home_name,
@@ -94,6 +104,8 @@ router.get('/matches/:fixtureId/analytics', async (req: Request, res: Response) 
     const data = redactDeepAnalytics(report, access);
     res.json({
       status: 'SUCCESS',
+      lang,
+      default_lang: DEFAULT_LANG,
       verified: access.isVerified,
       access_mode: access.accessMode,
       content_layers: access.contentFlags,
@@ -103,7 +115,13 @@ router.get('/matches/:fixtureId/analytics', async (req: Request, res: Response) 
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+
+// GET /api/webapp/matches/:fixtureId/analytics — deep analytics by published fixture
+router.get('/matches/:fixtureId/analytics', handleMatchDeepAnalytics);
+
+// GET /api/webapp/matches/:fixtureId/deep — alias for deep analytics
+router.get('/matches/:fixtureId/deep', handleMatchDeepAnalytics);
 
 // GET /api/webapp/matches/:fixtureId/pro-intelligence — Neon-backed proprietary match intelligence & decagon skills
 router.get('/matches/:fixtureId/pro-intelligence', async (req: Request, res: Response) => {
@@ -111,6 +129,7 @@ router.get('/matches/:fixtureId/pro-intelligence', async (req: Request, res: Res
     const fixtureId = Number(req.params.fixtureId);
     if (!fixtureId) return res.status(400).json({ error: 'Invalid fixtureId' });
 
+    const lang = resolveRequestedLang(req.query.lang);
     const data = await NeonSyncService.getProIntelligence(fixtureId);
     if (!data) {
       return res.status(404).json({ error: 'Pro intelligence not available yet for this match' });
@@ -119,6 +138,8 @@ router.get('/matches/:fixtureId/pro-intelligence', async (req: Request, res: Res
     res.json({
       status: 'SUCCESS',
       fixtureId,
+      lang,
+      default_lang: DEFAULT_LANG,
       verified: access.isVerified,
       access_mode: access.accessMode,
       data,
@@ -132,6 +153,7 @@ router.get('/matches/:fixtureId/pro-intelligence', async (req: Request, res: Res
 router.get('/predictions', async (req: Request, res: Response) => {
   try {
     const limit = parseInt(String(req.query.limit || '100'), 10);
+    const lang = resolveRequestedLang(req.query.lang);
     const access = resolveWebappAccess(req);
     const rawList = PredictionsService.getAll(limit);
     const predictions = rawList.map((p) => {
@@ -146,7 +168,8 @@ router.get('/predictions', async (req: Request, res: Response) => {
         p.status = 'UPCOMING';
         p.result_score = undefined;
       }
-      const red = redactPrediction(p, access);
+      const projected = projectPredictionToLanguage(p, lang, DEFAULT_LANG);
+      const red = redactPrediction(projected, access);
       if (!red.home_image && red.home_name) {
         red.home_image = `/api/webapp/players/${encodeURIComponent(red.home_id || red.home_name)}/image?size=80`;
       }
@@ -157,6 +180,8 @@ router.get('/predictions', async (req: Request, res: Response) => {
     });
     res.json({
       predictions,
+      lang,
+      default_lang: DEFAULT_LANG,
       verified: access.isVerified,
       access_mode: access.accessMode,
       content_layers: access.contentFlags,

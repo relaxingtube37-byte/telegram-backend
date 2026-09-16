@@ -103,6 +103,7 @@ export const runMigrations = () => {
     "ALTER TABLE referral_sites ADD COLUMN app_url TEXT DEFAULT '';",
     "ALTER TABLE predictions ADD COLUMN match_date TEXT;",
     "ALTER TABLE predictions ADD COLUMN devils_advocate_risk TEXT;",
+    "ALTER TABLE predictions ADD COLUMN alt_bet_rationale TEXT;",
     "ALTER TABLE predictions ADD COLUMN home_image TEXT;",
     "ALTER TABLE predictions ADD COLUMN away_image TEXT;",
     "ALTER TABLE predictions ADD COLUMN home_id INTEGER;",

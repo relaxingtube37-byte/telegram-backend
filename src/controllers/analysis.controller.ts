@@ -9,6 +9,12 @@ import {
   canTransitionStatus,
   validateEditorialForPublish,
 } from '../editorial/validateEditorial';
+import {
+  resolveRequestedLang,
+  projectEditorialToLanguage,
+  projectPredictionToLanguage,
+  DEFAULT_LANG,
+} from '../utils/multilingualProjection';
 
 function parseJsonArray(raw?: string | null): string[] {
   if (!raw) return [];
@@ -281,11 +287,16 @@ export const AnalysisController = {
         return res.status(404).json({ error: 'Editorial not published yet' });
       }
 
+      const lang = resolveRequestedLang(req.query.lang);
       const access = resolveWebappAccess(req);
-      const payload = redactEditorial(toPublicEditorial(editorial) as any, access);
+      const publicEd = toPublicEditorial(editorial);
+      const projected = projectEditorialToLanguage(publicEd, lang, DEFAULT_LANG);
+      const payload = redactEditorial(projected as any, access);
 
       res.json({
         ...payload,
+        lang,
+        default_lang: DEFAULT_LANG,
         verified: access.isVerified,
         access_mode: access.accessMode,
         content_layers: access.contentFlags,
@@ -304,10 +315,14 @@ export const AnalysisController = {
         return res.status(404).json({ error: 'Match analysis not found for this fixture' });
       }
 
+      const lang = resolveRequestedLang(req.query.lang);
       const access = resolveWebappAccess(req);
       const formatted = PredictionsService.formatPrediction(prediction);
+      const projected = projectPredictionToLanguage(formatted, lang, DEFAULT_LANG);
       res.json({
-        ...redactPrediction(formatted, access),
+        ...redactPrediction(projected, access),
+        lang,
+        default_lang: DEFAULT_LANG,
         verified: access.isVerified,
         access_mode: access.accessMode,
         content_layers: access.contentFlags,

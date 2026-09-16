@@ -32,6 +32,11 @@ import {
 } from '../access-policy';
 import { ENV } from '../config/env';
 import { bot } from '../services/telegram-bot.service';
+import {
+  resolveRequestedLang,
+  projectPredictionToLanguage,
+  DEFAULT_LANG,
+} from '../utils/multilingualProjection';
 
 export const WebController = {
   getLandingData: async (req: Request, res: Response) => {
@@ -1305,11 +1310,17 @@ export const WebController = {
   getMatches: async (req: Request, res: Response) => {
     try {
       const limit = parseInt(String(req.query.limit || '100'), 10);
+      const lang = resolveRequestedLang(req.query.lang);
       const access = resolveAccessFromRequest(req);
-      const rows = PredictionsService.getAll(limit).map((m) => redactMatchForAccess(m, access));
+      const rows = PredictionsService.getAll(limit).map((m) => {
+        const projected = projectPredictionToLanguage(m, lang, DEFAULT_LANG);
+        return redactMatchForAccess(projected, access);
+      });
       const policy = loadAccessPolicy();
       res.json({
         status: 'SUCCESS',
+        lang,
+        default_lang: DEFAULT_LANG,
         verified: access.isVerified,
         access_mode: access.access_mode,
         layers: policy.layers,

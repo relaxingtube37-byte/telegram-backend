@@ -5,6 +5,7 @@ import { AnalyticsController } from '../controllers/analytics.controller';
 import { requireAdminAuth } from '../middlewares/adminAuth';
 import { TrackedPlayerController } from '../controllers/trackedPlayer.controller';
 import { NeonSyncService } from '../services/neon-sync.service';
+import { resolveRequestedLang, DEFAULT_LANG } from '../utils/multilingualProjection';
 
 const router = Router();
 
@@ -63,6 +64,7 @@ router.get('/matches/:fixtureId/pro-intelligence', async (req, res) => {
     const fixtureId = Number(req.params.fixtureId);
     if (!fixtureId) return res.status(400).json({ error: 'Invalid fixtureId' });
 
+    const lang = resolveRequestedLang(req.query.lang);
     const data = await NeonSyncService.getProIntelligence(fixtureId);
     if (!data) {
       return res.status(404).json({ error: 'Pro intelligence not available yet for this match' });
@@ -70,6 +72,8 @@ router.get('/matches/:fixtureId/pro-intelligence', async (req, res) => {
     res.json({
       status: 'SUCCESS',
       fixtureId,
+      lang,
+      default_lang: DEFAULT_LANG,
       data,
     });
   } catch (err: any) {

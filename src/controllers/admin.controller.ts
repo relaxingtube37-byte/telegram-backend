@@ -151,7 +151,7 @@ export const AdminController = {
         home_name, away_name, home_odds, away_odds,
         predicted_winner, win_probability, confidence, predicted_score,
         best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
-        alt_bet_selection, alt_bet_market, key_factors, devils_advocate_risk,
+        alt_bet_selection, alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk,
         ai_summary, home_image, away_image, home_id, away_id,
         post_to_channel, postToChannel, is_teaser, isTeaser, status, published_at, created_at
       } = req.body;
@@ -165,7 +165,7 @@ export const AdminController = {
         home_name, away_name, home_odds, away_odds,
         predicted_winner, win_probability: win_probability || 65, confidence: confidence || 'HIGH',
         predicted_score, best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
-        alt_bet_selection, alt_bet_market, key_factors, devils_advocate_risk,
+        alt_bet_selection, alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk,
         ai_summary, home_image, away_image, home_id, away_id,
         status: (status as MatchStatus) || 'UPCOMING',
         published_at: published_at || new Date().toISOString(),
@@ -191,20 +191,29 @@ export const AdminController = {
         }
       }
 
-      // Automatically persist pro intelligence if supplied with the prediction
+      // Automatically persist pro intelligence if supplied, or synthesize baseline Decagon comparison
       const incomingProIntel = req.body.pro_intelligence || req.body.proIntelligence;
-      if (incomingProIntel && prediction.fixture_id) {
+      const targetFixtureId = prediction.fixture_id || predictionId;
+      if (targetFixtureId) {
         try {
+          const isWta = prediction.tournament_name?.toUpperCase().includes('WTA');
+          const finalIntel = incomingProIntel || NeonSyncService.synthesizeBaselineProIntelligence(
+            targetFixtureId,
+            prediction.home_name || 'Player 1',
+            prediction.away_name || 'Player 2',
+            isWta ? 'WTA' : 'ATP',
+            prediction.surface || 'Hard'
+          );
           await NeonSyncService.saveProIntelligence(
-            prediction.fixture_id,
-            prediction.home_name,
-            prediction.away_name,
-            prediction.tournament_name?.toUpperCase().includes('WTA') ? 'WTA' : 'ATP',
+            targetFixtureId,
+            prediction.home_name || 'Player 1',
+            prediction.away_name || 'Player 2',
+            isWta ? 'WTA' : 'ATP',
             prediction.surface || 'Hard',
-            incomingProIntel
+            finalIntel
           );
         } catch (e: any) {
-          Logger.warn?.(`[AdminController] Could not auto-save pro intelligence for fixture #${prediction.fixture_id}: ${e.message}`);
+          Logger.warn?.(`[AdminController] Could not auto-save pro intelligence for fixture #${targetFixtureId}: ${e.message}`);
         }
       }
 
@@ -350,7 +359,7 @@ export const AdminController = {
           const a = m.away || m.away_name;
           if (h && a) {
             const pred = PredictionsRepo.findActiveByTeams(h, a);
-            if (pred && !pred.channel_message_id) {
+            if (pred && pred.id && !pred.channel_message_id) {
               PredictionsRepo.updateChannelMessageId(pred.id, messageId);
             }
           }
@@ -366,8 +375,25 @@ export const AdminController = {
   deletePrediction: async (req: Request, res: Response) => {
     try {
       const id = parseInt(String(req.params.id), 10);
-      const success = PredictionsRepo.delete(id);
-      res.json({ success, id });
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+
+      // Look up prediction first to capture fixture_id for Neon PostgreSQL sync
+      let pred = PredictionsRepo.getById(id);
+      if (!pred) {
+        pred = PredictionsRepo.getByFixtureId(id);
+      }
+      const fixtureId = pred?.fixture_id ? Number(pred.fixture_id) : null;
+      const targetId = pred?.id ? Number(pred.id) : id;
+
+      const success = PredictionsRepo.delete(targetId);
+
+      // Permanently remove from Neon cloud database if fixture_id is known
+      let neonDeleted = false;
+      if (fixtureId) {
+        neonDeleted = await NeonSyncService.deletePrediction(fixtureId);
+      }
+
+      res.json({ success, id: targetId, fixture_id: fixtureId, neon_deleted: neonDeleted });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -395,12 +421,26 @@ export const AdminController = {
     try {
       const { ids } = req.body;
       let count = 0;
+      const fixtureIds: number[] = [];
       if (Array.isArray(ids)) {
-        for (const id of ids) {
-          if (PredictionsRepo.delete(Number(id))) count++;
+        for (const rawId of ids) {
+          const numId = Number(rawId);
+          if (isNaN(numId)) continue;
+          let pred = PredictionsRepo.getById(numId);
+          if (!pred) {
+            pred = PredictionsRepo.getByFixtureId(numId);
+          }
+          if (pred?.fixture_id) {
+            fixtureIds.push(Number(pred.fixture_id));
+          }
+          const targetId = pred?.id ? Number(pred.id) : numId;
+          if (PredictionsRepo.delete(targetId)) count++;
+        }
+        if (fixtureIds.length > 0) {
+          await NeonSyncService.batchDeletePredictions(fixtureIds);
         }
       }
-      res.json({ success: true, count });
+      res.json({ success: true, count, neon_deleted: fixtureIds.length });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

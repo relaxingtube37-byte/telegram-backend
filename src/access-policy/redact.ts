@@ -1,16 +1,35 @@
-import type { Prediction } from '../types';
+import type { Prediction, MultilingualText } from '../types';
 import type { MatchDeepAnalyticsReport } from '../services/match-analytics.service';
 import { GUEST_STATS_LEVELS } from './types';
 import type { ResolvedAccess } from './resolveAccess';
 
 const SUMMARY_MAX = 220;
 
-function truncateSummary(text: string | undefined | null, maxLen = SUMMARY_MAX): string | null {
-  if (!text) return null;
+function truncateText(text: string, maxLen = SUMMARY_MAX): string {
   const cleaned = String(text).replace(/\s+/g, ' ').trim();
-  if (!cleaned) return null;
   if (cleaned.length <= maxLen) return cleaned;
   return `${cleaned.slice(0, maxLen - 1)}…`;
+}
+
+function truncateSummary(
+  summary: string | MultilingualText | undefined | null,
+  maxLen = SUMMARY_MAX
+): string | MultilingualText | undefined {
+  if (!summary) return undefined;
+  if (typeof summary === 'string') {
+    const res = truncateText(summary, maxLen);
+    return res || undefined;
+  }
+  if (typeof summary === 'object') {
+    const res: MultilingualText = {};
+    for (const [lang, val] of Object.entries(summary)) {
+      if (val && typeof val === 'string') {
+        res[lang] = truncateText(val, maxLen);
+      }
+    }
+    return Object.keys(res).length > 0 ? res : undefined;
+  }
+  return undefined;
 }
 
 /**

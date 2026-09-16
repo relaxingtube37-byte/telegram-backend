@@ -95,9 +95,13 @@ export const SeoRendererService = {
       ? EditorialsRepo.getByFixtureId(prediction.fixture_id)
       : EditorialsRepo.getBySlug(slug);
 
+    const rawSummary = typeof prediction.ai_summary === 'object' && prediction.ai_summary !== null
+      ? (prediction.ai_summary as any).en || Object.values(prediction.ai_summary)[0] || ''
+      : (prediction.ai_summary || '');
+
     let title = `${matchTitle} Analysis & Match Preview | Ptin AI`;
-    let description = prediction.ai_summary
-      ? prediction.ai_summary.slice(0, 160).replace(/[\n\r]+/g, ' ').trim()
+    let description = rawSummary
+      ? rawSummary.slice(0, 160).replace(/[\n\r]+/g, ' ').trim()
       : `Match analysis for ${matchTitle} at ${tournament}. Surface: ${surface}. Model lean: ${predictedWinner} (${winProb}%).`;
 
     if (editorial?.seo_title) title = editorial.seo_title;
@@ -180,11 +184,14 @@ export const SeoRendererService = {
       ? EditorialsRepo.getByFixtureId(prediction.fixture_id)
       : null;
     const h1 = editorial?.headline || `${home} vs ${away}`;
+    const rawSummary = typeof prediction.ai_summary === 'object' && prediction.ai_summary !== null
+      ? (prediction.ai_summary as any).en || Object.values(prediction.ai_summary)[0] || ''
+      : (prediction.ai_summary || '');
     const summary =
       editorial?.guest_safe_summary ||
       editorial?.short_summary ||
       editorial?.summary ||
-      prediction.ai_summary ||
+      rawSummary ||
       'Match analysis and statistical preview available on Ptin AI.';
 
     return `<!DOCTYPE html>

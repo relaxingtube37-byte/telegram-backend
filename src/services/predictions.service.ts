@@ -1,13 +1,39 @@
 import { PredictionsRepo } from '../db/repositories/predictions.repo';
 import type { Prediction } from '../types';
 
+function ensureJsonField(val: any, fallbackToEnObject = true): any {
+  if (val === null || val === undefined) return undefined;
+  if (typeof val === 'object') return val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        return JSON.parse(trimmed);
+      } catch {}
+    }
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const arr = JSON.parse(trimmed);
+        return fallbackToEnObject ? { en: arr } : arr;
+      } catch {}
+    }
+    if (fallbackToEnObject && trimmed.length > 0) {
+      return { en: trimmed };
+    }
+  }
+  return val;
+}
+
 export const PredictionsService = {
   formatPrediction: (raw: any): Prediction => {
+    if (!raw) return raw;
     return {
       ...raw,
-      key_factors: typeof raw.key_factors === 'string'
-        ? (() => { try { return JSON.parse(raw.key_factors); } catch { return []; } })()
-        : (raw.key_factors || []),
+      key_factors: ensureJsonField(raw.key_factors, true) ?? { en: [] },
+      ai_summary: ensureJsonField(raw.ai_summary, true) ?? undefined,
+      devils_advocate_risk: ensureJsonField(raw.devils_advocate_risk, true) ?? undefined,
+      best_bet_rationale: ensureJsonField(raw.best_bet_rationale, true) ?? undefined,
+      alt_bet_rationale: ensureJsonField(raw.alt_bet_rationale, true) ?? undefined,
     };
   },
 

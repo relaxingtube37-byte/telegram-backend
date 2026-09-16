@@ -25,8 +25,17 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - "VIP" terminology eliminated across all components in favor of professional "Member Access" and "Full Tactical Dossier".
 - Gating UI upgraded to soft-blur gradient overlay on deep predictive dossiers with 1-click Google and Telegram connect.
 - State Football admin UsersTab displays auth source badge (Google vs Telegram) and email alongside Telegram usernames.
+- Prediction deletion (single and batch) synchronizes with Neon PostgreSQL, permanently deleting matching records from `predictions` and `match_pro_intelligence` so deleted matches never resurrect on reboot.
+- State Football Telegram Admin predictions table features a clean segmented view separating Active Matches (`UPCOMING`, `LIVE`, `INTERRUPTED`) from Archived Matches (`WON`, `LOST`, `VOID`), keeping the active table clean and uncluttered.
 
 ## Progress
+- 2026-09-16: AllSports & Matches Performance Hardening in State Football:
+  - Added 7.5s AbortController timeout to `rateLimitedFetch` in `rateLimiter.ts` to prevent request queue deadlocks and infinite hangs on AllSports API.
+  - Upgraded `DataPool.matches.getByDate` to prioritize core tours (ATP 3, WTA 6, Challenger 72, WTA 125 871) and use `Promise.allSettled` to make daily category fetching immune to single-category network drops.
+  - Optimized `DashboardView.tsx` with smart group collapse: primary circuits (Tiers 1-5) and all LIVE matches stay expanded, while 600+ minor ITF matches default to collapsed, reducing initial DOM footprint from 25,000+ nodes to ~2,000 nodes and eliminating UI freezing.
+- 2026-09-16: Cloud Deletion Sync & Predictions Archive Tab:
+  - Added `deletePrediction` and `batchDeletePredictions` to `NeonSyncService` and hooked them into `AdminController`. Both local SQLite and Neon PostgreSQL rows (`predictions` & `match_pro_intelligence`) are purged permanently.
+  - Upgraded `PredictionsTab` in State Football to include segmented pills: `Active Matches / در جریان`, `Archive / آرشیو`, and `All / همه`, along with real-time match/player search and scoped select-all.
 - 2026-09-10: Strict & Accurate Match Status Settlement (UPCOMING, LIVE, INTERRUPTED, VOID, WON/LOST):
   - Fixed premature LIVE display for unstarted matches: added database migration resetting any unstarted/dummy `0-0` LIVE predictions back to `UPCOMING` with empty score.
   - Upgraded `ResultSettlerService` to handle all RapidAPI status categories: `notstarted` -> revert to `UPCOMING`, `inprogress` -> `LIVE` with real-time triplet, `interrupted`/`suspended`/`delay` -> `INTERRUPTED` (PAUSED badge), `canceled`/`postponed` -> `VOID`, and `finished` -> strict set score settlement.

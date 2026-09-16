@@ -17,12 +17,20 @@ export const ChannelPosterService = {
     const rawFactors = prediction.key_factors as unknown;
     if (Array.isArray(rawFactors)) {
       factors = rawFactors.map(String);
+    } else if (rawFactors && typeof rawFactors === 'object') {
+      const enArr = (rawFactors as any).en || Object.values(rawFactors)[0];
+      if (Array.isArray(enArr)) factors = enArr.map(String);
+      else if (typeof enArr === 'string') factors = [enArr];
     } else if (typeof rawFactors === 'string') {
       const trimmed = rawFactors.trim();
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) factors = parsed.map(String);
-        else if (trimmed) factors = [trimmed];
+        else if (parsed && typeof parsed === 'object') {
+          const enArr = parsed.en || Object.values(parsed)[0];
+          if (Array.isArray(enArr)) factors = enArr.map(String);
+          else if (typeof enArr === 'string') factors = [enArr];
+        } else if (trimmed) factors = [trimmed];
       } catch {
         if (trimmed) factors = [trimmed];
       }
@@ -50,14 +58,22 @@ export const ChannelPosterService = {
         topFactors.map(f => `• ${escapeHtml(f)}`).join('\n') + '\n';
     }
 
+    const devilsRisk = typeof prediction.devils_advocate_risk === 'object'
+      ? ((prediction.devils_advocate_risk as any)?.en || Object.values(prediction.devils_advocate_risk)[0] || '')
+      : (prediction.devils_advocate_risk || '');
+
     let devilsAdvocateSection = '';
-    if (prediction.devils_advocate_risk && prediction.devils_advocate_risk.trim()) {
-      devilsAdvocateSection = `\n⚠️ <b>Contrarian Risk (Upset Scenario):</b>\n<i>${escapeHtml(prediction.devils_advocate_risk.trim())}</i>\n`;
+    if (devilsRisk && typeof devilsRisk === 'string' && devilsRisk.trim()) {
+      devilsAdvocateSection = `\n⚠️ <b>Contrarian Risk (Upset Scenario):</b>\n<i>${escapeHtml(devilsRisk.trim())}</i>\n`;
     }
 
+    const aiSummaryText = typeof prediction.ai_summary === 'object'
+      ? ((prediction.ai_summary as any)?.en || Object.values(prediction.ai_summary)[0] || '')
+      : (prediction.ai_summary || '');
+
     let summarySection = '';
-    if (prediction.ai_summary && prediction.ai_summary.trim()) {
-      summarySection = `\n🧠 <b>AI Tactical Breakdown:</b>\n<i>${escapeHtml(prediction.ai_summary.trim())}</i>\n`;
+    if (aiSummaryText && typeof aiSummaryText === 'string' && aiSummaryText.trim()) {
+      summarySection = `\n🧠 <b>AI Tactical Breakdown:</b>\n<i>${escapeHtml(aiSummaryText.trim())}</i>\n`;
     }
 
     return (

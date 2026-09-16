@@ -1,35 +1,77 @@
 import { db } from '../connection';
 import type { Prediction } from '../../types';
 
+function parseJsonField<T = any>(val: any, fallbackToEnObject = true): T | undefined {
+  if (val === null || val === undefined) return undefined;
+  if (typeof val === 'object') return val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        return JSON.parse(trimmed);
+      } catch {}
+    }
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const arr = JSON.parse(trimmed);
+        return (fallbackToEnObject ? { en: arr } : arr) as any;
+      } catch {}
+    }
+    if (fallbackToEnObject && trimmed.length > 0) {
+      return { en: trimmed } as any;
+    }
+  }
+  return val;
+}
+
+function serializeJsonField(val: any): string | null {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'object') return JSON.stringify(val);
+  if (typeof val === 'string') return val;
+  return String(val);
+}
+
+function mapRow(row: any): Prediction | null {
+  if (!row) return null;
+  return {
+    ...row,
+    key_factors: parseJsonField(row.key_factors, true) ?? { en: [] },
+    ai_summary: parseJsonField(row.ai_summary, true) ?? undefined,
+    devils_advocate_risk: parseJsonField(row.devils_advocate_risk, true) ?? undefined,
+    best_bet_rationale: parseJsonField(row.best_bet_rationale, true) ?? undefined,
+    alt_bet_rationale: parseJsonField(row.alt_bet_rationale, true) ?? undefined,
+  };
+}
+
 export const PredictionsRepo = {
-  getAll: (limit = 100): any[] => {
-    return db.prepare('SELECT * FROM predictions ORDER BY published_at DESC LIMIT ?').all(limit);
+  getAll: (limit = 100): Prediction[] => {
+    return db.prepare('SELECT * FROM predictions ORDER BY published_at DESC LIMIT ?').all(limit).map(mapRow) as Prediction[];
   },
 
-  getActive: (): any[] => {
-    return db.prepare("SELECT * FROM predictions WHERE status = 'UPCOMING' OR status = 'LIVE' OR status = 'INTERRUPTED' ORDER BY match_date ASC, published_at DESC").all();
+  getActive: (): Prediction[] => {
+    return db.prepare("SELECT * FROM predictions WHERE status = 'UPCOMING' OR status = 'LIVE' OR status = 'INTERRUPTED' ORDER BY match_date ASC, published_at DESC").all().map(mapRow) as Prediction[];
   },
 
-  getHistory: (limit = 50): any[] => {
-    return db.prepare("SELECT * FROM predictions WHERE status = 'WON' OR status = 'LOST' OR status = 'VOID' OR status = 'INTERRUPTED' ORDER BY published_at DESC LIMIT ?").all(limit);
+  getHistory: (limit = 50): Prediction[] => {
+    return db.prepare("SELECT * FROM predictions WHERE status = 'WON' OR status = 'LOST' OR status = 'VOID' OR status = 'INTERRUPTED' ORDER BY published_at DESC LIMIT ?").all(limit).map(mapRow) as Prediction[];
   },
 
-  getById: (id: number): any => {
-    return db.prepare('SELECT * FROM predictions WHERE id = ?').get(id);
+  getById: (id: number): Prediction | null => {
+    return mapRow(db.prepare('SELECT * FROM predictions WHERE id = ?').get(id));
   },
 
-  getByFixtureId: (fixtureId: number): any => {
-    return db.prepare('SELECT * FROM predictions WHERE fixture_id = ?').get(fixtureId);
+  getByFixtureId: (fixtureId: number): Prediction | null => {
+    return mapRow(db.prepare('SELECT * FROM predictions WHERE fixture_id = ?').get(fixtureId));
   },
 
-  findActiveByTeams: (home: string, away: string): any => {
-    return db.prepare(`
+  findActiveByTeams: (home: string, away: string): Prediction | null => {
+    return mapRow(db.prepare(`
       SELECT * FROM predictions
       WHERE (lower(home_name) = lower(?) AND lower(away_name) = lower(?))
          OR (lower(home_name) LIKE lower(?) AND lower(away_name) LIKE lower(?))
       ORDER BY id DESC
       LIMIT 1
-    `).get(home, away, `%${home}%`, `%${away}%`);
+    `).get(home, away, `%${home}%`, `%${away}%`));
   },
 
   create: (p: Prediction): number => {
@@ -56,6 +98,7 @@ export const PredictionsRepo = {
             best_bet_rationale = COALESCE(?, best_bet_rationale),
             alt_bet_selection = COALESCE(?, alt_bet_selection),
             alt_bet_market = COALESCE(?, alt_bet_market),
+            alt_bet_rationale = COALESCE(?, alt_bet_rationale),
             key_factors = COALESCE(?, key_factors),
             devils_advocate_risk = COALESCE(?, devils_advocate_risk),
             ai_summary = COALESCE(?, ai_summary),
@@ -71,10 +114,13 @@ export const PredictionsRepo = {
           p.tournament_name || null, p.round_name || null, p.surface || null, p.match_date || null,
           p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
           p.predicted_winner, p.win_probability, p.confidence, p.predicted_score || null,
-          p.best_bet_selection || null, p.best_bet_market || null, p.best_bet_ev || null, p.best_bet_rationale || null,
+          p.best_bet_selection || null, p.best_bet_market || null, p.best_bet_ev || null,
+          serializeJsonField(p.best_bet_rationale),
           p.alt_bet_selection || null, p.alt_bet_market || null,
-          Array.isArray(p.key_factors) ? JSON.stringify(p.key_factors) : p.key_factors || null,
-          p.devils_advocate_risk || null, p.ai_summary || null,
+          serializeJsonField(p.alt_bet_rationale),
+          serializeJsonField(p.key_factors),
+          serializeJsonField(p.devils_advocate_risk),
+          serializeJsonField(p.ai_summary),
           p.home_image || null, p.away_image || null, p.home_id || null, p.away_id || null,
           p.status || 'UPCOMING',
           existing.id
@@ -90,7 +136,7 @@ export const PredictionsRepo = {
         home_name, away_name, home_odds, away_odds,
         predicted_winner, win_probability, confidence, predicted_score,
         best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
-        alt_bet_selection, alt_bet_market, key_factors, devils_advocate_risk,
+        alt_bet_selection, alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk,
         ai_summary, home_image, away_image, home_id, away_id,
         status, channel_message_id, published_at, created_at
       ) VALUES (
@@ -98,7 +144,7 @@ export const PredictionsRepo = {
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
-        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?
       )
@@ -108,10 +154,13 @@ export const PredictionsRepo = {
       p.fixture_id || null, p.tournament_name || null, p.round_name || null, p.surface || null, p.match_date || null,
       p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
       p.predicted_winner, p.win_probability, p.confidence, p.predicted_score || null,
-      p.best_bet_selection || null, p.best_bet_market || null, p.best_bet_ev || null, p.best_bet_rationale || null,
+      p.best_bet_selection || null, p.best_bet_market || null, p.best_bet_ev || null,
+      serializeJsonField(p.best_bet_rationale),
       p.alt_bet_selection || null, p.alt_bet_market || null,
-      Array.isArray(p.key_factors) ? JSON.stringify(p.key_factors) : p.key_factors || null,
-      p.devils_advocate_risk || null, p.ai_summary || null,
+      serializeJsonField(p.alt_bet_rationale),
+      serializeJsonField(p.key_factors),
+      serializeJsonField(p.devils_advocate_risk),
+      serializeJsonField(p.ai_summary),
       p.home_image || null, p.away_image || null, p.home_id || null, p.away_id || null,
       p.status || 'UPCOMING', p.channel_message_id || null,
       p.published_at || new Date().toISOString(), p.created_at || new Date().toISOString()
