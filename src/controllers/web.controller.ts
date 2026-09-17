@@ -1309,7 +1309,7 @@ export const WebController = {
    */
   getMatches: async (req: Request, res: Response) => {
     try {
-      const limit = parseInt(String(req.query.limit || '100'), 10);
+      const limit = parseInt(String(req.query.limit || '500'), 10);
       const lang = resolveRequestedLang(req.query.lang);
       const access = resolveAccessFromRequest(req);
       const rows = PredictionsService.getAll(limit).map((m) => {

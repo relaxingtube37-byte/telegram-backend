@@ -29,6 +29,16 @@ Product direction: deep tennis analytics site (ATP/WTA singles) controlled from 
 - State Football Telegram Admin predictions table features a clean segmented view separating Active Matches (`UPCOMING`, `LIVE`, `INTERRUPTED`) from Archived Matches (`WON`, `LOST`, `VOID`), keeping the active table clean and uncluttered.
 
 ## Progress
+- 2026-09-17: Neon Cloud Sync Hardening & Multilingual UI Localization:
+  - Fixed Render Neon sync error (`[NeonSync] Push error: invalid input syntax for type json`): sanitized `safeJsonb()` to reject empty/null/`[object Object]` values, stripped Unicode null byte escapes (`\u0000`, `\0`), and wrapped all loops in `pushToNeon()` with row-level `try/catch` isolation so individual malformed rows cannot abort cloud synchronization.
+  - Sanitized `saveProIntelligence()` to validate and serialize payloads cleanly before PostgreSQL JSONB insertion.
+  - Localized frontend section headers in `telegram-webapp`: updated `parseAiDossierSections()` in `formatters.ts` to recognize Persian, Arabic, Turkish, and Portuguese delimiters, and updated `PredictionCard.tsx` to render localized titles via `getLocalizedSectionTitle(sec.type, sec.title, t)`.
+  - Executed full backfill translating all legacy English-only prediction records into complete 5-language bundles (`{ en, fa, ar, tr, pt }`) and synced across SQLite and Neon Cloud.
+- 2026-09-17: End-to-End Multilingual AI Pipeline Verified (AI Output -> Neon PostgreSQL -> WebApp 5-Language Rendering):
+  - Verified 5-language prediction bundle structure (`en`, `fa`, `ar`, `tr`, `pt`) across `ai_summary`, `key_factors`, `devils_advocate_risk`, `best_bet_rationale`, `alt_bet_rationale`.
+  - Verified backend ingestion (`POST /api/admin/predictions/publish`), SQLite storage, and direct cloud sync to Neon PostgreSQL (`JSONB`).
+  - Verified WebApp projection endpoint (`GET /api/webapp/predictions?lang=...`) with seamless fallback.
+  - Verified frontend visual display across Persian (RTL), Arabic (RTL), and English (LTR) with intact Latin player names and dynamic language switching.
 - 2026-09-16: AllSports & Matches Performance Hardening in State Football:
   - Added 7.5s AbortController timeout to `rateLimitedFetch` in `rateLimiter.ts` to prevent request queue deadlocks and infinite hangs on AllSports API.
   - Upgraded `DataPool.matches.getByDate` to prioritize core tours (ATP 3, WTA 6, Challenger 72, WTA 125 871) and use `Promise.allSettled` to make daily category fetching immune to single-category network drops.

@@ -44,7 +44,7 @@ function mapRow(row: any): Prediction | null {
 }
 
 export const PredictionsRepo = {
-  getAll: (limit = 100): Prediction[] => {
+  getAll: (limit = 500): Prediction[] => {
     return db.prepare('SELECT * FROM predictions ORDER BY published_at DESC LIMIT ?').all(limit).map(mapRow) as Prediction[];
   },
 

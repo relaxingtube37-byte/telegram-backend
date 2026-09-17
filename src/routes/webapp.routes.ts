@@ -152,7 +152,7 @@ router.get('/matches/:fixtureId/pro-intelligence', async (req: Request, res: Res
 // GET /api/webapp/predictions
 router.get('/predictions', async (req: Request, res: Response) => {
   try {
-    const limit = parseInt(String(req.query.limit || '100'), 10);
+    const limit = parseInt(String(req.query.limit || '500'), 10);
     const lang = resolveRequestedLang(req.query.lang);
     const access = resolveWebappAccess(req);
     const rawList = PredictionsService.getAll(limit);

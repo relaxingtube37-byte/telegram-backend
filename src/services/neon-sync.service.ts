@@ -324,7 +324,12 @@ export class NeonSyncService {
             result_score = excluded.result_score,
             result_announced_at = excluded.result_announced_at,
             channel_message_id = excluded.channel_message_id,
-            result_channel_message_id = excluded.result_channel_message_id;
+            result_channel_message_id = excluded.result_channel_message_id,
+            ai_summary = excluded.ai_summary,
+            key_factors = excluded.key_factors,
+            devils_advocate_risk = excluded.devils_advocate_risk,
+            best_bet_rationale = excluded.best_bet_rationale,
+            alt_bet_rationale = excluded.alt_bet_rationale;
         `);
         for (const p of preds.rows) {
           predStmt.run(
@@ -440,116 +445,167 @@ export class NeonSyncService {
         ]);
       }
 
+      // Helper to guarantee valid JSON string or null for PostgreSQL JSONB columns
+      const safeJsonb = (val: any): string | null => {
+        if (val === null || val === undefined) return null;
+        if (typeof val === 'object') {
+          try {
+            const str = JSON.stringify(val).replace(/\\u0000/g, '').replace(/\0/g, '');
+            return str === 'null' || str === '' ? null : str;
+          } catch {
+            return null;
+          }
+        }
+        if (typeof val === 'string') {
+          const clean = val.replace(/\\u0000/g, '').replace(/\0/g, '').trim();
+          if (!clean || clean === 'null' || clean === 'undefined' || clean === '[object Object]' || clean === 'NaN') {
+            return null;
+          }
+          try {
+            JSON.parse(clean);
+            return clean;
+          } catch {
+            return JSON.stringify({ en: clean });
+          }
+        }
+        return null;
+      };
+
       // 3. Push predictions
       const localPreds = db.prepare('SELECT * FROM predictions').all() as any[];
       for (const p of localPreds) {
         if (!p.fixture_id || Number(p.fixture_id) < 100000) continue;
         if (!p.tournament_name || p.tournament_name.includes('Test') || p.tournament_name === 'Demo Open') continue;
         if (p.home_name?.startsWith('Player ') || p.home_name?.startsWith('Test Player')) continue;
-        await client.query(`
-          INSERT INTO predictions (
-            fixture_id, tournament_name, round_name, surface, match_date,
-            home_name, away_name, home_odds, away_odds, predicted_winner,
-            win_probability, confidence, predicted_score, best_bet_selection,
-            best_bet_market, best_bet_ev, best_bet_rationale, alt_bet_selection,
-            alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk, ai_summary,
-            home_image, away_image, home_id, away_id, status, result_score,
-            channel_message_id, result_announced_at, result_channel_message_id,
-            published_at, created_at
-          ) VALUES (
-            $1, $2, $3, $4, $5,
-            $6, $7, $8, $9, $10,
-            $11, $12, $13, $14,
-            $15, $16, $17, $18,
-            $19, $20, $21, $22, $23,
-            $24, $25, $26, $27, $28, $29,
-            $30, $31, $32,
-            $33, $34
-          )
-          ON CONFLICT (fixture_id) DO UPDATE SET
-            match_date = EXCLUDED.match_date,
-            status = EXCLUDED.status,
-            result_score = EXCLUDED.result_score,
-            result_announced_at = EXCLUDED.result_announced_at;
-        `, [
-          p.fixture_id, p.tournament_name, p.round_name, p.surface, p.match_date,
-          p.home_name, p.away_name, p.home_odds, p.away_odds, p.predicted_winner,
-          Number(p.win_probability) || 0, p.confidence, p.predicted_score, p.best_bet_selection,
-          p.best_bet_market, p.best_bet_ev, p.best_bet_rationale, p.alt_bet_selection,
-          p.alt_bet_market, p.alt_bet_rationale, p.key_factors, p.devils_advocate_risk, p.ai_summary,
-          p.home_image, p.away_image, p.home_id, p.away_id, p.status, p.result_score,
-          p.channel_message_id, p.result_announced_at, p.result_channel_message_id,
-          p.published_at, p.created_at
-        ]);
+        try {
+          await client.query(`
+            INSERT INTO predictions (
+              fixture_id, tournament_name, round_name, surface, match_date,
+              home_name, away_name, home_odds, away_odds, predicted_winner,
+              win_probability, confidence, predicted_score, best_bet_selection,
+              best_bet_market, best_bet_ev, best_bet_rationale, alt_bet_selection,
+              alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk, ai_summary,
+              home_image, away_image, home_id, away_id, status, result_score,
+              channel_message_id, result_announced_at, result_channel_message_id,
+              published_at, created_at
+            ) VALUES (
+              $1, $2, $3, $4, $5,
+              $6, $7, $8, $9, $10,
+              $11, $12, $13, $14,
+              $15, $16, $17, $18,
+              $19, $20, $21, $22, $23,
+              $24, $25, $26, $27, $28, $29,
+              $30, $31, $32,
+              $33, $34
+            )
+            ON CONFLICT (fixture_id) DO UPDATE SET
+              match_date = EXCLUDED.match_date,
+              status = EXCLUDED.status,
+              result_score = EXCLUDED.result_score,
+              result_announced_at = EXCLUDED.result_announced_at,
+              channel_message_id = COALESCE(EXCLUDED.channel_message_id, predictions.channel_message_id),
+              result_channel_message_id = COALESCE(EXCLUDED.result_channel_message_id, predictions.result_channel_message_id),
+              ai_summary = EXCLUDED.ai_summary,
+              key_factors = EXCLUDED.key_factors,
+              devils_advocate_risk = EXCLUDED.devils_advocate_risk,
+              best_bet_rationale = EXCLUDED.best_bet_rationale,
+              alt_bet_rationale = EXCLUDED.alt_bet_rationale;
+          `, [
+            p.fixture_id, p.tournament_name, p.round_name, p.surface, p.match_date,
+            p.home_name, p.away_name, p.home_odds, p.away_odds, p.predicted_winner,
+            Number(p.win_probability) || 0, p.confidence, p.predicted_score, p.best_bet_selection,
+            p.best_bet_market, p.best_bet_ev, safeJsonb(p.best_bet_rationale), p.alt_bet_selection,
+            p.alt_bet_market, safeJsonb(p.alt_bet_rationale), safeJsonb(p.key_factors), safeJsonb(p.devils_advocate_risk), safeJsonb(p.ai_summary),
+            p.home_image, p.away_image, p.home_id, p.away_id, p.status, p.result_score,
+            p.channel_message_id, p.result_announced_at, p.result_channel_message_id,
+            p.published_at, p.created_at
+          ]);
+        } catch (predErr: any) {
+          Logger.warn?.(`[NeonSync] Warning: Failed to sync prediction #${p.fixture_id}: ${predErr.message}`);
+        }
       }
 
       // 4. Push referral_clicks
       const localClicks = db.prepare('SELECT * FROM referral_clicks ORDER BY id DESC LIMIT 500').all() as any[];
       for (const c of localClicks) {
         if (!c.click_id) continue;
-        await client.query(`
-          INSERT INTO referral_clicks (
-            click_id, site_id, partner_key, user_ref, session_ref,
-            match_id, fixture_id, page_context, action_type, destination_url, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-          ON CONFLICT (click_id) DO NOTHING;
-        `, [
-          c.click_id, c.site_id, c.partner_key, c.user_ref, c.session_ref,
-          c.match_id, c.fixture_id, c.page_context, c.action_type, c.destination_url, c.created_at
-        ]);
+        try {
+          await client.query(`
+            INSERT INTO referral_clicks (
+              click_id, site_id, partner_key, user_ref, session_ref,
+              match_id, fixture_id, page_context, action_type, destination_url, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (click_id) DO NOTHING;
+          `, [
+            c.click_id, c.site_id, c.partner_key, c.user_ref, c.session_ref,
+            c.match_id, c.fixture_id, c.page_context, c.action_type, c.destination_url, c.created_at
+          ]);
+        } catch (clickErr: any) {
+          Logger.warn?.(`[NeonSync] Warning: Failed to sync click ${c.click_id}: ${clickErr.message}`);
+        }
       }
 
       // 5. Push partner_conversions
       const localConvs = db.prepare('SELECT * FROM partner_conversions ORDER BY id DESC LIMIT 200').all() as any[];
       for (const cv of localConvs) {
         if (!cv.dedupe_key) continue;
-        await client.query(`
-          INSERT INTO partner_conversions (
-            partner_key, site_id, event_type, click_id, transaction_id,
-            dedupe_key, user_ref, status, raw_payload, received_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          ON CONFLICT (dedupe_key) DO NOTHING;
-        `, [
-          cv.partner_key, cv.site_id, cv.event_type, cv.click_id, cv.transaction_id,
-          cv.dedupe_key, cv.user_ref, cv.status, cv.raw_payload, cv.received_at
-        ]);
+        try {
+          await client.query(`
+            INSERT INTO partner_conversions (
+              partner_key, site_id, event_type, click_id, transaction_id,
+              dedupe_key, user_ref, status, raw_payload, received_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (dedupe_key) DO NOTHING;
+          `, [
+            cv.partner_key, cv.site_id, cv.event_type, cv.click_id, cv.transaction_id,
+            cv.dedupe_key, cv.user_ref, cv.status, cv.raw_payload, cv.received_at
+          ]);
+        } catch (convErr: any) {
+          Logger.warn?.(`[NeonSync] Warning: Failed to sync conversion ${cv.dedupe_key}: ${convErr.message}`);
+        }
       }
+
       // 6. Push match_pro_intelligence
       const localIntels = db.prepare('SELECT * FROM match_pro_intelligence').all() as any[];
       for (const item of localIntels) {
         if (!item.fixture_id || !item.payload) continue;
-        let payloadJson: any = {};
         try {
-          payloadJson = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
-        } catch {
-          payloadJson = item.payload;
-        }
-        const isPaperVersion = payloadJson?.version === '2.0.0-paper' || Boolean(payloadJson?.player_one?.radar_axes);
-        const updatedAt = item.updated_at ? new Date(item.updated_at) : new Date();
+          let payloadJson: any = {};
+          try {
+            payloadJson = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+          } catch {
+            payloadJson = { raw: item.payload };
+          }
+          const cleanPayloadStr = JSON.stringify(payloadJson || {}).replace(/\\u0000/g, '').replace(/\0/g, '');
+          const isPaperVersion = payloadJson?.version === '2.0.0-paper' || Boolean(payloadJson?.player_one?.radar_axes);
+          const updatedAt = item.updated_at ? new Date(item.updated_at) : new Date();
 
-        await client.query(`
-          INSERT INTO match_pro_intelligence (
-            fixture_id, home_name, away_name, tour, surface, payload, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          ON CONFLICT (fixture_id) DO UPDATE SET
-            home_name = EXCLUDED.home_name,
-            away_name = EXCLUDED.away_name,
-            tour = EXCLUDED.tour,
-            surface = EXCLUDED.surface,
-            payload = EXCLUDED.payload,
-            updated_at = EXCLUDED.updated_at
-          WHERE ($8::boolean = true)
-             OR (match_pro_intelligence.payload->>'version' != '2.0.0-paper' AND EXCLUDED.updated_at >= match_pro_intelligence.updated_at);
-        `, [
-          item.fixture_id,
-          item.home_name,
-          item.away_name,
-          item.tour || 'ATP',
-          item.surface || 'Hard',
-          JSON.stringify(payloadJson),
-          updatedAt,
-          isPaperVersion
-        ]);
+          await client.query(`
+            INSERT INTO match_pro_intelligence (
+              fixture_id, home_name, away_name, tour, surface, payload, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (fixture_id) DO UPDATE SET
+              home_name = EXCLUDED.home_name,
+              away_name = EXCLUDED.away_name,
+              tour = EXCLUDED.tour,
+              surface = EXCLUDED.surface,
+              payload = EXCLUDED.payload,
+              updated_at = EXCLUDED.updated_at
+            WHERE ($8::boolean = true)
+               OR (match_pro_intelligence.payload->>'version' != '2.0.0-paper' AND EXCLUDED.updated_at >= match_pro_intelligence.updated_at);
+          `, [
+            item.fixture_id,
+            item.home_name,
+            item.away_name,
+            item.tour || 'ATP',
+            item.surface || 'Hard',
+            cleanPayloadStr,
+            updatedAt,
+            isPaperVersion
+          ]);
+        } catch (intelErr: any) {
+          Logger.warn?.(`[NeonSync] Warning: Failed to sync pro intelligence #${item.fixture_id}: ${intelErr.message}`);
+        }
       }
     } catch (err: any) {
       Logger.warn?.(`[NeonSync] Push error: ${err.message}`);
@@ -621,7 +677,15 @@ export class NeonSyncService {
     surface: string,
     payload: any
   ): Promise<boolean> {
-    const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    let cleanPayload = payload;
+    if (typeof payload === 'string') {
+      try {
+        cleanPayload = JSON.parse(payload);
+      } catch {
+        cleanPayload = { raw: payload };
+      }
+    }
+    const payloadStr = JSON.stringify(cleanPayload || {}).replace(/\\u0000/g, '').replace(/\0/g, '');
     const now = new Date().toISOString();
 
     // 1. Save in local SQLite
