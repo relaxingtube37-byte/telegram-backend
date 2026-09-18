@@ -221,26 +221,28 @@ export const AdminController = {
         }
       }
 
-      // Automatically persist pro intelligence if supplied, or synthesize baseline Decagon comparison
+      // Persist authentic pro intelligence only if supplied (NEVER synthesize fake baseline data)
       const incomingProIntel = req.body.pro_intelligence || req.body.proIntelligence;
       const targetFixtureId = prediction.fixture_id || predictionId;
-      if (targetFixtureId) {
+      const isAuthentic = incomingProIntel && 
+        incomingProIntel.version !== 'baseline-fallback' && 
+        !incomingProIntel.isFallback &&
+        (incomingProIntel.player_one?.radar_axes || incomingProIntel.player1?.radar_axes);
+
+      if (targetFixtureId && isAuthentic) {
         try {
-          const isWta = prediction.tournament_name?.toUpperCase().includes('WTA');
-          const finalIntel = incomingProIntel || NeonSyncService.synthesizeBaselineProIntelligence(
-            targetFixtureId,
-            prediction.home_name || 'Player 1',
-            prediction.away_name || 'Player 2',
-            isWta ? 'WTA' : 'ATP',
-            prediction.surface || 'Hard'
-          );
+          const isWta = prediction.gender === 'women' ||
+            (prediction.tournament_name || '').toUpperCase().includes('WTA') ||
+            (prediction.tour_category || '').toUpperCase().includes('WTA') ||
+            incomingProIntel.tour === 'WTA';
+
           await NeonSyncService.saveProIntelligence(
             targetFixtureId,
             prediction.home_name || 'Player 1',
             prediction.away_name || 'Player 2',
             isWta ? 'WTA' : 'ATP',
             prediction.surface || 'Hard',
-            finalIntel
+            incomingProIntel
           );
         } catch (e: any) {
           Logger.warn?.(`[AdminController] Could not auto-save pro intelligence for fixture #${targetFixtureId}: ${e.message}`);

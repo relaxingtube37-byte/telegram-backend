@@ -184,6 +184,9 @@ export class NeonSyncService {
         );
 
         CREATE INDEX IF NOT EXISTS idx_match_pro_intel_fix ON match_pro_intelligence(fixture_id);
+
+        ALTER TABLE predictions ADD COLUMN IF NOT EXISTS gender TEXT;
+        ALTER TABLE predictions ADD COLUMN IF NOT EXISTS tour_category TEXT;
       `);
       Logger.success('[NeonSync] ☁️ Neon PostgreSQL schema verified.');
     } finally {
@@ -302,7 +305,7 @@ export class NeonSyncService {
         const predStmt = db.prepare(`
           INSERT INTO predictions (
             fixture_id, tournament_name, round_name, surface, match_date,
-            home_name, away_name, home_odds, away_odds, predicted_winner,
+            home_name, away_name, gender, tour_category, home_odds, away_odds, predicted_winner,
             win_probability, confidence, predicted_score, best_bet_selection,
             best_bet_market, best_bet_ev, best_bet_rationale, alt_bet_selection,
             alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk, ai_summary,
@@ -311,15 +314,18 @@ export class NeonSyncService {
             published_at, created_at
           ) VALUES (
             ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?,
             ?, ?, ?, ?, ?,
-            ?, ?, ?, ?, ?,
-            ?, ?, ?, ?, ?,
-            ?, ?, ?, ?, ?,
-            ?, ?, ?, ?, ?,
-            ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?
           )
           ON CONFLICT(fixture_id) DO UPDATE SET
             match_date = excluded.match_date,
+            gender = COALESCE(excluded.gender, predictions.gender),
+            tour_category = COALESCE(excluded.tour_category, predictions.tour_category),
             status = excluded.status,
             result_score = excluded.result_score,
             result_announced_at = excluded.result_announced_at,
@@ -334,7 +340,7 @@ export class NeonSyncService {
         for (const p of preds.rows) {
           predStmt.run(
             p.fixture_id, p.tournament_name, p.round_name, p.surface, p.match_date,
-            p.home_name, p.away_name, p.home_odds, p.away_odds, p.predicted_winner,
+            p.home_name, p.away_name, p.gender || null, p.tour_category || null, p.home_odds, p.away_odds, p.predicted_winner,
             p.win_probability, p.confidence, p.predicted_score, p.best_bet_selection,
             p.best_bet_market, p.best_bet_ev,
             typeof p.best_bet_rationale === 'object' && p.best_bet_rationale !== null ? JSON.stringify(p.best_bet_rationale) : p.best_bet_rationale,
@@ -487,7 +493,7 @@ export class NeonSyncService {
               alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk, ai_summary,
               home_image, away_image, home_id, away_id, status, result_score,
               channel_message_id, result_announced_at, result_channel_message_id,
-              published_at, created_at
+              published_at, created_at, gender, tour_category
             ) VALUES (
               $1, $2, $3, $4, $5,
               $6, $7, $8, $9, $10,
@@ -496,7 +502,7 @@ export class NeonSyncService {
               $19, $20, $21, $22, $23,
               $24, $25, $26, $27, $28, $29,
               $30, $31, $32,
-              $33, $34
+              $33, $34, $35, $36
             )
             ON CONFLICT (fixture_id) DO UPDATE SET
               match_date = EXCLUDED.match_date,
@@ -505,6 +511,8 @@ export class NeonSyncService {
               result_announced_at = EXCLUDED.result_announced_at,
               channel_message_id = COALESCE(EXCLUDED.channel_message_id, predictions.channel_message_id),
               result_channel_message_id = COALESCE(EXCLUDED.result_channel_message_id, predictions.result_channel_message_id),
+              gender = COALESCE(EXCLUDED.gender, predictions.gender),
+              tour_category = COALESCE(EXCLUDED.tour_category, predictions.tour_category),
               ai_summary = CASE
                 WHEN predictions.ai_summary ? 'fa' AND NOT (EXCLUDED.ai_summary ? 'fa')
                 THEN predictions.ai_summary
@@ -538,7 +546,7 @@ export class NeonSyncService {
             p.alt_bet_market, safeJsonb(p.alt_bet_rationale), safeJsonb(p.key_factors), safeJsonb(p.devils_advocate_risk), safeJsonb(p.ai_summary),
             p.home_image, p.away_image, p.home_id, p.away_id, p.status, p.result_score,
             p.channel_message_id, p.result_announced_at, p.result_channel_message_id,
-            p.published_at, p.created_at
+            p.published_at, p.created_at, p.gender || null, p.tour_category || null
           ]);
         } catch (predErr: any) {
           Logger.warn?.(`[NeonSync] Warning: Failed to sync prediction #${p.fixture_id}: ${predErr.message}`);
@@ -819,160 +827,20 @@ export class NeonSyncService {
       }
     }
 
-    // 3. Fallback: synthesize baseline 2.0.0-paper Decagon model if prediction exists
-    try {
-      let pred = db.prepare('SELECT * FROM predictions WHERE fixture_id = ? OR id = ?').get(resolvedFixtureId, fixtureId) as any;
-      if (!pred && pool) {
-        const client = await pool.connect();
-        try {
-          const res = await client.query('SELECT * FROM predictions WHERE fixture_id = $1 OR id = $1 LIMIT 1', [resolvedFixtureId]);
-          if (res.rows.length > 0) pred = res.rows[0];
-        } finally {
-          client.release();
-        }
-      }
-
-      if (pred) {
-        const isWta = (pred.tournament_name || '').toUpperCase().includes('WTA');
-        const synthIntel = this.synthesizeBaselineProIntelligence(
-          resolvedFixtureId || fixtureId,
-          pred.home_name || 'Player 1',
-          pred.away_name || 'Player 2',
-          isWta ? 'WTA' : 'ATP',
-          pred.surface || 'Hard'
-        );
-        // Persist so subsequent reads are immediate
-        await this.saveProIntelligence(
-          resolvedFixtureId || fixtureId,
-          pred.home_name || 'Player 1',
-          pred.away_name || 'Player 2',
-          isWta ? 'WTA' : 'ATP',
-          pred.surface || 'Hard',
-          synthIntel
-        );
-        return synthIntel;
-      }
-    } catch (e: any) {
-      Logger.warn?.(`[NeonSync] Synthesis fallback error: ${e.message}`);
-    }
-
+    // 3. Fallback: NEVER synthesize fake baseline data.
+    // If authentic pro intelligence is not present in SQLite or Neon, return null immediately.
     return null;
   }
 
   public static synthesizeBaselineProIntelligence(
-    fixtureId: number,
-    homeName: string,
-    awayName: string,
-    tour: string = 'ATP',
-    surface: string = 'Hard'
+    _fixtureId: number,
+    _homeName: string,
+    _awayName: string,
+    _tour: string = 'ATP',
+    _surface: string = 'Hard'
   ): any {
-    const isWta = tour.toUpperCase().includes('WTA');
-    const tourType = isWta ? 'WTA' : 'ATP';
-    const axisConfigs = [
-      { key: 'hold_rate', label: 'Serve Games (Hold %)', category: 'SERVE', atp: 80.5, wta: 65.5 },
-      { key: 'first_serve_pts_won', label: '1st Serve Pts Won %', category: 'SERVE', atp: 72.0, wta: 64.0 },
-      { key: 'first_serve_accuracy', label: '1st Serve Accuracy %', category: 'SERVE', atp: 62.5, wta: 61.5 },
-      { key: 'second_serve_pts_won', label: '2nd Serve Pts Won %', category: 'SERVE', atp: 51.5, wta: 46.5 },
-      { key: 'bps_saved', label: 'Break Points Saved %', category: 'SERVE', atp: 60.0, wta: 55.0 },
-      { key: 'tiebreaks_won', label: 'Tiebreaks Won %', category: 'COMPOSITE', atp: 50.0, wta: 50.0 },
-      { key: 'break_rate', label: 'Return Games (Break %)', category: 'RETURN', atp: 20.5, wta: 34.5 },
-      { key: 'return_1st_pts_won', label: 'Return 1st Pts Won %', category: 'RETURN', atp: 28.0, wta: 36.0 },
-      { key: 'return_2nd_pts_won', label: 'Return 2nd Pts Won %', category: 'RETURN', atp: 48.5, wta: 53.5 },
-      { key: 'bps_converted', label: 'Break Pts Converted %', category: 'RETURN', atp: 39.5, wta: 44.5 },
-    ];
-
-    const makePlayer = (name: string, score: number) => ({
-      player_id: `p_${name.toLowerCase().replace(/\s+/g, '_')}`,
-      full_name: name,
-      tour: tourType,
-      snapshot_date: new Date().toISOString(),
-      lookback_days: 365,
-      radar_axes: axisConfigs.map(a => ({
-        key: a.key,
-        label: a.label,
-        category: a.category,
-        raw_value: Number(((isWta ? a.wta : a.atp) / 100).toFixed(4)),
-        display_string: `${(isWta ? a.wta : a.atp).toFixed(1)}%`,
-        rating_score: score,
-        tour_delta_raw: 0,
-        tour_delta_string: '+0.0%',
-      })),
-      composites: {
-        dominance_ratio: {
-          key: 'dominance_ratio',
-          label: 'Dominance Ratio (DR)',
-          category: 'COMPOSITE',
-          raw_value: 1.0,
-          display_string: '1.00',
-          rating_score: score,
-          tour_delta_raw: 0,
-          tour_delta_string: '+0.00',
-        },
-        match_efficiency: {
-          key: 'match_efficiency',
-          label: 'Total Synergy Index (TSI)',
-          category: 'COMPOSITE',
-          raw_value: isWta ? 100.0 : 101.0,
-          display_string: isWta ? '100.0' : '101.0',
-          rating_score: score,
-          tour_delta_raw: 0,
-          tour_delta_string: '+0.0',
-        },
-        serve_composite: score,
-        return_composite: score,
-        overall_rating: score,
-      },
-      readiness: {
-        energyScore: 88,
-        statusLabel: 'PEAK_READINESS',
-        restDays: 2,
-        restLabel: '2 days rest',
-        matches7d: 1,
-      },
-      mental: {
-        clutchScore: score,
-        verdict: score >= 75 ? 'RESOLUTE' : 'STEADY',
-        frontRunnerWinPct: '78%',
-        comebackRatePct: '32%',
-      },
-      radar: {
-        serveGames: score,
-        firstServePts: score,
-        firstServeAcc: score,
-        secondServePts: score,
-        bpsSaved: score,
-        tbsWon: score,
-        returnGames: score,
-        returnFirstPts: score,
-        returnSecondPts: score,
-        returnBpsWon: score,
-      },
-    });
-
-    const p1 = makePlayer(homeName, 74);
-    const p2 = makePlayer(awayName, 72);
-
-    return {
-      matchup_id: `m_${fixtureId}`,
-      fixture_id: fixtureId,
-      tour: tourType,
-      surface,
-      court_speed_label: surface.toLowerCase().includes('clay') ? 'Slow Court' : 'Medium-Fast',
-      generated_at: new Date().toISOString(),
-      player_one: p1,
-      player_two: p2,
-      head_to_head_delta: { overall_rating: 2 },
-      version: '2.0.0-paper',
-      meta: {
-        fixtureId,
-        tour: tourType,
-        surface,
-        courtSpeedLabel: surface.toLowerCase().includes('clay') ? 'Slow Court' : 'Medium-Fast',
-        generatedAt: new Date().toISOString(),
-      },
-      player1: p1,
-      player2: p2,
-    };
+    // Deprecated: Strict rule against fake synthesized data. Always return null when authentic data is absent.
+    return null;
   }
 
   /**
