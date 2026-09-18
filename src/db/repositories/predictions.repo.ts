@@ -209,14 +209,74 @@ export const PredictionsRepo = {
   },
 
   updateResult: (id: number, status: string, resultScore?: string): boolean => {
-    const stmt = db.prepare('UPDATE predictions SET status = ?, result_score = ? WHERE id = ?');
-    const info = stmt.run(status, resultScore || null, id);
+    const stmt = db.prepare(`
+      UPDATE predictions 
+      SET status = CASE 
+            WHEN status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND ? IN ('LIVE', 'UPCOMING') 
+            THEN status 
+            ELSE ? 
+          END, 
+          result_score = COALESCE(?, result_score) 
+      WHERE id = ?
+    `);
+    const info = stmt.run(status, status, resultScore || null, id);
+
+    try {
+      const { NeonSyncService } = require('../../services/neon-sync.service');
+      const pool = NeonSyncService?.getPool?.();
+      if (pool) {
+        pool.query(
+          `UPDATE predictions 
+           SET status = CASE 
+                 WHEN status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND $1 IN ('LIVE', 'UPCOMING') 
+                 THEN status 
+                 ELSE $1 
+               END,
+               result_score = COALESCE($2, result_score)
+           WHERE id = $3`,
+          [status, resultScore || null, id]
+        ).catch((err: any) => {
+          console.warn?.('[PredictionsRepo] Neon updateResult async warning:', err?.message);
+        });
+      }
+    } catch {}
+
     return info.changes > 0;
   },
 
   updateResultByFixtureId: (fixtureId: number, status: string, resultScore?: string): boolean => {
-    const stmt = db.prepare('UPDATE predictions SET status = ?, result_score = ? WHERE fixture_id = ?');
-    const info = stmt.run(status, resultScore || null, fixtureId);
+    const stmt = db.prepare(`
+      UPDATE predictions 
+      SET status = CASE 
+            WHEN status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND ? IN ('LIVE', 'UPCOMING') 
+            THEN status 
+            ELSE ? 
+          END, 
+          result_score = COALESCE(?, result_score) 
+      WHERE fixture_id = ?
+    `);
+    const info = stmt.run(status, status, resultScore || null, fixtureId);
+
+    try {
+      const { NeonSyncService } = require('../../services/neon-sync.service');
+      const pool = NeonSyncService?.getPool?.();
+      if (pool) {
+        pool.query(
+          `UPDATE predictions 
+           SET status = CASE 
+                 WHEN status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND $1 IN ('LIVE', 'UPCOMING') 
+                 THEN status 
+                 ELSE $1 
+               END,
+               result_score = COALESCE($2, result_score)
+           WHERE fixture_id = $3`,
+          [status, resultScore || null, fixtureId]
+        ).catch((err: any) => {
+          console.warn?.('[PredictionsRepo] Neon updateResultByFixtureId async warning:', err?.message);
+        });
+      }
+    } catch {}
+
     return info.changes > 0;
   },
 

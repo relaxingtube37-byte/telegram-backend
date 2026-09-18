@@ -218,8 +218,9 @@ export class ResultSettlerService {
 
               // Notify Telegram channel of VOID outcome
               try {
+                const freshPred = PredictionsRepo.getByFixtureId(fixtureId) || { ...pred, status: 'VOID' };
                 const announce = await ChannelPosterService.announceResultIfNeeded(
-                  { ...pred, status: 'VOID' },
+                  freshPred,
                   'VOID',
                   voidScore
                 );
@@ -318,8 +319,9 @@ export class ResultSettlerService {
 
             // Notify Telegram channel once per fixture (durable result_announced_at)
             try {
+              const freshPred = PredictionsRepo.getByFixtureId(fixtureId) || { ...pred, status };
               const announce = await ChannelPosterService.announceResultIfNeeded(
-                { ...pred, status },
+                freshPred,
                 status,
                 scoreStr,
               );

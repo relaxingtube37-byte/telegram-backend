@@ -327,7 +327,7 @@ export class NeonSyncService {
             gender = COALESCE(excluded.gender, predictions.gender),
             tour_category = COALESCE(excluded.tour_category, predictions.tour_category),
             status = CASE
-              WHEN predictions.status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND excluded.status = 'UPCOMING'
+              WHEN predictions.status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND excluded.status IN ('LIVE', 'UPCOMING')
               THEN predictions.status
               ELSE excluded.status
             END,
@@ -511,7 +511,7 @@ export class NeonSyncService {
             ON CONFLICT (fixture_id) DO UPDATE SET
               match_date = EXCLUDED.match_date,
               status = CASE
-                WHEN predictions.status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND EXCLUDED.status = 'UPCOMING'
+                WHEN predictions.status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND EXCLUDED.status IN ('LIVE', 'UPCOMING')
                 THEN predictions.status
                 ELSE EXCLUDED.status
               END,
