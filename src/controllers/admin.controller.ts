@@ -249,6 +249,11 @@ export const AdminController = {
         }
       }
 
+      // Immediately sync newly published prediction and related tables to Neon cloud
+      NeonSyncService.pushToNeon().catch((err: any) => {
+        Logger.warn?.(`[AdminController] Immediate pushToNeon warning: ${err.message}`);
+      });
+
       res.json({
         success: true,
         predictionId,

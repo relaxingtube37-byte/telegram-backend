@@ -217,7 +217,13 @@ export function redactPrediction(
     best_bet_rationale: undefined,
     alt_bet_selection: undefined,
     alt_bet_market: undefined,
-    ai_summary: undefined,
+    ai_summary: contentFlags.guest_can_see_ai_full
+      ? prediction.ai_summary
+      : (contentFlags.guest_can_see_summary
+          ? (typeof prediction.ai_summary === 'string'
+              ? (prediction.ai_summary.slice(0, 280) + (prediction.ai_summary.length > 280 ? '…' : ''))
+              : prediction.ai_summary)
+          : undefined),
   };
 
   return out;

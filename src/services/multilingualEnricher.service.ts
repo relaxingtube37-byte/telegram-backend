@@ -52,9 +52,9 @@ function parseFieldToObject(val: any): { isMulti: boolean; enText: string; obj: 
   }
 
   if (target && typeof target === 'object' && !Array.isArray(target)) {
-    const hasFa = 'fa' in target && Boolean(target.fa);
-    const hasAr = 'ar' in target && Boolean(target.ar);
     const enText = target.en || Object.values(target)[0] || '';
+    const hasFa = 'fa' in target && Boolean(target.fa) && String(target.fa).trim() !== String(enText).trim();
+    const hasAr = 'ar' in target && Boolean(target.ar) && String(target.ar).trim() !== String(enText).trim();
     return {
       isMulti: hasFa && hasAr,
       enText: typeof enText === 'string' ? enText : JSON.stringify(enText),
@@ -94,9 +94,10 @@ function parseArrayFieldToObject(val: any): { isMulti: boolean; enArray: string[
   }
 
   if (target && typeof target === 'object') {
-    const hasFa = 'fa' in target && Array.isArray(target.fa) && target.fa.length > 0;
-    const hasAr = 'ar' in target && Array.isArray(target.ar) && target.ar.length > 0;
     const enArr = Array.isArray(target.en) ? target.en.map(String) : (Object.values(target)[0] as string[]) || [];
+    const enStr = JSON.stringify(enArr);
+    const hasFa = 'fa' in target && Array.isArray(target.fa) && target.fa.length > 0 && JSON.stringify(target.fa) !== enStr;
+    const hasAr = 'ar' in target && Array.isArray(target.ar) && target.ar.length > 0 && JSON.stringify(target.ar) !== enStr;
     return {
       isMulti: hasFa && hasAr,
       enArray: Array.isArray(enArr) ? enArr : [String(enArr)],
