@@ -295,13 +295,24 @@ export const AdminController = {
       let updatedCount = 0;
       for (const item of results) {
         if (item.fixture_id && item.status) {
+          const normStatus = String(item.status).toUpperCase().trim();
+          const existing = PredictionsRepo.getByFixtureId(item.fixture_id);
+
+          // If match was already settled with this terminal status and announced, skip updating and announcing
+          if (existing && existing.status === normStatus && PredictionsRepo.isResultAnnounced(existing)) {
+            continue;
+          }
+
           const success = PredictionsService.updateResultByFixtureId(item.fixture_id, item.status, item.result_score);
           if (success) {
             updatedCount++;
             const pred = PredictionsRepo.getByFixtureId(item.fixture_id);
-            const normStatus = String(item.status).toUpperCase().trim();
             if (pred && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(normStatus)) {
-              ChannelPosterService.announceResultIfNeeded(pred, normStatus, item.result_score).catch(() => {});
+              if (!PredictionsRepo.isResultAnnounced(pred)) {
+                ChannelPosterService.announceResultIfNeeded(pred, normStatus, item.result_score).catch(err => {
+                  Logger.warn(`[SyncResults] Failed to announce #${item.fixture_id}: ${err.message}`);
+                });
+              }
             }
           }
         }

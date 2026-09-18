@@ -245,6 +245,27 @@ export const PredictionsRepo = {
           result_channel_message_id = COALESCE(?, result_channel_message_id)
       WHERE id = ?
     `).run(announcedAt, resultChannelMessageId ?? null, id);
+
+    // Asynchronously dual-write to Neon PostgreSQL so cloud DB is immediately in sync
+    try {
+      const pred = PredictionsRepo.getById(id);
+      const fixtureId = pred?.fixture_id ? Number(pred.fixture_id) : null;
+      const { NeonSyncService } = require('../../services/neon-sync.service');
+      const pool = NeonSyncService?.getPool?.();
+      if (pool) {
+        pool.query(
+          `UPDATE predictions 
+           SET result_announced_at = COALESCE($1, result_announced_at),
+               result_channel_message_id = COALESCE($2, result_channel_message_id)
+           WHERE id = $3 OR (fixture_id IS NOT NULL AND fixture_id = $4)`,
+          [announcedAt, resultChannelMessageId ?? null, id, fixtureId]
+        ).catch((err: any) => {
+          console.warn?.('[PredictionsRepo] Cloud Neon markResultAnnounced warning:', err?.message);
+        });
+      }
+    } catch {
+      // Ignore if neon sync not available
+    }
   },
 
   isResultAnnounced: (prediction: { result_announced_at?: string | null; result_channel_message_id?: number | null } | null | undefined): boolean => {

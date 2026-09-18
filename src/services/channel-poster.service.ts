@@ -5,8 +5,25 @@ import { escapeHtml, getSurfaceEmoji } from '../utils/htmlEscaper';
 import { Logger } from '../utils/logger';
 import type { Prediction } from '../types';
 import { PredictionsRepo } from '../db/repositories/predictions.repo';
-
+import { db } from '../db';
 import { ObservabilityService } from './observability.service';
+
+const announcedFixtureIds = new Set<number>();
+const inFlightFixtureIds = new Set<number>();
+
+// Pre-seed known announced fixtures from database
+try {
+  const rows = db.prepare(`
+    SELECT fixture_id FROM predictions 
+    WHERE fixture_id IS NOT NULL 
+      AND (result_announced_at IS NOT NULL OR (result_channel_message_id IS NOT NULL AND result_channel_message_id > 0))
+  `).all() as { fixture_id: number }[];
+  for (const r of rows) {
+    if (r.fixture_id) announcedFixtureIds.add(Number(r.fixture_id));
+  }
+} catch {
+  // DB might not be ready yet
+}
 
 export const ChannelPosterService = {
   formatPredictionHtml: (prediction: Prediction, isTeaser: boolean = false): string => {
@@ -156,39 +173,57 @@ export const ChannelPosterService = {
     if (normStatus !== 'WON' && normStatus !== 'LOST' && normStatus !== 'VOID' && normStatus !== 'INTERRUPTED') {
       return { posted: false, skipped: true, reason: 'non_terminal_status' };
     }
-    if (PredictionsRepo.isResultAnnounced(prediction)) {
+
+    const fixtureId = prediction.fixture_id ? Number(prediction.fixture_id) : null;
+
+    // 1. In-memory check (prevents duplicate calls within same process lifetime)
+    if (fixtureId && (announcedFixtureIds.has(fixtureId) || inFlightFixtureIds.has(fixtureId))) {
+      Logger.info(`[ChannelPoster] Skip result announce for fixture #${fixtureId}: already in memory cache or in-flight.`);
+      return { posted: false, skipped: true, reason: 'already_announced' };
+    }
+
+    // 2. Fresh database record check (guards against stale prediction objects passed by callers)
+    const fresh = PredictionsRepo.getById(prediction.id) || (fixtureId ? PredictionsRepo.getByFixtureId(fixtureId) : null);
+    if (fresh && PredictionsRepo.isResultAnnounced(fresh)) {
+      if (fixtureId) announcedFixtureIds.add(fixtureId);
       Logger.info(
-        `[ChannelPoster] Skip result announce for fixture #${prediction.fixture_id ?? '?'} ` +
-          `(prediction #${prediction.id}): already announced at ${prediction.result_announced_at}`,
+        `[ChannelPoster] Skip result announce for fixture #${fixtureId ?? '?'} ` +
+          `(prediction #${prediction.id}): already announced at ${fresh.result_announced_at}`,
       );
       return { posted: false, skipped: true, reason: 'already_announced' };
     }
 
-    const resultMessageId = await ChannelPosterService.updateResult(
-      prediction.channel_message_id,
-      normStatus as any,
-      resultScore,
-      {
-        homeName: prediction.home_name,
-        awayName: prediction.away_name,
-        predictedWinner: prediction.predicted_winner,
-        tournamentName: prediction.tournament_name,
-      },
-    );
+    if (fixtureId) inFlightFixtureIds.add(fixtureId);
 
-    // Mark announced only after a successful Telegram send (message id returned).
-    // If channel/bot unavailable, leave unmarked so a later sync can retry once.
-    if (resultMessageId != null) {
-      const announcedAt = new Date().toISOString();
-      PredictionsRepo.markResultAnnounced(prediction.id, announcedAt, resultMessageId);
-      Logger.success(
-        `[ChannelPoster] Result announced for fixture #${prediction.fixture_id ?? '?'} ` +
-          `(prediction #${prediction.id}) msgId=${resultMessageId}`,
+    try {
+      const resultMessageId = await ChannelPosterService.updateResult(
+        prediction.channel_message_id,
+        normStatus as any,
+        resultScore,
+        {
+          homeName: prediction.home_name,
+          awayName: prediction.away_name,
+          predictedWinner: prediction.predicted_winner,
+          tournamentName: prediction.tournament_name,
+        },
       );
-      return { posted: true, skipped: false, resultMessageId };
-    }
 
-    return { posted: false, skipped: false, reason: 'send_failed', resultMessageId: null };
+      // Mark announced only after a successful Telegram send (message id returned).
+      if (resultMessageId != null) {
+        const announcedAt = new Date().toISOString();
+        if (fixtureId) announcedFixtureIds.add(fixtureId);
+        PredictionsRepo.markResultAnnounced(prediction.id, announcedAt, resultMessageId);
+        Logger.success(
+          `[ChannelPoster] Result announced for fixture #${fixtureId ?? '?'} ` +
+            `(prediction #${prediction.id}) msgId=${resultMessageId}`,
+        );
+        return { posted: true, skipped: false, resultMessageId };
+      }
+
+      return { posted: false, skipped: false, reason: 'send_failed', resultMessageId: null };
+    } finally {
+      if (fixtureId) inFlightFixtureIds.delete(fixtureId);
+    }
   },
 
   updateResult: async (

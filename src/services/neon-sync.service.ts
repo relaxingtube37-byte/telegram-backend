@@ -326,11 +326,15 @@ export class NeonSyncService {
             match_date = excluded.match_date,
             gender = COALESCE(excluded.gender, predictions.gender),
             tour_category = COALESCE(excluded.tour_category, predictions.tour_category),
-            status = excluded.status,
-            result_score = excluded.result_score,
-            result_announced_at = excluded.result_announced_at,
-            channel_message_id = excluded.channel_message_id,
-            result_channel_message_id = excluded.result_channel_message_id,
+            status = CASE
+              WHEN predictions.status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND excluded.status = 'UPCOMING'
+              THEN predictions.status
+              ELSE excluded.status
+            END,
+            result_score = COALESCE(predictions.result_score, excluded.result_score),
+            result_announced_at = COALESCE(predictions.result_announced_at, excluded.result_announced_at),
+            channel_message_id = COALESCE(predictions.channel_message_id, excluded.channel_message_id),
+            result_channel_message_id = COALESCE(predictions.result_channel_message_id, excluded.result_channel_message_id),
             ai_summary = excluded.ai_summary,
             key_factors = excluded.key_factors,
             devils_advocate_risk = excluded.devils_advocate_risk,
@@ -506,11 +510,15 @@ export class NeonSyncService {
             )
             ON CONFLICT (fixture_id) DO UPDATE SET
               match_date = EXCLUDED.match_date,
-              status = EXCLUDED.status,
-              result_score = EXCLUDED.result_score,
-              result_announced_at = EXCLUDED.result_announced_at,
+              status = CASE
+                WHEN predictions.status IN ('WON', 'LOST', 'VOID', 'INTERRUPTED') AND EXCLUDED.status = 'UPCOMING'
+                THEN predictions.status
+                ELSE EXCLUDED.status
+              END,
+              result_score = COALESCE(EXCLUDED.result_score, predictions.result_score),
+              result_announced_at = COALESCE(predictions.result_announced_at, EXCLUDED.result_announced_at),
               channel_message_id = COALESCE(EXCLUDED.channel_message_id, predictions.channel_message_id),
-              result_channel_message_id = COALESCE(EXCLUDED.result_channel_message_id, predictions.result_channel_message_id),
+              result_channel_message_id = COALESCE(predictions.result_channel_message_id, EXCLUDED.result_channel_message_id),
               gender = COALESCE(EXCLUDED.gender, predictions.gender),
               tour_category = COALESCE(EXCLUDED.tour_category, predictions.tour_category),
               ai_summary = CASE
