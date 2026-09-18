@@ -10,6 +10,7 @@ import { PlayersService } from '../services/players.service';
 import { BackupService } from '../services/backup.service';
 import { ResultSettlerService } from '../services/result-settler.service';
 import { NeonSyncService } from '../services/neon-sync.service';
+import { autoEnrichPredictionMultilingual } from '../services/multilingualEnricher.service';
 import { Logger } from '../utils/logger';
 import { bot } from '../services/telegram-bot.service';
 import { ENV } from '../config/env';
@@ -148,7 +149,7 @@ export const AdminController = {
     try {
       const {
         fixture_id, tournament_name, round_name, surface, match_date,
-        home_name, away_name, home_odds, away_odds,
+        home_name, away_name, gender, tour_category, home_odds, away_odds,
         predicted_winner, win_probability, confidence, predicted_score,
         best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
         alt_bet_selection, alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk,
@@ -160,9 +161,36 @@ export const AdminController = {
         return res.status(400).json({ error: 'Missing required match fields (home_name, away_name, predicted_winner)' });
       }
 
+      let effectiveGender: 'men' | 'women' = (gender === 'men' || gender === 'women') ? gender : 'men';
+      let effectiveTourCategory: string = tour_category || '';
+
+      if (!gender) {
+        const text = `${tournament_name || ''} ${round_name || ''} ${home_name || ''} ${away_name || ''}`.toLowerCase();
+        const isWomen =
+          text.includes('wta') ||
+          text.includes('women') ||
+          text.includes('ladies') ||
+          text.includes('bjk') ||
+          text.includes('billie jean king') ||
+          text.includes('girls') ||
+          text.includes('guadalajara') ||
+          text.includes('sao paulo') ||
+          text.includes('monastir') ||
+          text.includes('caldas da rainha') ||
+          /\bw(15|25|35|50|75|100)\b/.test(text);
+
+        effectiveGender = isWomen ? 'women' : 'men';
+        if (!effectiveTourCategory) {
+          effectiveTourCategory = isWomen
+            ? (text.includes('125') ? 'WTA125' : 'WTA')
+            : (text.includes('challenger') ? 'CHALLENGER' : 'ATP');
+        }
+      }
+
       const prediction: Prediction = {
         fixture_id, tournament_name, round_name, surface, match_date,
-        home_name, away_name, home_odds, away_odds,
+        home_name, away_name, gender: effectiveGender, tour_category: effectiveTourCategory,
+        home_odds, away_odds,
         predicted_winner, win_probability: win_probability || 65, confidence: confidence || 'HIGH',
         predicted_score, best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
         alt_bet_selection, alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk,
@@ -171,6 +199,8 @@ export const AdminController = {
         published_at: published_at || new Date().toISOString(),
         created_at: created_at || new Date().toISOString(),
       };
+
+      await autoEnrichPredictionMultilingual(prediction);
 
       const predictionId = PredictionsService.publish(prediction);
       prediction.id = predictionId;

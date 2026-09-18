@@ -13,6 +13,8 @@ export interface Prediction {
   match_date?: string;
   home_name: string;
   away_name: string;
+  gender?: 'men' | 'women';
+  tour_category?: string;
   home_odds?: string;
   away_odds?: string;
   predicted_winner?: string;

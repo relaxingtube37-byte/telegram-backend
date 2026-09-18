@@ -202,20 +202,33 @@ export class BackendTennisApi {
             }
           } catch {}
 
-          const results: any[] = [];
+          const results: { catId: number; res: { events?: any[] } | null }[] = [];
           for (const catId of categoriesToFetch) {
             const res = await this.request<{ events?: any[] }>(`/api/tennis/category/${catId}/events/${d}/${m}/${y}`);
-            if (res) results.push(res);
+            if (res) results.push({ catId, res });
           }
 
           const allEvents: any[] = [];
           const seenIds = new Set<number>();
 
-          for (const res of results) {
+          for (const { catId, res } of results) {
             if (res && Array.isArray(res.events)) {
               for (const ev of res.events) {
                 if (ev && ev.id && !seenIds.has(ev.id)) {
                   seenIds.add(ev.id);
+                  if (!ev.tournament) ev.tournament = {};
+                  if (!ev.tournament.category) ev.tournament.category = {};
+                  if (!ev.tournament.category.id) ev.tournament.category.id = catId;
+
+                  // Explicitly tag gender and tour tier based on verified OpenAPI category IDs
+                  if ([6, 871, 213, 74, 1844].includes(catId)) {
+                    ev._inferredGender = 'women';
+                    ev._inferredTourCategory = catId === 871 ? 'WTA125' : ([213, 74].includes(catId) ? 'ITF' : 'WTA');
+                  } else if ([3, 72, 785, 73, 1843].includes(catId)) {
+                    ev._inferredGender = 'men';
+                    ev._inferredTourCategory = catId === 72 ? 'CHALLENGER' : ([785, 73].includes(catId) ? 'ITF' : 'ATP');
+                  }
+
                   allEvents.push(ev);
                 }
               }
@@ -238,12 +251,36 @@ export class BackendTennisApi {
     return result.data;
   }
 
-  static async getRankings(tour: 'atp' | 'wta', options?: { forceRefresh?: boolean }): Promise<any> {
-    const key = PersistentPoolService.buildKey('rankings', [tour]);
+  /** Global Tennis Schedule for Specific Date from OpenAPI /events/schedule/{day}/{month}/{year} */
+  static async getDailyEventsBySchedule(dateStr: string, options?: { forceRefresh?: boolean }): Promise<any> {
+    const { d, m, y, iso } = this.normalizeDateStr(dateStr);
+    const key = PersistentPoolService.buildKey('daily_schedule', [iso]);
+    const result = await PersistentPoolService.getOrFetch(
+      key,
+      'daily_schedule',
+      () => this.request(`/api/tennis/events/schedule/${d}/${m}/${y}`),
+      {
+        ttlMs: 15 * 60 * 1000,
+        forceRefresh: options?.forceRefresh,
+      }
+    );
+    return result.data;
+  }
+
+  /**
+   * Official Rankings from OpenAPI /rankings/{tour}:
+   * Supports: 'atp' | 'wta' | 'atp-doubles' | 'wta-doubles' | 'race-atp' | 'race-wta' | 'itf-men' | 'itf-women'
+   */
+  static async getRankings(
+    tour: 'atp' | 'wta' | 'atp-doubles' | 'wta-doubles' | 'race-atp' | 'race-wta' | 'itf-men' | 'itf-women' | string,
+    options?: { forceRefresh?: boolean }
+  ): Promise<any> {
+    const tourSlug = tour.toLowerCase().trim();
+    const key = PersistentPoolService.buildKey('rankings', [tourSlug]);
     const result = await PersistentPoolService.getOrFetch(
       key,
       'rankings',
-      () => this.request('/api/tennis/rankings/' + tour),
+      () => this.request('/api/tennis/rankings/' + tourSlug),
       {
         ttlMs: 12 * 60 * 60 * 1000,
         forceRefresh: options?.forceRefresh,
@@ -330,6 +367,50 @@ export class BackendTennisApi {
         permanent: true,
         forceRefresh: options?.forceRefresh,
       }
+    );
+    return result.data;
+  }
+
+  static async getTournamentSeasons(tournamentId: string | number, options?: { forceRefresh?: boolean }): Promise<any> {
+    const key = `tournament_${tournamentId}_seasons`;
+    const result = await PersistentPoolService.getOrFetch(
+      key,
+      'generic',
+      () => this.request(`/api/tennis/tournament/${tournamentId}/seasons`),
+      { permanent: true, forceRefresh: options?.forceRefresh }
+    );
+    return result.data;
+  }
+
+  static async getTournamentSeasonEvents(tournamentId: string | number, seasonId: string | number, options?: { forceRefresh?: boolean }): Promise<any> {
+    const key = `tournament_${tournamentId}_season_${seasonId}_events`;
+    const result = await PersistentPoolService.getOrFetch(
+      key,
+      'generic',
+      () => this.request(`/api/tennis/tournament/${tournamentId}/season/${seasonId}/events`),
+      { permanent: true, forceRefresh: options?.forceRefresh }
+    );
+    return result.data;
+  }
+
+  static async getTournamentSeasonStandings(tournamentId: string | number, seasonId: string | number, options?: { forceRefresh?: boolean }): Promise<any> {
+    const key = `tournament_${tournamentId}_season_${seasonId}_standings`;
+    const result = await PersistentPoolService.getOrFetch(
+      key,
+      'generic',
+      () => this.request(`/api/tennis/tournament/${tournamentId}/season/${seasonId}/standings`),
+      { permanent: true, forceRefresh: options?.forceRefresh }
+    );
+    return result.data;
+  }
+
+  static async getTournamentSeasonCuptrees(tournamentId: string | number, seasonId: string | number, options?: { forceRefresh?: boolean }): Promise<any> {
+    const key = `tournament_${tournamentId}_season_${seasonId}_cuptrees`;
+    const result = await PersistentPoolService.getOrFetch(
+      key,
+      'generic',
+      () => this.request(`/api/tennis/tournament/${tournamentId}/season/${seasonId}/cuptrees`),
+      { permanent: true, forceRefresh: options?.forceRefresh }
     );
     return result.data;
   }
@@ -426,6 +507,38 @@ export class BackendTennisApi {
       key,
       'event_duel',
       () => this.request(`/api/tennis/event/${id}/duel`),
+      {
+        ttlMs: 60 * 1000,
+        cacheNullAsMiss: true,
+        forceRefresh: options?.forceRefresh,
+      }
+    );
+    return result.data;
+  }
+
+  static async getEventGraph(eventId: string | number, options?: { forceRefresh?: boolean }): Promise<any> {
+    const id = Number(eventId);
+    const key = PersistentPoolService.buildKey('event_graph', [id]);
+    const result = await PersistentPoolService.getOrFetch(
+      key,
+      'event_graph',
+      () => this.request(`/api/tennis/event/${id}/graph`),
+      {
+        ttlMs: 60 * 1000,
+        cacheNullAsMiss: true,
+        forceRefresh: options?.forceRefresh,
+      }
+    );
+    return result.data;
+  }
+
+  static async getEventIncidents(eventId: string | number, options?: { forceRefresh?: boolean }): Promise<any> {
+    const id = Number(eventId);
+    const key = PersistentPoolService.buildKey('event_incidents', [id]);
+    const result = await PersistentPoolService.getOrFetch(
+      key,
+      'event_incidents',
+      () => this.request(`/api/tennis/event/${id}/incidents`),
       {
         ttlMs: 60 * 1000,
         cacheNullAsMiss: true,

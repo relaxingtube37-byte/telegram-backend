@@ -57,6 +57,10 @@ export interface BackendMatchRowItem {
   homeClutchVerdict?: string;
   awayClutchVerdict?: string;
   expectedTotalGames?: number;
+  gender?: 'men' | 'women';
+  tour_category?: string;
+  tournament_name?: string;
+  round_name?: string;
 }
 
 export interface BackendTournamentGroup {
@@ -65,5 +69,7 @@ export interface BackendTournamentGroup {
   category: string;
   country: string;
   surface: string;
+  gender: 'men' | 'women';
+  tour_category: string;
   matches: BackendMatchRowItem[];
 }

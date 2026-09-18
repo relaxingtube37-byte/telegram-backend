@@ -654,4 +654,15 @@ router.get('/admin/postback-audit', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/webapp/admin/sync-neon - Trigger bidirectional sync with Neon PostgreSQL
+router.post('/admin/sync-neon', async (_req: Request, res: Response) => {
+  try {
+    await NeonSyncService.pullFromNeon();
+    await NeonSyncService.pushToNeon();
+    res.json({ success: true, message: 'Bidirectional sync with Neon completed successfully.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export const webappRoutes = router;

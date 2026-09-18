@@ -14,6 +14,9 @@ export type PoolNamespace =
   | 'h2h'
   | 'rankings'
   | 'daily_events'
+  | 'daily_schedule'
+  | 'event_graph'
+  | 'event_incidents'
   | 'generic';
 
 export interface PoolFetchOptions {

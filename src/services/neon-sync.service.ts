@@ -505,11 +505,31 @@ export class NeonSyncService {
               result_announced_at = EXCLUDED.result_announced_at,
               channel_message_id = COALESCE(EXCLUDED.channel_message_id, predictions.channel_message_id),
               result_channel_message_id = COALESCE(EXCLUDED.result_channel_message_id, predictions.result_channel_message_id),
-              ai_summary = EXCLUDED.ai_summary,
-              key_factors = EXCLUDED.key_factors,
-              devils_advocate_risk = EXCLUDED.devils_advocate_risk,
-              best_bet_rationale = EXCLUDED.best_bet_rationale,
-              alt_bet_rationale = EXCLUDED.alt_bet_rationale;
+              ai_summary = CASE
+                WHEN predictions.ai_summary ? 'fa' AND NOT (EXCLUDED.ai_summary ? 'fa')
+                THEN predictions.ai_summary
+                ELSE COALESCE(EXCLUDED.ai_summary, predictions.ai_summary)
+              END,
+              key_factors = CASE
+                WHEN predictions.key_factors ? 'fa' AND NOT (EXCLUDED.key_factors ? 'fa')
+                THEN predictions.key_factors
+                ELSE COALESCE(EXCLUDED.key_factors, predictions.key_factors)
+              END,
+              devils_advocate_risk = CASE
+                WHEN predictions.devils_advocate_risk ? 'fa' AND NOT (EXCLUDED.devils_advocate_risk ? 'fa')
+                THEN predictions.devils_advocate_risk
+                ELSE COALESCE(EXCLUDED.devils_advocate_risk, predictions.devils_advocate_risk)
+              END,
+              best_bet_rationale = CASE
+                WHEN predictions.best_bet_rationale ? 'fa' AND NOT (EXCLUDED.best_bet_rationale ? 'fa')
+                THEN predictions.best_bet_rationale
+                ELSE COALESCE(EXCLUDED.best_bet_rationale, predictions.best_bet_rationale)
+              END,
+              alt_bet_rationale = CASE
+                WHEN predictions.alt_bet_rationale ? 'fa' AND NOT (EXCLUDED.alt_bet_rationale ? 'fa')
+                THEN predictions.alt_bet_rationale
+                ELSE COALESCE(EXCLUDED.alt_bet_rationale, predictions.alt_bet_rationale)
+              END;
           `, [
             p.fixture_id, p.tournament_name, p.round_name, p.surface, p.match_date,
             p.home_name, p.away_name, p.home_odds, p.away_odds, p.predicted_winner,
@@ -971,8 +991,13 @@ export class NeonSyncService {
       await this.pushToNeon();
       Logger.success('[NeonSync] ✅ Initial cloud sync completed successfully.');
 
-      this.syncTimer = setInterval(() => {
-        this.pushToNeon().catch((e) => Logger.warn?.(`[NeonSync] Periodic sync error: ${e.message}`));
+      this.syncTimer = setInterval(async () => {
+        try {
+          await this.pullFromNeon();
+          await this.pushToNeon();
+        } catch (e: any) {
+          Logger.warn?.(`[NeonSync] Periodic sync error: ${e.message}`);
+        }
       }, intervalMs);
     } catch (err: any) {
       Logger.warn?.(`[NeonSync] Failed to start NeonSyncService: ${err.message}`);

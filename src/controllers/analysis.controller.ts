@@ -3,6 +3,7 @@ import { EditorialsRepo, MatchEditorialRecord, type EditorialPublishStatus } fro
 import { PredictionsRepo } from '../db/repositories/predictions.repo';
 import { PredictionsService } from '../services/predictions.service';
 import { ChannelPosterService } from '../services/channel-poster.service';
+import { autoEnrichPredictionMultilingual } from '../services/multilingualEnricher.service';
 import { Logger } from '../utils/logger';
 import { redactEditorial, redactPrediction, resolveWebappAccess } from '../utils/contentAccess';
 import {
@@ -154,6 +155,8 @@ export const AnalysisController = {
           status: 'UPCOMING',
           published_at: new Date().toISOString(),
         };
+
+        await autoEnrichPredictionMultilingual(predictionRecord);
 
         const predictionId = PredictionsService.publish(predictionRecord);
         results.betting = { id: predictionId };

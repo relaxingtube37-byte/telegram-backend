@@ -127,7 +127,7 @@ export class BackendDataPoolOrchestrator {
 
       const tourn = ev.tournament || {};
       const tournName = tourn.name || 'World Tennis Tour';
-      const category = this.resolveCategory(tourn, tournName);
+      const { category, gender, tour_category } = this.resolveCategory(tourn, tournName, ev);
       
       // Strict tennis verification: reject other sports if returned by multi-sport APIs
       const catUpper = category.toUpperCase();
@@ -154,6 +154,8 @@ export class BackendDataPoolOrchestrator {
           category,
           country,
           surface,
+          gender,
+          tour_category,
           matches: [],
         });
       }
@@ -472,6 +474,10 @@ export class BackendDataPoolOrchestrator {
         homeClutchVerdict: homeClutch,
         awayClutchVerdict: awayClutch,
         expectedTotalGames: expectedGames,
+        gender,
+        tour_category,
+        tournament_name: tournName,
+        round_name: ev?.roundInfo?.name || ev?.roundInfo?.slug || (ev?.roundInfo?.round ? `Round ${ev.roundInfo.round}` : undefined),
       };
 
       map.get(tournId)!.matches.push(matchItem);
@@ -596,63 +602,116 @@ export class BackendDataPoolOrchestrator {
   }
 
   // ─── Category Resolution ──────────────────────────────────────────────────
-  private static resolveCategory(tourn: any, tournName: string): string {
+  private static resolveCategory(tourn: any, tournName: string, ev?: any): { category: string; gender: 'men' | 'women'; tour_category: string } {
     const nameUpper = (tournName || '').toUpperCase();
-    const catName = tourn.category?.name || '';
+    const catName = tourn?.category?.name || '';
     const catUpper = catName.toUpperCase();
-    const catId = tourn.category?.id;
-    const isWomen = nameUpper.includes('WOMEN') || catUpper.includes('WOMEN') || nameUpper.includes('WTA') || catUpper.includes('WTA') || nameUpper.includes('GIRLS') || catId === 6 || tourn.id === 196860;
+    const catId = Number(tourn?.category?.id || 0);
+
+    const hasWomenTag =
+      ev?._inferredGender === 'women' ||
+      ev?.homeTeam?.gender === 'F' ||
+      ev?.awayTeam?.gender === 'F' ||
+      nameUpper.includes('WOMEN') ||
+      catUpper.includes('WOMEN') ||
+      nameUpper.includes('WTA') ||
+      catUpper.includes('WTA') ||
+      nameUpper.includes('LADIES') ||
+      nameUpper.includes('GIRLS') ||
+      [6, 871, 213, 74, 1844].includes(catId) ||
+      tourn?.id === 196860;
+
+    const hasMenTag =
+      ev?._inferredGender === 'men' ||
+      ev?.homeTeam?.gender === 'M' ||
+      ev?.awayTeam?.gender === 'M' ||
+      nameUpper.includes('MEN') ||
+      catUpper.includes('MEN') ||
+      nameUpper.includes('ATP') ||
+      catUpper.includes('ATP') ||
+      nameUpper.includes('CHALLENGER') ||
+      catUpper.includes('CHALLENGER') ||
+      [3, 72, 785, 73, 1843].includes(catId);
+
+    const isWomen = hasWomenTag || (!hasMenTag && (
+      nameUpper.includes('GUADALAJARA') ||
+      nameUpper.includes('SAO PAULO') ||
+      nameUpper.includes('MONASTIR') ||
+      nameUpper.includes('CALDAS DA RAINHA') ||
+      /\bW(15|25|35|50|75|100)\b/i.test(nameUpper) ||
+      /\bW(15|25|35|50|75|100)\b/i.test(catUpper)
+    ));
+
     const isMixed = nameUpper.includes('MIXED') || catUpper.includes('MIXED');
+    const gender: 'men' | 'women' = isWomen ? 'women' : 'men';
+
+    let category = 'ATP';
+    let tour_category = 'ATP';
 
     if (nameUpper.includes('DAVIS') || catUpper.includes('DAVIS')) {
-      return 'Davis Cup';
-    }
-    if (nameUpper.includes('BILLIE') || nameUpper.includes('BJK') || catUpper.includes('BILLIE') || catUpper.includes('BJK')) {
-      return 'BJK Cup';
-    }
-    if (nameUpper.includes('UNITED CUP') || catUpper.includes('UNITED CUP') || nameUpper.includes('LAVER CUP') || catUpper.includes('LAVER CUP') || nameUpper.includes('HOPMAN') || catUpper.includes('HOPMAN')) {
-      return 'Team Cup';
-    }
-    if (nameUpper.includes('AUSTRALIAN OPEN') || nameUpper.includes('ROLAND GARROS') || 
+      category = 'Davis Cup';
+      tour_category = 'ATP';
+    } else if (nameUpper.includes('BILLIE') || nameUpper.includes('BJK') || catUpper.includes('BILLIE') || catUpper.includes('BJK')) {
+      category = 'BJK Cup';
+      tour_category = 'WTA';
+    } else if (nameUpper.includes('UNITED CUP') || catUpper.includes('UNITED CUP') || nameUpper.includes('LAVER CUP') || catUpper.includes('LAVER CUP') || nameUpper.includes('HOPMAN') || catUpper.includes('HOPMAN')) {
+      category = 'Team Cup';
+      tour_category = isWomen ? 'WTA' : 'ATP';
+    } else if (nameUpper.includes('AUSTRALIAN OPEN') || nameUpper.includes('ROLAND GARROS') || 
         nameUpper.includes('WIMBLEDON') || nameUpper.includes('US OPEN') || 
         catUpper.includes('GRAND SLAM')) {
-      if (isMixed) return 'Mixed Grand Slam';
-      if (isWomen) return 'WTA Grand Slam';
-      return 'ATP Grand Slam';
+      if (isMixed) {
+        category = 'Mixed Grand Slam';
+        tour_category = 'GRAND_SLAM';
+      } else if (isWomen) {
+        category = 'WTA Grand Slam';
+        tour_category = 'WTA';
+      } else {
+        category = 'ATP Grand Slam';
+        tour_category = 'ATP';
+      }
+    } else if (catId === 871 || nameUpper.includes('WTA 125') || catUpper.includes('125')) {
+      category = 'WTA 125';
+      tour_category = 'WTA125';
+    } else if (nameUpper.includes('1000') || nameUpper.includes('MASTERS') || catUpper.includes('1000') || catUpper.includes('MASTERS')) {
+      category = isWomen ? 'WTA 1000' : 'ATP 1000';
+      tour_category = isWomen ? 'WTA' : 'ATP';
+    } else if (nameUpper.includes('ATP 500') || (catUpper.includes('500') && !isWomen)) {
+      category = 'ATP 500';
+      tour_category = 'ATP';
+    } else if (nameUpper.includes('WTA 500') || (catUpper.includes('500') && isWomen)) {
+      category = 'WTA 500';
+      tour_category = 'WTA';
+    } else if (nameUpper.includes('ATP 250') || (catUpper.includes('250') && !isWomen)) {
+      category = 'ATP 250';
+      tour_category = 'ATP';
+    } else if (nameUpper.includes('WTA 250') || (catUpper.includes('250') && isWomen)) {
+      category = 'WTA 250';
+      tour_category = 'WTA';
+    } else if (catId === 72 || nameUpper.includes('CHALLENGER') || catUpper.includes('CHALLENGER')) {
+      category = 'Challenger';
+      tour_category = 'CHALLENGER';
+    } else if ([213, 74].includes(catId) || ((nameUpper.includes('ITF') || catUpper.includes('ITF')) && isWomen)) {
+      category = 'ITF Women';
+      tour_category = 'ITF';
+    } else if ([785, 73].includes(catId) || nameUpper.includes('ITF') || catUpper.includes('ITF')) {
+      category = 'ITF Men';
+      tour_category = 'ITF';
+    } else if ((nameUpper.includes('UTR') || catUpper.includes('UTR') || nameUpper.includes('PTT')) && isWomen) {
+      category = 'UTR Women';
+      tour_category = 'EXHIBITION';
+    } else if (nameUpper.includes('UTR') || catUpper.includes('UTR') || nameUpper.includes('PTT')) {
+      category = 'UTR Men';
+      tour_category = 'EXHIBITION';
+    } else if (catName) {
+      category = catName;
+      tour_category = isWomen ? 'WTA' : 'ATP';
+    } else {
+      category = isWomen ? 'WTA' : 'ATP';
+      tour_category = isWomen ? 'WTA' : 'ATP';
     }
-    if (nameUpper.includes('1000') || nameUpper.includes('MASTERS') || catUpper.includes('1000') || catUpper.includes('MASTERS')) {
-      return (isWomen || nameUpper.includes('WTA') || catUpper.includes('WTA')) ? 'WTA 1000' : 'ATP 1000';
-    }
-    if (nameUpper.includes('ATP 500') || (catUpper.includes('500') && !catUpper.includes('WTA') && !isWomen)) {
-      return 'ATP 500';
-    }
-    if (nameUpper.includes('WTA 500') || ((catUpper.includes('500') || nameUpper.includes('500')) && (catUpper.includes('WTA') || isWomen))) {
-      return 'WTA 500';
-    }
-    if (nameUpper.includes('ATP 250') || (catUpper.includes('250') && !catUpper.includes('WTA') && !isWomen)) {
-      return 'ATP 250';
-    }
-    if (nameUpper.includes('WTA 250') || ((catUpper.includes('250') || nameUpper.includes('250')) && (catUpper.includes('WTA') || isWomen))) {
-      return 'WTA 250';
-    }
-    if (nameUpper.includes('CHALLENGER') || catUpper.includes('CHALLENGER')) {
-      return 'Challenger';
-    }
-    if ((nameUpper.includes('ITF') || catUpper.includes('ITF')) && (isWomen || nameUpper.includes(' W') || catUpper.includes(' W'))) {
-      return 'ITF Women';
-    }
-    if (nameUpper.includes('ITF') || catUpper.includes('ITF')) {
-      return 'ITF Men';
-    }
-    if ((nameUpper.includes('UTR') || catUpper.includes('UTR') || nameUpper.includes('PTT')) && isWomen) {
-      return 'UTR Women';
-    }
-    if (nameUpper.includes('UTR') || catUpper.includes('UTR') || nameUpper.includes('PTT')) {
-      return 'UTR Men';
-    }
-    if (catName) return catName;
-    if (isWomen) return 'WTA';
-    return 'ATP';
+
+    return { category, gender, tour_category };
   }
 
   // ─── Accurate Serve Tracking ──────────────────────────────────────────────
@@ -859,6 +918,8 @@ export class BackendDataPoolOrchestrator {
         category: 'ATP 1000',
         country: 'USA',
         surface: 'Hardcourt Outdoor',
+        gender: 'men',
+        tour_category: 'ATP',
         matches: [
           {
             id: 101,
@@ -876,6 +937,8 @@ export class BackendDataPoolOrchestrator {
             statusText: 'SET 3',
             isLive: true,
             time: '17:30',
+            gender: 'men',
+            tour_category: 'ATP',
             stats: {
               aces1: 9,
               aces2: 12,
@@ -910,6 +973,8 @@ export class BackendDataPoolOrchestrator {
             statusText: 'FINISHED',
             isLive: false,
             time: '15:00',
+            gender: 'men',
+            tour_category: 'ATP',
             stats: {
               aces1: 6,
               aces2: 8,
@@ -936,6 +1001,8 @@ export class BackendDataPoolOrchestrator {
         category: 'WTA 1000',
         country: 'USA',
         surface: 'Hardcourt Outdoor',
+        gender: 'women',
+        tour_category: 'WTA',
         matches: [
           {
             id: 201,
@@ -953,6 +1020,8 @@ export class BackendDataPoolOrchestrator {
             statusText: 'SET 2',
             isLive: true,
             time: '16:00',
+            gender: 'women',
+            tour_category: 'WTA',
             stats: {
               aces1: 8,
               aces2: 5,

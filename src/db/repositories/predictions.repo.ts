@@ -35,6 +35,8 @@ function mapRow(row: any): Prediction | null {
   if (!row) return null;
   return {
     ...row,
+    gender: row.gender || undefined,
+    tour_category: row.tour_category || undefined,
     key_factors: parseJsonField(row.key_factors, true) ?? { en: [] },
     ai_summary: parseJsonField(row.ai_summary, true) ?? undefined,
     devils_advocate_risk: parseJsonField(row.devils_advocate_risk, true) ?? undefined,
@@ -74,6 +76,39 @@ export const PredictionsRepo = {
     `).get(home, away, `%${home}%`, `%${away}%`));
   },
 
+  backfillMissingGenders: (): number => {
+    try {
+      const rows = db.prepare("SELECT id, tournament_name, round_name, home_name, away_name FROM predictions WHERE gender IS NULL OR gender = ''").all() as any[];
+      if (!rows || rows.length === 0) return 0;
+
+      const updateStmt = db.prepare('UPDATE predictions SET gender = ?, tour_category = COALESCE(tour_category, ?) WHERE id = ?');
+      let count = 0;
+      for (const row of rows) {
+        const text = `${row.tournament_name || ''} ${row.round_name || ''} ${row.home_name || ''} ${row.away_name || ''}`.toLowerCase();
+        const isWomen =
+          text.includes('wta') ||
+          text.includes('women') ||
+          text.includes('ladies') ||
+          text.includes('bjk') ||
+          text.includes('billie jean king') ||
+          text.includes('girls') ||
+          text.includes('guadalajara') ||
+          text.includes('sao paulo') ||
+          text.includes('monastir') ||
+          text.includes('caldas da rainha') ||
+          /\bw(15|25|35|50|75|100)\b/.test(text);
+
+        const g = isWomen ? 'women' : 'men';
+        const tour = isWomen ? (text.includes('125') ? 'WTA125' : 'WTA') : (text.includes('challenger') ? 'CHALLENGER' : 'ATP');
+        updateStmt.run(g, tour, row.id);
+        count++;
+      }
+      return count;
+    } catch {
+      return 0;
+    }
+  },
+
   create: (p: Prediction): number => {
     if (p.fixture_id) {
       const existing = PredictionsRepo.getByFixtureId(p.fixture_id);
@@ -86,6 +121,8 @@ export const PredictionsRepo = {
             match_date = COALESCE(?, match_date),
             home_name = ?,
             away_name = ?,
+            gender = COALESCE(?, gender),
+            tour_category = COALESCE(?, tour_category),
             home_odds = COALESCE(?, home_odds),
             away_odds = COALESCE(?, away_odds),
             predicted_winner = ?,
@@ -112,7 +149,9 @@ export const PredictionsRepo = {
 
         updateStmt.run(
           p.tournament_name || null, p.round_name || null, p.surface || null, p.match_date || null,
-          p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
+          p.home_name, p.away_name,
+          p.gender || null, p.tour_category || null,
+          p.home_odds || null, p.away_odds || null,
           p.predicted_winner, p.win_probability, p.confidence, p.predicted_score || null,
           p.best_bet_selection || null, p.best_bet_market || null, p.best_bet_ev || null,
           serializeJsonField(p.best_bet_rationale),
@@ -133,7 +172,7 @@ export const PredictionsRepo = {
     const stmt = db.prepare(`
       INSERT INTO predictions (
         fixture_id, tournament_name, round_name, surface, match_date,
-        home_name, away_name, home_odds, away_odds,
+        home_name, away_name, gender, tour_category, home_odds, away_odds,
         predicted_winner, win_probability, confidence, predicted_score,
         best_bet_selection, best_bet_market, best_bet_ev, best_bet_rationale,
         alt_bet_selection, alt_bet_market, alt_bet_rationale, key_factors, devils_advocate_risk,
@@ -141,7 +180,7 @@ export const PredictionsRepo = {
         status, channel_message_id, published_at, created_at
       ) VALUES (
         ?, ?, ?, ?, ?,
-        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
@@ -152,7 +191,7 @@ export const PredictionsRepo = {
 
     const info = stmt.run(
       p.fixture_id || null, p.tournament_name || null, p.round_name || null, p.surface || null, p.match_date || null,
-      p.home_name, p.away_name, p.home_odds || null, p.away_odds || null,
+      p.home_name, p.away_name, p.gender || null, p.tour_category || null, p.home_odds || null, p.away_odds || null,
       p.predicted_winner, p.win_probability, p.confidence, p.predicted_score || null,
       p.best_bet_selection || null, p.best_bet_market || null, p.best_bet_ev || null,
       serializeJsonField(p.best_bet_rationale),

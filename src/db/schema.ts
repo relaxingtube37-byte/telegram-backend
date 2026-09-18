@@ -97,6 +97,8 @@ export const initSchema = () => {
       away_image TEXT,
       home_id INTEGER,
       away_id INTEGER,
+      gender TEXT,
+      tour_category TEXT,
       status TEXT DEFAULT 'UPCOMING',
       result_score TEXT,
       channel_message_id INTEGER,
@@ -546,6 +548,15 @@ export const initSchema = () => {
       db.exec('ALTER TABLE canonical_matches ADD COLUMN is_archive_only INTEGER DEFAULT 0');
       db.exec('CREATE INDEX IF NOT EXISTS idx_canonical_matches_archive ON canonical_matches(is_archive_only)');
     }
+
+    const predCols = (db.prepare("PRAGMA table_info('predictions')").all() as any[]).map(c => c.name);
+    if (!predCols.includes('gender')) {
+      db.exec('ALTER TABLE predictions ADD COLUMN gender TEXT');
+    }
+    if (!predCols.includes('tour_category')) {
+      db.exec('ALTER TABLE predictions ADD COLUMN tour_category TEXT');
+    }
+    db.exec('CREATE INDEX IF NOT EXISTS idx_predictions_gender ON predictions(gender)');
   } catch (err: any) {
     console.warn('schema migration note:', err.message);
   }
@@ -636,5 +647,33 @@ export const initSchema = () => {
     }
   } catch (err: any) {
     console.warn('settings seed note:', err.message);
+  }
+
+  try {
+    const missingRows = db.prepare("SELECT id, tournament_name, round_name, home_name, away_name FROM predictions WHERE gender IS NULL OR gender = ''").all() as any[];
+    if (missingRows && missingRows.length > 0) {
+      const updateStmt = db.prepare("UPDATE predictions SET gender = ?, tour_category = COALESCE(tour_category, ?) WHERE id = ?");
+      for (const row of missingRows) {
+        const text = `${row.tournament_name || ''} ${row.round_name || ''} ${row.home_name || ''} ${row.away_name || ''}`.toLowerCase();
+        const isWomen =
+          text.includes('wta') ||
+          text.includes('women') ||
+          text.includes('ladies') ||
+          text.includes('bjk') ||
+          text.includes('billie jean king') ||
+          text.includes('girls') ||
+          text.includes('guadalajara') ||
+          text.includes('sao paulo') ||
+          text.includes('monastir') ||
+          text.includes('caldas da rainha') ||
+          /\bw(15|25|35|50|75|100)\b/.test(text);
+
+        const g = isWomen ? 'women' : 'men';
+        const tour = isWomen ? (text.includes('125') ? 'WTA125' : 'WTA') : (text.includes('challenger') ? 'CHALLENGER' : 'ATP');
+        updateStmt.run(g, tour, row.id);
+      }
+    }
+  } catch (err: any) {
+    console.warn('predictions gender backfill note:', err.message);
   }
 };
