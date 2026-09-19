@@ -158,13 +158,31 @@ export const ChannelPosterService = {
   },
 
   /**
+   * Delete a message from the Telegram channel safely.
+   */
+  deleteMessageSafely: async (messageId: number | null | undefined): Promise<boolean> => {
+    const currentChannelId = ENV.CHANNEL_ID;
+    if (!bot || !currentChannelId || !messageId || Number(messageId) <= 0) return false;
+    try {
+      await bot.api.deleteMessage(currentChannelId, Number(messageId));
+      Logger.info(`[ChannelPoster] 🗑️ Deleted message #${messageId} from channel ${currentChannelId}`);
+      return true;
+    } catch (err: any) {
+      Logger.warn(`[ChannelPoster] Could not delete message #${messageId}: ${err.message}`);
+      return false;
+    }
+  },
+
+  /**
    * Post WON/LOST/VOID/INTERRUPTED reply or standalone message once per prediction.
-   * Safe across backend restart and backup import when those columns are restored.
+   * If an old result announcement message already exists in the channel, it is
+   * automatically deleted so duplicate result messages NEVER remain.
    */
   announceResultIfNeeded: async (
     prediction: Prediction | null | undefined,
     status: 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED' | string,
     resultScore?: string,
+    forceReannounce: boolean = false,
   ): Promise<{ posted: boolean; skipped: boolean; reason?: string; resultMessageId?: number | null }> => {
     if (!prediction?.id) {
       return { posted: false, skipped: true, reason: 'missing_prediction' };
@@ -177,20 +195,25 @@ export const ChannelPosterService = {
     const fixtureId = prediction.fixture_id ? Number(prediction.fixture_id) : null;
 
     // 1. In-memory check (prevents duplicate calls within same process lifetime)
-    if (fixtureId && (announcedFixtureIds.has(fixtureId) || inFlightFixtureIds.has(fixtureId))) {
+    if (!forceReannounce && fixtureId && (announcedFixtureIds.has(fixtureId) || inFlightFixtureIds.has(fixtureId))) {
       Logger.info(`[ChannelPoster] Skip result announce for fixture #${fixtureId}: already in memory cache or in-flight.`);
       return { posted: false, skipped: true, reason: 'already_announced' };
     }
 
     // 2. Fresh database record check (guards against stale prediction objects passed by callers)
     const fresh = PredictionsRepo.getById(prediction.id) || (fixtureId ? PredictionsRepo.getByFixtureId(fixtureId) : null);
-    if (fresh && PredictionsRepo.isResultAnnounced(fresh)) {
-      if (fixtureId) announcedFixtureIds.add(fixtureId);
-      Logger.info(
-        `[ChannelPoster] Skip result announce for fixture #${fixtureId ?? '?'} ` +
-          `(prediction #${prediction.id}): already announced at ${fresh.result_announced_at}`,
-      );
-      return { posted: false, skipped: true, reason: 'already_announced' };
+    const existingResultMsgId = fresh?.result_channel_message_id || prediction.result_channel_message_id;
+
+    if (!forceReannounce && fresh && PredictionsRepo.isResultAnnounced(fresh)) {
+      // If status and score are identical, skip re-announcing
+      if (fresh.status === normStatus && (!resultScore || fresh.result_score === resultScore)) {
+        if (fixtureId) announcedFixtureIds.add(fixtureId);
+        Logger.info(
+          `[ChannelPoster] Skip result announce for fixture #${fixtureId ?? '?'} ` +
+            `(prediction #${prediction.id}): already announced at ${fresh.result_announced_at}`,
+        );
+        return { posted: false, skipped: true, reason: 'already_announced' };
+      }
     }
 
     if (fixtureId) inFlightFixtureIds.add(fixtureId);
@@ -213,6 +236,13 @@ export const ChannelPosterService = {
         const announcedAt = new Date().toISOString();
         if (fixtureId) announcedFixtureIds.add(fixtureId);
         PredictionsRepo.markResultAnnounced(prediction.id, announcedAt, resultMessageId);
+
+        // 🗑️ DEDUPLICATION: Automatically delete previous result message from channel if one existed
+        if (existingResultMsgId && Number(existingResultMsgId) > 0 && Number(existingResultMsgId) !== Number(resultMessageId)) {
+          Logger.info(`[ChannelPoster] 🗑️ Automatically deleting previous duplicate result message #${existingResultMsgId} for fixture #${fixtureId ?? '?'}`);
+          await ChannelPosterService.deleteMessageSafely(Number(existingResultMsgId));
+        }
+
         Logger.success(
           `[ChannelPoster] Result announced for fixture #${fixtureId ?? '?'} ` +
             `(prediction #${prediction.id}) msgId=${resultMessageId}`,
@@ -224,6 +254,46 @@ export const ChannelPosterService = {
     } finally {
       if (fixtureId) inFlightFixtureIds.delete(fixtureId);
     }
+  },
+
+  /**
+   * Scans all predictions and removes any duplicate result announcement messages in the channel.
+   */
+  cleanupDuplicateResultMessages: async (): Promise<{ checked: number; deleted: number; deletedIds: number[] }> => {
+    const currentChannelId = ENV.CHANNEL_ID;
+    if (!bot || !currentChannelId) {
+      return { checked: 0, deleted: 0, deletedIds: [] };
+    }
+
+    const allPreds = PredictionsRepo.getAll(500);
+    const seenFixtures = new Map<number, number>(); // fixture_id -> newest result_channel_message_id
+    const deletedIds: number[] = [];
+
+    // Order predictions by id descending (newest first)
+    const sorted = [...allPreds].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+
+    for (const p of sorted) {
+      const fid = p.fixture_id ? Number(p.fixture_id) : null;
+      const resMsgId = p.result_channel_message_id ? Number(p.result_channel_message_id) : null;
+      if (!fid || !resMsgId) continue;
+
+      if (!seenFixtures.has(fid)) {
+        // Keep the first (newest) result message seen for this fixture
+        seenFixtures.set(fid, resMsgId);
+      } else {
+        const keptMsgId = seenFixtures.get(fid)!;
+        if (resMsgId !== keptMsgId) {
+          // Duplicate result message for the same fixture -> delete the older one
+          const deleted = await ChannelPosterService.deleteMessageSafely(resMsgId);
+          if (deleted) {
+            deletedIds.push(resMsgId);
+          }
+        }
+      }
+    }
+
+    Logger.info(`[ChannelPoster] 🧹 Cleanup finished: checked ${allPreds.length} predictions, deleted ${deletedIds.length} duplicate result messages.`);
+    return { checked: allPreds.length, deleted: deletedIds.length, deletedIds };
   },
 
   updateResult: async (

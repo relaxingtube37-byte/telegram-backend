@@ -278,7 +278,7 @@ export const AdminController = {
       const prediction = PredictionsRepo.getById(id);
       const normStatus = String(status).toUpperCase().trim();
       if (prediction && ['WON', 'LOST', 'VOID', 'INTERRUPTED'].includes(normStatus)) {
-        await ChannelPosterService.announceResultIfNeeded(prediction, normStatus, result_score);
+        await ChannelPosterService.announceResultIfNeeded(prediction, normStatus, result_score, true);
       }
 
       res.json({ success: true, predictionId: id, status, result_score });
@@ -433,6 +433,14 @@ export const AdminController = {
       const fixtureId = pred?.fixture_id ? Number(pred.fixture_id) : null;
       const targetId = pred?.id ? Number(pred.id) : id;
 
+      // 🗑️ Delete associated Telegram channel messages if any
+      if (pred?.result_channel_message_id) {
+        await ChannelPosterService.deleteMessageSafely(Number(pred.result_channel_message_id));
+      }
+      if (pred?.channel_message_id) {
+        await ChannelPosterService.deleteMessageSafely(Number(pred.channel_message_id));
+      }
+
       const success = PredictionsRepo.delete(targetId);
 
       // Permanently remove from Neon cloud database if fixture_id is known
@@ -480,6 +488,12 @@ export const AdminController = {
           }
           if (pred?.fixture_id) {
             fixtureIds.push(Number(pred.fixture_id));
+          }
+          if (pred?.result_channel_message_id) {
+            await ChannelPosterService.deleteMessageSafely(Number(pred.result_channel_message_id));
+          }
+          if (pred?.channel_message_id) {
+            await ChannelPosterService.deleteMessageSafely(Number(pred.channel_message_id));
           }
           const targetId = pred?.id ? Number(pred.id) : numId;
           if (PredictionsRepo.delete(targetId)) count++;
@@ -739,6 +753,29 @@ export const AdminController = {
       res.json({ success: true, fixtureId, data });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
+  cleanupDuplicateResults: async (req: Request, res: Response) => {
+    try {
+      const result = await ChannelPosterService.cleanupDuplicateResultMessages();
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  deleteChannelMessage: async (req: Request, res: Response) => {
+    try {
+      const { messageId } = req.body;
+      const numId = Number(messageId);
+      if (!numId || isNaN(numId)) {
+        return res.status(400).json({ error: 'Valid messageId is required' });
+      }
+      const deleted = await ChannelPosterService.deleteMessageSafely(numId);
+      res.json({ success: deleted, messageId: numId });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
   },
 };
