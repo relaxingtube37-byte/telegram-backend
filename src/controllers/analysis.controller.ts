@@ -5,6 +5,7 @@ import { PredictionsService } from '../services/predictions.service';
 import { ChannelPosterService } from '../services/channel-poster.service';
 import { autoEnrichPredictionMultilingual } from '../services/multilingualEnricher.service';
 import { Logger } from '../utils/logger';
+import { NeonSyncService } from '../services/neon-sync.service';
 import { redactEditorial, redactPrediction, resolveWebappAccess } from '../utils/contentAccess';
 import {
   canTransitionStatus,
@@ -129,12 +130,19 @@ export const AnalysisController = {
       // 2. Ingest Mode B: Telegram Betting Record
       if (payload.telegramBetting) {
         const bet = payload.telegramBetting;
+        const rawGender = payload.gender || bet.gender;
+        const isExplicitWta = rawGender === 'women' || rawGender === 'female' || rawGender === 'F' || payload.isWta;
+        const detectedGender = isExplicitWta ? 'women' : (rawGender === 'men' || rawGender === 'male' || rawGender === 'M' ? 'men' : ((payload.tourCategory || '').toLowerCase().includes('wta') ? 'women' : 'men'));
+        const detectedTourCategory = payload.tourCategory || payload.tour_category || bet.tourCategory || (detectedGender === 'women' ? 'WTA' : 'ATP');
+
         const predictionRecord: any = {
           fixture_id: fixtureId,
           tournament_name: payload.tournamentName || 'Tennis Tournament',
           round_name: payload.roundName || '',
           surface: payload.surface || '',
           match_date: payload.matchDate || new Date().toISOString(),
+          gender: detectedGender,
+          tour_category: detectedTourCategory,
           home_name: payload.homeName,
           away_name: payload.awayName,
           home_odds: bet.homeOdds ? String(bet.homeOdds) : undefined,
@@ -160,6 +168,21 @@ export const AnalysisController = {
 
         const predictionId = PredictionsService.publish(predictionRecord);
         results.betting = { id: predictionId };
+
+        // Save pro_intelligence if provided in the dual payload
+        const proIntel = payload.proIntelligence || payload.pro_intelligence;
+        if (proIntel && fixtureId) {
+          NeonSyncService.saveProIntelligence(
+            fixtureId,
+            payload.homeName,
+            payload.awayName,
+            detectedTourCategory,
+            payload.surface || 'Hard',
+            proIntel
+          ).catch((e: any) => {
+            Logger.warn(`Failed to auto-upsert pro-intelligence: ${e.message}`);
+          });
+        }
 
         if (payload.postToTelegramChannel && predictionId) {
           try {
